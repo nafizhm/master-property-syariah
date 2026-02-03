@@ -1,0 +1,1377 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Pengaturan\HakAksesController;
+use App\Models\Bank;
+use App\Models\Customer;
+use App\Models\KategoriTransaksi;
+use App\Models\KavlingPeta;
+use App\Models\LokasiKavling;
+use App\Models\MetodeBayar;
+use App\Models\Pemasukan;
+use App\Models\PengaturanMedia;
+use App\Models\Piutang;
+use App\Models\ProgresListPenjualan;
+use App\Traits\LogAktivitasTrait;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use TCPDF;
+use Yajra\DataTables\Facades\DataTables;
+
+Carbon::setLocale('id');
+class PembayaranController extends Controller
+{
+    use LogAktivitasTrait;
+
+    protected GenerateNumberController $generator;
+
+    public function __construct(GenerateNumberController $generator)
+    {
+        $this->generator = $generator;
+    }
+
+    public function index(Request $request)
+    {
+        $permissions = HakAksesController::getUserPermissions();
+
+        if ($request->ajax()) {
+            $data = Customer::with(['piutangs.kategori', 'pemasukans.kategori', 'progres', 'marketing', 'lokasiKavling'])
+                ->with(['pemasukans' => function ($q) {
+                    $q->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');
+                }])
+                ->whereHas('lokasiKavling')
+                ->where('stt_arsip', 0)
+                ->orderBy('id', 'desc');
+
+            if ($request->status) {
+                if ($request->status == 'Lunas') {
+                    $data->whereHas('piutangs', function ($q) {
+                        $q->select('id_customer') // jangan pakai *
+                            ->groupBy('id_customer')
+                            ->havingRaw('SUM(sisa_bayar) = 0');
+                    });
+                } elseif ($request->status == 'Terhutang') {
+                    $data->whereHas('piutangs', function ($q) {
+                        $q->select('id_customer')
+                            ->groupBy('id_customer')
+                            ->havingRaw('SUM(sisa_bayar) > 0');
+                    });
+                }
+            }
+
+            if ($request->progres) {
+                $data->where('id_status_progres', $request->progres);
+            }
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('customer', function ($row) {
+                    $badge = '';
+                    if ($row->jenis_pembelian == 'Pembelian Cash') {
+                        $badge = '<span class="badge badge-success">' . $row->jenis_pembelian . '</span>';
+                    } elseif ($row->jenis_pembelian == 'Cash Bertahap') {
+                        $badge = '<span class="badge badge-primary">' . $row->jenis_pembelian . '</span>';
+                    } elseif ($row->jenis_pembelian == 'KPR') {
+                        $badge = '<span class="badge badge-danger">' . $row->jenis_pembelian . '</span>';
+                    }
+                    return '<div><strong>' . e($row->nama_lengkap) . '</strong><br>' . e($row->no_telp) . '<br>' . $badge . '</div>';
+                })
+                ->filterColumn('customer', function ($query, $keyword) {
+                    $query->where(function ($q) use ($keyword) {
+                        $q->where('nama_lengkap', 'like', "%{$keyword}%")
+                            ->orWhere('no_telp', 'like', "%{$keyword}%");
+                    });
+                })
+                ->addColumn('rincian_tagihan', function ($row) {
+                    $html = '';
+                    foreach ($row->piutangs as $i => $p) {
+                        $icon  = $i == 0 ? '<i class="fa fa-home text-danger"></i> ' : '<i class="fa fa-plus-square text-danger"></i> ';
+                        $html .= $icon . e($p->deskripsi) . ' # <strong>Rp. ' . number_format($p->nominal, 0, ',', '.') . '</strong><br>';
+                    }
+                    $html .= '<hr>';
+                    foreach ($row->pemasukans as $m) {
+                        $html .= '<i class="fa fa-plus-circle text-success"></i> ' . e($m->kategori->kategori) . ' # <strong>Rp. ' . number_format($m->nominal, 0, ',', '.') . '</strong><br>';
+                    }
+                    return $html;
+                })
+                ->addColumn('status', function ($row) {
+                    $status = $row->progres ? $row->progres->status_progres : '';
+
+                    if ($row->id_marketing == 0) {
+                        $marketing = '<span class="badge badge-info">Non Marketing</span>';
+                    } else {
+                        $marketing = $row->marketing
+                            ? '<span class="badge badge-info">' . $row->marketing->nama_marketing . '</span>'
+                            : '';
+                    }
+
+                    return '<div>' . e($status) . '<br>' . $marketing . '</div>';
+                })
+                ->addColumn('jumlah_tagihan', function ($row) {
+                    $totalTagihan = $row->piutangs->sum('nominal');
+                    $totalBayar   = $row->piutangs->sum('terbayar');
+                    $sisa         = max($row->piutangs->sum('sisa_bayar'), 0);
+
+                    if ($sisa == 0) {
+                        return '<img src="' . asset('assets/img/lunas.jpg') . '" width="100px">';
+                    }
+
+                    $html  = '<span class="badge badge-warning">Tagihan : Rp. ' . number_format($totalTagihan, 0, ',', '.') . '</span><br>';
+                    $html .= '<span class="badge badge-success">Sudah Bayar : Rp. ' . number_format($totalBayar, 0, ',', '.') . '</span><br>';
+                    $html .= '<span class="badge badge-danger">Sisa Bayar : Rp. ' . number_format($sisa, 0, ',', '.') . '</span>';
+                    return $html;
+                })
+                ->addColumn('action', function ($row) {
+                    $editUrl  = route('pembayaran.show', $row->id);
+                    $btn      = '<div class="d-flex justify-content-center">';
+                    $btn     .= '<a class="btn btn-success btn-sm" href="' . e($editUrl) . '">Detail</a>';
+                    $btn     .= '</div>';
+                    return $btn;
+                })
+                ->rawColumns(['customer', 'rincian_tagihan', 'status', 'jumlah_tagihan', 'action'])
+                ->make(true);
+        }
+
+        $progreslists = ProgresListPenjualan::all(['id', 'status_progres']);
+
+        return view('admin.pembayaran.index', compact('permissions', 'progreslists'));
+    }
+
+    public function cetakRekap($id)
+    {
+        Carbon::setLocale('id');
+
+        $customer = Customer::with(['pemasukans'])->with(['pemasukans' => function ($q) {
+            $q->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');
+        }])->findOrFail($id);
+
+        $kavling         = $customer->kavlingPeta;
+        $pengaturanMedia = PengaturanMedia::where('jenis_data', 'Logo Rekap')->first();
+        $logoPath        = null;
+        if ($pengaturanMedia && $pengaturanMedia->nama_file) {
+            $logoPath = public_path('config_media/' . $pengaturanMedia->nama_file);
+        }
+
+        $pdf = new TCPDF('P', 'mm', 'A4');
+        $pdf->SetTitle('Rekap Pembayaran' . ' - ' . $customer->nama_lengkap);
+        $pdf->AddPage();
+
+        if ($logoPath && file_exists($logoPath)) {
+            $pdf->Image($logoPath, 15, 15, 25);
+        }
+
+        $pdf->SetXY(57, 14);
+
+        $pdf->SetFont('helvetica', 'B', 25);
+        $pdf->SetTextColor(0, 51, 102);
+        $pdf->Cell(0, 7, 'PT. ALAM INDAH SELALU', 0, 1, 'L');
+
+        $pdf->SetFont('Times', '', 11);
+        $pdf->SetTextColor(218, 0, 0);
+        $pdf->Cell(0, 6, 'KONTRAKTOR - DEVELOPER', 0, 1, 'C');
+
+        $pdf->SetFont('Times', '', 9);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->MultiCell(
+            0,
+            0,
+            'Komplek Ruko Hawai Garden Blok B No. 2 Kelurahan Belian Batan - Center',
+            0,
+            'C'
+        );
+        $pdf->SetX(10);
+        $pdf->cell(0, 0, 'Telp. 0778 - 4173387', 0, 1, 'C');
+
+        $pdf->SetXY(0, 32);
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetLineWidth(0.7);
+        $pdf->Line(10, 42, 200, 42);
+
+        $pdf->SetLineWidth(0.3);
+        $pdf->Line(10, 41, 200, 41);
+
+        $pdf->Ln(10);
+        $pdf->SetFont('Times', 'B', 10);
+        $pdf->SetTextColor(218, 0, 0);
+        $pdf->Cell(190, 8, 'TABEL REKAP PEMBAYARAN', 0, 1, 'C');
+        $pdf->Ln(3);
+
+        $pdf->SetFont('Times', '', 9);
+        $pdf->SetTextColor(0, 0, 0);
+
+        $startY = $pdf->GetY();
+
+        $pdf->SetXY(10, $startY);
+        $pdf->Cell(25, 6, 'Nama', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(60, 6, strtoupper($customer->nama_lengkap), 0, 1);
+
+        $pdf->SetX(10);
+        $pdf->Cell(25, 6, 'No. KTP', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(60, 6, $customer->nik ?? '-', 0, 1);
+
+        $pdf->SetX(10);
+        $pdf->Cell(25, 6, 'Alamat', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(60, 6, $customer->alamat_domisili ?? '-', 0, 1);
+
+        $pdf->SetX(10);
+        $pdf->Cell(25, 6, 'Jenis Pembelian', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(60, 6, $customer->jenis_pembelian ?? '-', 0, 1);
+
+        $pdf->SetXY(90, $startY);
+        $pdf->Cell(25, 6, 'Blok/Kav', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(40, 6, $kavling->kode_kavling ?? '-', 0, 1);
+
+        $pdf->SetX(90);
+        $pdf->Cell(25, 6, 'Luas Tanah', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(40, 6, ($kavling->luas_tanah ?? '-') . ' m²', 0, 1);
+        $pdf->SetX(90);
+        $pdf->Cell(25, 6, 'Luas Bangunan', 0, 0);
+        $pdf->Cell(3, 6, ':', 0, 0);
+        $pdf->Cell(40, 6, ($kavling->luas_bangunan ?? '-') . ' m²', 0, 1);
+
+        $pdf->SetXY(145, $startY);
+        $pdf->Cell(30, 6, 'Harga Rumah', 0, 0);
+        $pdf->Cell(3, 6, ': Rp.', 0, 0);
+        $pdf->Cell(23, 6, number_format($customer->hrg_jual ?? 0, 0, ',', '.'), 0, 1, 'R');
+
+        $pdf->SetX(145);
+        $pdf->Cell(30, 6, 'Biaya Surat', 0, 0);
+        $pdf->Cell(3, 6, ': Rp.', 0, 0);
+        $pdf->Cell(23, 6, number_format($customer->biaya_surat ?? 0, 0, ',', '.'), 0, 1, 'R');
+
+        $pdf->SetX(145);
+        $pdf->Cell(30, 6, 'Peningkatan Mutu', 0, 0);
+        $pdf->Cell(3, 6, ': Rp.', 0, 0);
+        $pdf->Cell(23, 6, number_format($customer->peningkatan_mutu ?? 0, 0, ',', '.'), 0, 1, 'R');
+
+        $pdf->SetX(145);
+        $pdf->Cell(30, 6, 'Total Harga', 0, 0);
+        $pdf->Cell(3, 6, ': Rp.', 0, 0);
+        $pdf->Cell(23, 6, number_format($customer->total_harga ?? 0, 0, ',', '.'), 0, 1, 'R');
+
+        $pdf->Ln(10);
+        $pdf->SetFont('Times', 'B', 9);
+        $pdf->SetFillColor(211, 236, 230);
+        $pdf->Cell(5, 7, '', 0, 0);
+        $pdf->Cell(8, 7, 'No', 1, 0, 'C', true);
+        $pdf->Cell(30, 7, 'Tanggal', 1, 0, 'C', true);
+        $pdf->Cell(75, 7, 'Keterangan', 1, 0, 'L', true);
+        $pdf->Cell(31, 7, 'Pembayaran', 1, 0, 'C', true);
+        $pdf->Cell(31, 7, 'Sisa Pembayaran', 1, 1, 'C', true);
+
+        $pdf->SetFont('Times', '', 9);
+        $no   = 1;
+        $sisa = $kavling->hrg_jual ?? 0;
+
+        foreach ($customer->pemasukans->sortBy('id') as $byr) {
+            $sisa       -= $byr->nominal;
+            $keterangan  = explode('#', $byr->keterangan)[0] ?? '';
+            $fill        = ($no % 2 == 0) ? [255, 243, 243] : [255, 255, 255];
+
+            $pdf->SetFillColor(...$fill);
+
+            $pdf->Cell(5, 7, '', 0, 0);
+            $pdf->Cell(8, 7, $no++, 1, 0, 'C', true);
+            $pdf->Cell(30, 7, Carbon::parse($byr->tanggal)->translatedFormat('j F Y'), 1, 0, 'C', true);
+            $pdf->Cell(75, 7, ($sisa <= 0) ? 'LUNAS' : $keterangan, 1, 0, 'L', true);
+
+            $pdf->Cell(6, 7, 'Rp.', 'TBL', 0, 'L', true);
+            $pdf->Cell(25, 7, number_format($byr->nominal, 0, ',', '.'), 'TBR', 0, 'R', true);
+
+            $pdf->Cell(6, 7, 'Rp.', 'TBL', 0, 'L', true);
+            $pdf->Cell(25, 7, number_format(max($sisa, 0), 0, ',', '.'), 'TBR', 1, 'R', true);
+        }
+
+        $pdf->Ln(10);
+        $pdf->SetFont('', '', 8);
+        $pdf->SetTextColor(0, 0, 0);
+        $catatan = "Catatan:\n"
+            . "- Bukti pembayaran dinyatakan sah apabila disertai kwitansi dari tangan pemilik kavling.\n"
+            . "- Apabila ada yang mengaku-ngaku petugas kami \"PT. ALAM INDAH SELALU\" meminta/menagih pembayaran angsuran, harap waspada. HATI-HATI PENIPUAN.\n"
+            . "- Konsumen dapat menanyakan atau menghubungi informasi resmi \"PT. ALAM INDAH SELALU\" di nomor  0778-4173387.";
+        $pdf->MultiCell(0, 0, $catatan, 0, 'L');
+
+        $pdf->Ln(15);
+        $pdf->SetFont('Times', '', 9);
+        $pdf->Cell(60, 6, 'Mengetahui', 0, 0, 'C');
+        $pdf->Cell(70, 6, '', 0, 0);
+        $pdf->Cell(60, 6, 'Mengetahui', 0, 1, 'C');
+        $pdf->Ln(20);
+        $pdf->Cell(60, 6, 'ADMIN KEUANGAN', 0, 0, 'C');
+        $pdf->Cell(70, 6, '', 0, 0);
+        $pdf->Cell(60, 6, 'ADMIN DUA', 0, 1, 'C');
+
+        $pdf->Output();
+        exit;
+    }
+
+    public function cetak($id)
+    {
+        $pembayaran = Pemasukan::with(['customer', 'metode', 'kategori'])->where('id', $id)
+            ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
+            ->firstOrFail();
+        $nasabah = $pembayaran->customer;
+
+        $alamatNasabah = $nasabah->alamat ?? $nasabah->alamat_ktp ?? $nasabah->alamat_domisili ?? '-';
+
+        $lokasi = LokasiKavling::where('id', $nasabah->id_lokasi)->first();
+
+        $kavling = KavlingPeta::with('perusahaan')->where('id', $nasabah->id_kavling)->first();
+
+        $dataPerusahaan = $kavling->perusahaan;
+
+        $blokNomor = '-';
+        if ($lokasi) {
+            if ($lokasi->is_cluster) {
+                $blokNomor = ($kavling->cluster ?? '-') . '-' . ($kavling->no ?? '-');
+            } else {
+                $blokNomor = $kavling->kode_kavling ?? '-';
+            }
+        }
+
+        $mediaRekap = PengaturanMedia::where('jenis_data', 'Logo Rekap')->first();
+        $pathRekap  = null;
+        if ($mediaRekap && $mediaRekap->nama_file) {
+            $pathRekap = public_path('config_media/' . $mediaRekap->nama_file);
+        }
+
+        $width  = 210;
+        $height = 297;
+        $fpdf   = new TCPDF('L', 'mm', [$width, $height]);
+
+        $fpdf->SetTitle('Kwitansi - ' . ($pembayaran->no_kwitansi ?? '-'));
+        $fpdf->SetPrintHeader(false);
+        $fpdf->SetPrintFooter(false);
+        $fpdf->SetMargins(10, 10, 10);
+        $fpdf->SetAutoPageBreak(false, 0);
+        $fpdf->AddPage();
+
+        if ($pathRekap && file_exists($pathRekap)) {
+            $fpdf->Image($pathRekap, 15, 12, 30, 25);
+        }
+
+        $fpdf->SetFont('helvetica', 'B', 25);
+        $fpdf->SetTextColor(0, 51, 153);
+        $fpdf->SetXY(55, 10);
+        $fpdf->Cell(0, 8, 'PT. ALAM INDAH SELALU', 0, 1, 'L');
+
+        $fpdf->SetFont('helvetica', 'B', 14);
+        $fpdf->SetTextColor(220, 53, 69);
+        $fpdf->SetX(71);
+        $fpdf->Cell(0, 0, 'DEVELOPER & CONTRACTOR', 0, 1, 'L');
+
+        $fpdf->SetFont('helvetica', 'B', 9);
+        $fpdf->SetTextColor(0, 51, 153);
+        $fpdf->SetX(75);
+        $fpdf->Cell(0, 0, 'Komplek Ruko Hawaii Garden Blok B No. 2', 0, 1, 'L');
+
+        $fpdf->SetX(63);
+        $fpdf->Cell(0, 0, 'Kelurahan Belian Batam Center - Batam, Telp. 0778 - 4173387', 0, 1, 'L');
+
+        $fpdf->SetFont('times', 'I', 24);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetXY(15, 40);
+        $fpdf->Cell(0, 0, 'Tanda Terima', 0, 0, 'C');
+
+        $fpdf->SetFont('times', 'BI', 14);
+        $fpdf->SetTextColor(220, 53, 69);
+        $fpdf->SetXY(200, 40);
+        $fpdf->Cell(0, 10, 'No. ' . ($pembayaran->no_kwitansi ?? '-'), 0, 1, 'L');
+
+        $fpdf->SetLineWidth(0.5);
+        $fpdf->SetDrawColor(0, 102, 204);
+        $fpdf->Line(15, 55, 282, 55);
+
+        $fpdf->SetFont('times', 'I', 16);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetXY(15, 57);
+        $fpdf->Cell(0, 6, 'Telah diterima uang sebanyak :', 0, 1, 'L');
+
+        $fpdf->SetFont('times', 'BI', 12);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->SetX(15);
+        $fpdf->Cell(10, 6, 'Rp.', 0, 0, 'L');
+
+        $fpdf->SetFont('times', 'BI', 11);
+        $fpdf->Cell(0, 6, number_format($pembayaran->nominal, 0, ',', '.') . ' ( ' . $this->terbilang($pembayaran->nominal) . ' Rupiah )', 0, 1, 'L');
+        $fpdf->SetFont('times', 'I', 11);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetX(15);
+        $fpdf->Cell(0, 6, 'Untuk Pembayaran', 0, 1, 'L');
+
+        $yCheckbox = $fpdf->GetY() + 8;
+        $boxSize   = 5;
+
+        $fpdf->SetFont('times', 'I', 13);
+        $fpdf->SetTextColor(0, 102, 204);
+
+        $fpdf->SetXY(18, $yCheckbox);
+        $fpdf->Rect(18, $yCheckbox, $boxSize, $boxSize);
+        $fpdf->Cell($boxSize + 2);
+        $fpdf->Cell(60, $boxSize, 'Booking Fee', 0, 1, 'L');
+
+        $fpdf->SetXY(18, $yCheckbox + 8);
+        $fpdf->Rect(18, $yCheckbox + 8, $boxSize, $boxSize);
+        $fpdf->Cell($boxSize + 2);
+        $fpdf->Cell(60, $boxSize, 'Uang Muka', 0, 1, 'L');
+
+        $fpdf->SetXY(150, $yCheckbox);
+        $fpdf->Rect(150, $yCheckbox, $boxSize, $boxSize);
+        $fpdf->Cell($boxSize + 2);
+        $fpdf->Cell(60, $boxSize, 'Biaya Sertifikat', 0, 1, 'L');
+
+        $fpdf->SetXY(150, $yCheckbox + 8);
+        $fpdf->Rect(150, $yCheckbox + 8, $boxSize, $boxSize);
+        $fpdf->Cell($boxSize + 2);
+        $fpdf->Cell(80, $boxSize, 'Lain-lain : ...............................................', 0, 1, 'L');
+
+        $namaKategori = strtoupper($pembayaran->kategori->kategori ?? '-');
+        $checkIcon    = public_path('check-solid.png');
+        $checkSize    = 4;
+        $xCheck       = null;
+        $yCheck       = null;
+
+        if (str_contains($namaKategori, 'BOOKING FEE')) {
+            $xCheck = 18.5;
+            $yCheck = $yCheckbox + 0.5;
+        } elseif (str_contains($namaKategori, 'DP') || str_contains($namaKategori, 'UANG MUKA')) {
+            $xCheck = 18.5;
+            $yCheck = $yCheckbox + 8.5;
+        } elseif (str_contains($namaKategori, 'SERTIFIKAT')) {
+            $xCheck = 150.5;
+            $yCheck = $yCheckbox + 0.5;
+        } else {
+            $xCheck = 150.5;
+            $yCheck = $yCheckbox + 8.5;
+
+            $fpdf->SetXY(185, $yCheckbox + 8);
+            $fpdf->SetFont('times', 'BI', 10);
+            $fpdf->SetTextColor(0, 0, 0);
+            $fpdf->Cell(50, 5, $pembayaran->kategori->kategori ?? '-', 0, 0, 'L');
+        }
+
+        if ($xCheck && $yCheck && file_exists($checkIcon)) {
+            $fpdf->Image($checkIcon, $xCheck, $yCheck, $checkSize);
+        }
+
+        $fpdf->Ln(3);
+        $fpdf->SetFont('times', 'I', 16);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetXY(15, 113);
+
+        $kota         = $dataPerusahaan->kota_penandatangan ?? 'Batam';
+        $alamatProyek = $lokasi->alamat ?? '...................................................';
+
+        $fpdf->Cell(0, 6, 'Atas pembelian rumah di ' . $alamatProyek . ', ' . $kota, 0, 1, 'L');
+        $yDetail = $fpdf->GetY() + 2;
+        $fpdf->SetFont('times', 'I', 14);
+        $fpdf->SetTextColor(0, 102, 204);
+
+        $fpdf->SetXY(15, $yDetail);
+        $fpdf->Cell(40, 6, 'Nama', 0, 0, 'L');
+        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+        $fpdf->SetFont('times', 'BI', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->Cell(0, 6, $nasabah->nama_lengkap ?? '-', 0, 1, 'L');
+
+        $fpdf->SetFont('times', 'I', 11);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetX(15);
+        $fpdf->Cell(40, 6, 'Alamat / Telp.', 0, 0, 'L');
+        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+        $fpdf->SetFont('times', 'BI', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->Cell(0, 6, $alamatNasabah . ' / ' . ($nasabah->no_telp ?? '-'), 0, 1, 'L');
+
+        $fpdf->SetFont('times', 'I', 11);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetX(15);
+        $fpdf->Cell(40, 6, 'Harga Jual', 0, 0, 'L');
+        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+        $fpdf->SetFont('times', 'BI', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->Cell(0, 6, 'Rp. ' . number_format($kavling->harga_jual ?? 0, 0, ',', '.'), 0, 1, 'L');
+
+        $fpdf->SetFont('times', 'I', 11);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetX(15);
+        $fpdf->Cell(40, 6, 'Type Rumah', 0, 0, 'L');
+        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+        $fpdf->SetFont('helvetica', '', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->Cell(0, 6, $kavling->tipe_bangunan ?? '-', 0, 1, 'L');
+
+        $fpdf->SetFont('times', 'I', 11);
+        $fpdf->SetTextColor(0, 102, 204);
+        $fpdf->SetX(15);
+        $fpdf->Cell(40, 6, 'Blok / No. Rumah', 0, 0, 'L');
+        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+        $fpdf->SetFont('helvetica', '', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->Cell(0, 6, $blokNomor, 0, 1, 'L');
+
+        $ySign = 165;
+        $fpdf->SetFont('times', 'I', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+
+        $fpdf->SetXY(30, $ySign + 30);
+        $fpdf->Cell(60, 5, '( ______________________ )', 0, 1, 'C');
+        $fpdf->SetX(30);
+        $fpdf->Cell(60, 5, 'Kasir', 0, 1, 'C');
+
+        $fpdf->SetXY(115, $ySign + 30);
+        $fpdf->Cell(60, 5, '( ______________________ )', 0, 1, 'C');
+        $fpdf->SetX(115);
+        $fpdf->Cell(60, 5, 'Penyetor', 0, 1, 'C');
+
+        $xCs = 200;
+
+        $fpdf->SetFont('helvetica', '', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->SetXY($xCs, $ySign);
+
+        $kota = $dataPerusahaan->kota_penandatangan ?? 'Batam';
+        $fpdf->Cell(60, 5, $kota . ', ' . Carbon::parse($pembayaran->tanggal)->translatedFormat('d F Y'), 0, 1, 'C');
+
+        $fpdf->SetFont('helvetica', 'B', 11);
+        $fpdf->SetTextColor(220, 53, 69);
+        $fpdf->SetXY($xCs, $fpdf->GetY());
+
+        $fpdf->Cell(60, 6, strtoupper($dataPerusahaan->nama_perusahaan ?? '-'), 0, 1, 'C');
+
+        $fpdf->SetFont('times', 'I', 10);
+        $fpdf->SetTextColor(0, 0, 0);
+        $fpdf->SetXY($xCs, $ySign + 30);
+        $fpdf->Cell(60, 5, '( ______________________ )', 0, 1, 'C');
+        $fpdf->SetX($xCs);
+        $fpdf->Cell(60, 5, 'Customer Service', 0, 1, 'C');
+
+        $fpdf->Output('Kwitansi-' . ($pembayaran->no_kwitansi ?? 'draft') . '.pdf', 'I');
+        exit;
+    }
+
+    private function terbilang($angka)
+    {
+        $angka = abs($angka);
+        $baca  = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+        $hasil = "";
+
+        if ($angka < 12) {
+            $hasil = " " . $baca[$angka];
+        } elseif ($angka < 20) {
+            $hasil = $this->terbilang($angka - 10) . " Belas";
+        } elseif ($angka < 100) {
+            $hasil = $this->terbilang($angka / 10) . " Puluh" . $this->terbilang($angka % 10);
+        } elseif ($angka < 200) {
+            $hasil = " Seratus" . $this->terbilang($angka - 100);
+        } elseif ($angka < 1000) {
+            $hasil = $this->terbilang($angka / 100) . " Ratus" . $this->terbilang($angka % 100);
+        } elseif ($angka < 2000) {
+            $hasil = " Seribu" . $this->terbilang($angka - 1000);
+        } elseif ($angka < 1000000) {
+            $hasil = $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
+        } elseif ($angka < 1000000000) {
+            $hasil = $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+        }
+
+        return trim($hasil);
+    }
+
+    public function show($id)
+    {
+        $customer = Customer::with(['piutangs', 'lokasiKavling', 'kavlingPeta'])
+            ->findOrFail($id);
+
+        $metodeBayar                = MetodeBayar::all();
+        $bankList                   = Bank::all();
+        $kategoriTransaksiPemasukan = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')
+            ->whereIn('id', [2, 3, 4, 5, 17])
+            ->get();
+
+        $kategoriTransaksiTagihan = KategoriTransaksi::where('jenis_kategori', 'PENGELUARAN')
+            ->where('stt_fix', 0)
+            ->get();
+
+        $piutang = Piutang::where('id_customer', $id)
+            ->where('id_kategori_transaksi', '!=', 0)
+            ->get();
+
+        $piutang = Piutang::with('kategori')
+            ->where('id_customer', $id)
+            ->where('id_kategori_transaksi', '!=', 0)
+            ->get();
+
+        return view('admin.pembayaran.detail', compact(
+            'customer',
+            'metodeBayar',
+            'bankList',
+            'kategoriTransaksiPemasukan',
+            'kategoriTransaksiTagihan',
+            'piutang'
+        ));
+    }
+
+    public function detailTagihan(Request $request, $id)
+    {
+        if ($request->ajax()) {
+            $tagihanList  = Piutang::where('id_customer', $id)->orderBy('id')->get();
+            $totalTagihan = $tagihanList->sum('nominal');
+            $firstId      = $tagihanList->first() ? $tagihanList->first()->id : null;
+
+            return DataTables::of($tagihanList)
+                ->addIndexColumn()
+                ->addColumn('jumlah_tagihan', function ($row) {
+                    return '<div class="d-flex justify-content-between">
+                        <span>Rp.</span>
+                        <span>' . number_format($row->nominal, 0, ',', '.') . '</span>
+                    </div>';
+                })
+                ->addColumn('action', function ($row) use ($id, $firstId) {
+                    $deleteUrl = route('pembayaran.delete-tagihan', $row->id);
+
+                    if ($row->id == $firstId) {
+                        return '<form class="formHargaRumah" data-id="' . $id . '">' .
+                        csrf_field() .
+                            '<button type="submit" class="btn btn-warning btn-xs ms-1 btn-update-harga">
+                            <span class="swal-btn-text">Update</span>
+                        </button>' .
+                            '</form>';
+                    } else {
+                        return '<form action="' . e($deleteUrl) . '" method="POST" style="display:inline;">' . csrf_field() . method_field('DELETE') . '<button type="submit" class="delete-tagihan btn btn-danger btn-xs">Hapus</button></form>';
+                    }
+                })
+                ->rawColumns(['action', 'jumlah_tagihan'])
+                ->with('total_tagihan', $totalTagihan)
+                ->with('total_tagihan_formatted', number_format($totalTagihan, 0, ',', '.'))
+                ->make(true);
+        }
+    }
+
+    public function tambahTagihan(Request $request, $id)
+    {
+        $rules = [
+            'id_kategori' => 'required',
+            'deskripsi'   => 'required',
+            'nominal'     => 'required',
+        ];
+
+        $messages = [
+            'id_kategori.required' => 'Kategori Transaksi wajib dipilih.',
+            'deskripsi.required'   => 'Deskripsi tagihan wajib diisi.',
+            'nominal.required'     => 'Nominal wajib diisi.',
+        ];
+
+        $request->validate($rules, $messages);
+
+        DB::beginTransaction();
+        try {
+            $cust = Customer::find($id);
+            $piutang = Piutang::create([
+                'id_customer'           => $id,
+                'id_bank'               => 0,
+                'tanggal_piutang'       => Carbon::now(),
+                'deskripsi'             => $request->deskripsi,
+                'id_kategori_transaksi' => $request->id_kategori,
+                'nominal'               => (int) str_replace(['.', ','], '', $request->nominal),
+                'lampiran'              => '',
+                'status'                => 1,
+                'terbayar'              => 0,
+                'sisa_bayar'            => (int) str_replace(['.', ','], '', $request->nominal),
+            ]);
+
+            $totalTagihan = Piutang::where('id_customer', $id)->sum('nominal');
+            $sisaBayar    = Piutang::where('id_customer', $id)->sum('sisa_bayar');
+
+            $this->logCreate('Detail Pembayaran', $piutang->id);
+
+            DB::commit();
+            return response()->json([
+                'success'                 => true,
+                'total_tagihan_formatted' => number_format($totalTagihan, 0, ',', '.'),
+                'sisa_bayar_formatted'    => number_format($sisaBayar, 0, ',', '.'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan tagihan',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function UpdateHargaRumah($id)
+    {
+        DB::beginTransaction();
+        try {
+            $tagihan = Piutang::where('id_customer', $id)->first();
+            if (! $tagihan) {
+                throw new \Exception('Tagihan tidak ditemukan.');
+            }
+
+            $cust         = Customer::find($id);
+            $kav          = KavlingPeta::find($cust->id_kavling);
+            $nominal_baru = $kav->hrg_jual;
+
+            $terbayar_lama = $tagihan->terbayar;
+
+            $sisa_bayar_baru = $nominal_baru - $terbayar_lama;
+
+            $tagihan->update([
+                'nominal'    => $nominal_baru,
+                'sisa_bayar' => $sisa_bayar_baru,
+            ]);
+
+            $totalTagihan = Piutang::where('id_customer', $id)->sum('nominal');
+            $sisaBayar    = Piutang::where('id_customer', $id)->sum('sisa_bayar');
+
+            DB::commit();
+            return response()->json([
+                'status'                  => 'success',
+                'total_tagihan_formatted' => number_format($totalTagihan, 0, ',', '.'),
+                'sisa_bayar_formatted'    => number_format($sisaBayar, 0, ',', '.'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'error'  => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function DeleteTagihan($id)
+    {
+        $tagihan     = Piutang::findOrFail($id);
+        $id_customer = $tagihan->id_customer;
+        $tagihan->delete();
+
+        Pemasukan::where('id_piutang', $id)
+            ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
+            ->delete();
+
+        $totalTagihan = Piutang::where('id_customer', $id_customer)->sum('nominal');
+        $jumlahBayar  = Piutang::where('id_customer', $id_customer)->sum('terbayar');
+        $sisaBayar    = Piutang::where('id_customer', $id_customer)->sum('sisa_bayar');
+
+        $this->logDelete('Detail Pembayaran', $tagihan->id);
+
+        return response()->json([
+            'status'                  => 'success',
+            'total_tagihan_formatted' => number_format($totalTagihan, 0, ',', '.'),
+            'jumlah_bayar_formatted'  => number_format($jumlahBayar, 0, ',', '.'),
+            'sisa_bayar_formatted'    => number_format($sisaBayar, 0, ',', '.'),
+        ]);
+    }
+
+    public function detailPemasukan(Request $request, $id)
+    {
+        Carbon::setLocale('id');
+
+        if ($request->ajax()) {
+            $data = Pemasukan::with('kategori')
+                ->where('id_customer', $id)
+                ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
+                ->get();
+
+            foreach ($data as $item) {
+                $deleteUrl              = route('pembayaran.delete-pemasukan', $item->id);
+                $item->tanggal          = Carbon::parse($item->tanggal)->translatedFormat('d F Y');
+                $item->kategori         = $item->kategori->kategori ?? '-';
+                $item->jumlah_formatted = '
+                    <div class="d-flex justify-content-between">
+                        <span>Rp.</span>
+                        <span>' . number_format($item->nominal, 0, ',', '.') . '</span>
+                    </div>';
+
+                $action = '<form action="' . e($deleteUrl) . '" method="POST" style="display:inline;">'
+                . csrf_field()
+                . method_field('DELETE')
+                    . '<button type="submit" class="delete-pemasukan btn btn-danger btn-xs">Hapus</button></form>';
+
+                if (! in_array($item->id_kategori_transaksi, [4, 21])) {
+                    $action = '
+                    <a class="btn btn-xs btn-primary" href="' . route('pembayaran.cetak', $item->id) . '" target="_blank">Cetak Kwitansi</a>
+                ' . $action;
+                }
+
+                $item->action = $action;
+            }
+
+            $total = $data->sum('nominal');
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('tanggal', fn($item) => $item->tanggal)
+                ->addColumn('keterangan', fn($item) => $item->keterangan)
+                ->addColumn('kategori', fn($item) => $item->kategori)
+                ->addColumn('jumlah', fn($item) => $item->jumlah_formatted)
+                ->addColumn('action', fn($item) => $item->action)
+                ->with('total_pemasukan_formatted', number_format($total, 0, ',', '.'))
+                ->rawColumns(['action', 'jumlah'])
+                ->make(true);
+        }
+    }
+
+    public function tambahPemasukan(Request $request, $id)
+    {
+        $rules = [
+            'tanggal_pembayaran'    => 'required|date',
+            'id_kategori_transaksi' => 'required',
+            'id_bank'               => 'required',
+            'id_metode_bayar'       => 'required',
+            'id_tagihan'            => 'required_if:id_kategori_transaksi,17',
+            'nominal_bayar'         => 'required',
+            'keterangan_pembayaran' => 'required',
+            'file'                  => 'required_if:id_metode_bayar,2|file|mimes:jpeg,png,jpg,webp,pdf|max:2048',
+        ];
+
+        $messages = [
+            'tanggal_pembayaran.required'    => 'Tanggal Pembayaran wajib diisi.',
+            'id_kategori_transaksi.required' => 'Kategori Transaksi wajib diisi.',
+            'id_bank.required'               => 'Bank wajib dipilih.',
+            'id_metode_bayar.required'       => 'Metode Pembayaran wajib dipilih.',
+            'id_tagihan.required_if'         => 'Tagihan wajib dipilih.',
+            'nominal_bayar.required'         => 'Nominal wajib diisi.',
+            'keterangan_pembayaran.required' => 'Keterangan wajib diisi.',
+            'file.required_if'               => 'Lampiran wajib diunggah.',
+        ];
+
+        $request->validate($rules, $messages);
+
+        DB::beginTransaction();
+        try {
+            if ($request->hasFile('file')) {
+                $file     = $request->file('file');
+                $ext      = $file->getClientOriginalExtension();
+                $filename = Str::random(25) . '.' . $ext;
+                $file->move(public_path('assets/keuangan/pemasukan/'), $filename);
+            }
+
+            $cust = Customer::with('lokasi')->lockForUpdate()->findOrFail($id);
+
+            $no_kwitansi = '';
+
+            if ($request->id_kategori_transaksi != 4 && $request->id_kategori_transaksi != 21) {
+                $no_kwitansi = $this->generator->generateNomorDokumen(
+                    $cust->lokasi,
+                    'no_kwitansi',
+                    Pemasukan::class
+                );
+            }
+
+            $pemasukan = Pemasukan::create([
+                'tanggal'               => $request->tanggal_pembayaran,
+                'id_customer'           => $id,
+                'id_bank'               => $request->id_bank,
+                'id_piutang'            => $request->id_tagihan ?? 0,
+                'id_kategori_transaksi' => $request->id_kategori_transaksi,
+                'no_kwitansi'           => $no_kwitansi,
+                'nominal'               => str_replace('.', '', $request->nominal_bayar),
+                'keterangan'            => $request->keterangan_pembayaran,
+                'id_metode_bayar'       => $request->id_metode_bayar,
+                'lampiran'              => $filename ?? '',
+            ]);
+
+            $this->logCreate('Detail Pembayaran', $pemasukan->id);
+
+            if ($request->id_kategori_transaksi == 17) {
+                $piutang = Piutang::find($request->id_tagihan);
+                if ($piutang) {
+                    $piutang->update([
+                        'terbayar'   => $piutang->terbayar + str_replace('.', '', $request->nominal_bayar),
+                        'sisa_bayar' => $piutang->sisa_bayar - str_replace('.', '', $request->nominal_bayar),
+                    ]);
+                }
+            } else {
+                $sisaBayar = str_replace('.', '', $request->nominal_bayar);
+
+                $piutangs = Piutang::where('id_customer', $id)
+                    ->where('status', 1)
+                    ->orderBy('id')
+                    ->get();
+
+                foreach ($piutangs as $piutang) {
+                    if ($sisaBayar <= 0) {
+                        break;
+                    }
+
+                    if ($sisaBayar >= $piutang->sisa_bayar) {
+                        $sisaBayar -= $piutang->sisa_bayar;
+
+                        $piutang->update([
+                            'terbayar'      => $piutang->terbayar + $piutang->sisa_bayar,
+                            'sisa_bayar'    => 0,
+                            'status'        => 2,
+                            'tgl_pelunasan' => $request->tanggal_pembayaran,
+                        ]);
+                    } else {
+                        $piutang->update([
+                            'terbayar'   => $piutang->terbayar + $sisaBayar,
+                            'sisa_bayar' => $piutang->sisa_bayar - $sisaBayar,
+                        ]);
+
+                        $sisaBayar = 0;
+                    }
+                }
+
+                $masihAdaPiutang = Piutang::where('id_customer', $id)
+                    ->where('status', 1)
+                    ->exists();
+
+                if (
+                    ! $masihAdaPiutang &&
+                    $request->id_kategori_transaksi == 5
+                ) {
+                    $cust->update(['id_status_progres' => 8]);
+                }
+            }
+
+            $totalTagihan = Piutang::where('id_customer', $id)->sum('nominal');
+            $terbayar     = Piutang::where('id_customer', $id)->sum('terbayar');
+            $sisaBayar    = Piutang::where('id_customer', $id)->sum('sisa_bayar');
+
+            DB::commit();
+
+            return response()->json([
+                'success'       => true,
+                'jumlah_bayar'  => number_format($terbayar, 0, ',', '.'),
+                'total_tagihan' => number_format($totalTagihan, 0, ',', '.'),
+                'sisa_bayar'    => number_format($sisaBayar, 0, ',', '.'),
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan pemasukan',
+            ], 500);
+        }
+    }
+
+    public function DeletePemasukan($id)
+    {
+        DB::beginTransaction();
+        try {
+            $pemasukan = Pemasukan::findOrFail($id);
+
+            if (! empty($pemasukan->lampiran) && file_exists(public_path('assets/keuangan/pemasukan/' . $pemasukan->lampiran))) {
+                unlink(public_path('assets/keuangan/pemasukan/' . $pemasukan->lampiran));
+            }
+
+            $nominal = $pemasukan->nominal;
+
+            $piutangs = Piutang::where('id_customer', $pemasukan->id_customer)
+                ->where('terbayar', '>', 0)
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($piutangs as $piutang) {
+                if ($nominal <= 0) {
+                    break;
+                }
+
+                if ($nominal >= $piutang->terbayar) {
+                    $nominal -= $piutang->terbayar;
+
+                    $piutang->update([
+                        'sisa_bayar'    => $piutang->sisa_bayar + $piutang->terbayar,
+                        'terbayar'      => 0,
+                        'tgl_pelunasan' => null,
+                    ]);
+                } else {
+                    $piutang->update([
+                        'sisa_bayar' => $piutang->sisa_bayar + $nominal,
+                        'terbayar'   => $piutang->terbayar - $nominal,
+                    ]);
+
+                    $nominal = 0;
+                }
+
+                $piutang->update([
+                    'status' => $piutang->terbayar == $piutang->nominal ? 2 : 1,
+                ]);
+            }
+
+            $totalTagihan = Piutang::where('id_customer', $pemasukan->id_customer)->sum('nominal');
+            $terbayar     = Piutang::where('id_customer', $pemasukan->id_customer)->sum('terbayar');
+            $sisaBayar    = Piutang::where('id_customer', $pemasukan->id_customer)->sum('sisa_bayar');
+
+            $pemasukan->delete();
+            $this->logDelete('Detail Pembayaran', $pemasukan->id);
+
+            DB::commit();
+
+            return response()->json([
+                'status'        => 'success',
+                'jumlah_bayar'  => number_format($terbayar, 0, ',', '.'),
+                'total_tagihan' => number_format($totalTagihan, 0, ',', '.'),
+                'sisa_bayar'    => number_format($sisaBayar, 0, ',', '.'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal menghapus pemasukan',
+            ], 500);
+        }
+    }
+
+    public function print($id)
+    {
+        $pembayaran = Pemasukan::with(['customer', 'metode', 'kategori'])->where('id', $id)
+            ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')->firstOrFail();
+        $nasabah = $pembayaran->customer;
+        $lokasi  = LokasiKavling::find($nasabah->id_lokasi ?? null)->first();
+        $kavling = KavlingPeta::find($nasabah->id_kavling ?? null)->first();
+
+        $noKwitansi  = $pembayaran->no_kwitansi ?? '-';
+        $nama        = $nasabah->nama_lengkap ?? '-';
+        $alamat      = $nasabah->alamat_ktp ?? $nasabah->alamat_domisili ?? '-';
+        $jumlah      = $pembayaran->nominal ?? 0;
+        $terbilang   = '#' . strtoupper($this->terbilang($jumlah)) . ' Rupiah#';
+        $namaKavling = $lokasi->nama_kavling ?? '-';
+        $tipe        = $kavling->tipe_bangunan ?? '-';
+        $blokNomor   = '-';
+        if ($lokasi) {
+            if ($lokasi->is_cluster) {
+                $blokNomor = ($kavling->cluster ?? '-') . '-' . ($kavling->no ?? '-');
+            } else {
+                $blokNomor = $kavling->kode_kavling ?? '-';
+            }
+        }
+        $rumahId         = $kavling->id_rumah_sikumbang ?? '-';
+        $hargaJual       = $kavling->hrg_jual ?? 0;
+        $kotaTtd         = $lokasi->kota_penandatangan ?? '-';
+        $tanggal         = $pembayaran->tanggal ? Carbon::parse($pembayaran->tanggal)->translatedFormat('d F Y') : '-';
+        $jenisPembayaran = $pembayaran->kategori->kategori ?? 'Cicilan Pribadi';
+        $metodeBayar     = $pembayaran->metode->jenis_bayar ?? 'CASH';
+
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetTitle('Kwitansi');
+        $pdf->SetPrintHeader(false);
+        $pdf->SetPrintFooter(false);
+        $pdf->SetMargins(20, 0, 0);    // Mengatur margin seperti dot matrix
+        $pdf->SetAutoPageBreak(false); // Nonaktifkan auto page break
+        $pdf->AddPage();
+        $pdf->SetTextColor(0, 0, 0);
+
+        // Tambahkan space atas seperti dot matrix
+        $pdf->Ln(40);
+
+        // Header - TANDA TERIMA dengan underline
+        $pdf->SetFont('Helvetica', 'BU', 16);
+        $pdf->Cell(170, 6, 'TANDA TERIMA', 0, 1, 'C');
+
+        // Nomor kwitansi
+        $pdf->SetFont('Helvetica', 'I', 12);
+        $pdf->Cell(170, 6, $noKwitansi, 0, 1, 'C');
+
+        // Detail penerima
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(100, 5, 'Sudah diterima dari : ', 0, 1, 'L');
+
+        $pdf->Cell(20, 5, '', 0, 0, 'L');
+        $pdf->Cell(25, 5, 'Nama', 0, 0, 'L');
+        $pdf->Cell(60, 5, ' : ' . $nama, 0, 1, 'L');
+
+        $pdf->Cell(20, 5, '', 0, 0, 'L');
+        $pdf->Cell(25, 5, 'Alamat', 0, 0, 'L');
+        $pdf->Cell(100, 5, ' : ' . $alamat, 0, 1, 'L');
+
+        // Jumlah uang
+        $pdf->Ln(3);
+        $pdf->Cell(20, 5, 'Uang sejumlah Rp. ' . number_format($jumlah, 0, ',', '.') . ' (' . $terbilang . ')', 0, 1, 'L');
+        $pdf->Cell(20, 5, 'Untuk pembayaran ' . $jenisPembayaran . ' atas pembelian rumah di : ', 0, 1, 'L');
+
+        // Detail properti
+        $pdf->Ln(1);
+        $pdf->Cell(20, 4, '', 0, 0, 'L');
+        $pdf->Cell(25, 4, 'Perumahan', 0, 0, 'L');
+        $pdf->Cell(60, 4, ' : ' . $namaKavling, 0, 1, 'L');
+
+        $pdf->Cell(20, 4, '', 0, 0, 'L');
+        $pdf->Cell(25, 4, 'Type', 0, 0, 'L');
+        $pdf->Cell(60, 4, ' : ' . $tipe, 0, 1, 'L');
+
+        $pdf->Cell(20, 4, '', 0, 0, 'L');
+        $labelBlok = $lokasi->is_cluster ? 'Cluster / Nomor' : 'Blok / Nomor';
+        $pdf->Cell(25, 4, $labelBlok, 0, 0, 'L');
+        $pdf->Cell(60, 4, ' : ' . $blokNomor, 0, 1, 'L');
+
+        $pdf->Cell(20, 4, '', 0, 0, 'L');
+        $pdf->Cell(25, 4, 'Rumah ID', 0, 0, 'L');
+        $pdf->Cell(60, 4, ' : ' . $rumahId, 0, 1, 'L');
+
+        $pdf->Cell(20, 4, '', 0, 0, 'L');
+        $pdf->Cell(25, 4, 'Harga Jual', 0, 0, 'L');
+        $pdf->Cell(60, 4, ' : Rp. ' . number_format($hargaJual, 0, ',', '.'), 0, 1, 'L');
+
+        // Tanggal dan keterangan
+        $pdf->SetFont('Helvetica', 'B', 8.5);
+        $pdf->Cell(20, 4, '', 0, 1, 'L');
+        $pdf->Cell(20, 4, '', 0, 0, 'L');
+        $pdf->Cell(100, 4, '', 0, 0, 'L');
+        $pdf->Cell(55, 4, $kotaTtd . ', ' . $tanggal, 0, 1, 'C');
+
+        $pdf->Ln(2);
+
+        // Footer dengan tanda tangan
+        $pdf->SetFont('Helvetica', '', 8.5);
+        $pdf->Cell(35, 5, 'Keterangan : ', 0, 0, 'L');
+        $pdf->Cell(45, 5, 'Kasir', 0, 0, 'C');
+        $pdf->Cell(45, 5, 'Penyetor', 0, 0, 'C');
+        $pdf->Cell(45, 5, 'Customer Service', 0, 1, 'C');
+
+        $pdf->Cell(35, 5, $metodeBayar, 0, 0, 'L');
+        $pdf->Cell(100, 5, '', 0, 0, 'L');
+        $pdf->Ln(20);
+
+        // Garis untuk tanda tangan
+        $pdf->SetLineWidth(0.2);
+        $pdf->Line(60, 135, 95, 135);
+        $pdf->Line(105, 135, 140, 135);
+        $pdf->Line(150, 135, 185, 135);
+
+        // Catatan kaki
+        $pdf->SetFont('Helvetica', 'I', 8.5);
+        $pdf->Cell(20, 5, 'NB : Kwitansi ini sah, apabila ada cap perusahaan dan tanda tangan kasir.', 0, 1, 'L');
+
+        return response($pdf->Output('kwitansi.pdf', 'I'), 200)
+            ->header('Content-Type', 'application/pdf');
+    }
+
+    private function bulanRomawi($bulan)
+    {
+        $romawi = [
+            1  => 'I',
+            2  => 'II',
+            3  => 'III',
+            4  => 'IV',
+            5  => 'V',
+            6  => 'VI',
+            7  => 'VII',
+            8  => 'VIII',
+            9  => 'IX',
+            10 => 'X',
+            11 => 'XI',
+            12 => 'XII',
+        ];
+
+        return $romawi[(int) $bulan] ?? '';
+    }
+
+    public function rekapPembayaran(Request $request)
+    {
+        $pembayaran = KategoriTransaksi::whereIn('id', [4, 21])->get();
+        $lokasi     = LokasiKavling::orderBy('id', 'asc')->get();
+
+        $metodeBayar = MetodeBayar::all();
+        $bankList    = Bank::all();
+
+        if ($request->ajax()) {
+            $data = KavlingPeta::with(['customer', 'lokasi'])
+                ->whereHas('lokasi', function ($q) use ($request) {
+                    if ($request->lokasi_id) {
+                        $q->where('id', $request->lokasi_id);
+                    }
+                })
+                ->when($request->status == 1, function ($q) {
+                    $q->whereHas('customer');
+                })
+                ->orderBy('kode_kavling', 'asc')
+                ->get();
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+
+                ->addColumn('customer', function ($row) {
+                    return optional($row->customer)->nama_lengkap ?? '';
+                })
+
+                ->addColumn('lokasi', function ($row) {
+                    $namaLokasi = optional($row->lokasi)->nama_kavling ?? '-';
+
+                    if (optional($row->lokasi)->is_cluster == 1) {
+                        $kodeKavling = $row->cluster . '-' . $row->no ?? '-';
+                    } else {
+                        $kodeKavling = $row->kode_kavling ?? '-';
+                    }
+
+                    return '<strong>' . $namaLokasi . '</strong><br>' . $kodeKavling;
+                })
+
+                ->editColumn('hrg_jual', function ($row) {
+                    return '
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Rp.</span>
+                        <span>' . number_format($row->hrg_jual, 0, ',', '.') . '</span>
+                    </div>
+                ';
+                })
+
+                ->addColumn('pembayaran', function ($row) {
+                    $customerId = optional($row->customer)->id;
+
+                    if (! $customerId) {
+                        return '
+                        <div class="d-flex justify-content-between w-100">
+                            <span>Rp.</span>
+                            <span>0</span>
+                        </div>
+                    ';
+                    }
+
+                    $jumlahBayar = Pemasukan::where('id_customer', $customerId)
+                        ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
+                        ->where('id_kategori_transaksi', '!=', 4)
+                        ->sum('nominal');
+
+                    return '
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Rp.</span>
+                        <span>' . number_format($jumlahBayar, 0, ',', '.') . '</span>
+                    </div>
+                ';
+                })
+
+                ->addColumn('pencairan', function ($row) {
+                    $customerId = optional($row->customer)->id;
+
+                    if (! $customerId) {
+                        return '
+                        <div class="d-flex justify-content-between w-100">
+                            <span>Rp.</span>
+                            <span>0</span>
+                        </div>
+                    ';
+                    }
+
+                    $pencairan = Pemasukan::where('id_customer', $customerId)
+                        ->where('keterangan', 'NOT LIKE', 'GANTI NAMA%')
+                        ->where('id_kategori_transaksi', 4)
+                        ->sum('nominal');
+
+                    return '
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Rp.</span>
+                        <span>' . number_format($pencairan, 0, ',', '.') . '</span>
+                    </div>
+                ';
+                })
+
+                ->addColumn('sbum', function ($row) {
+                    $customerId = optional($row->customer)->id;
+
+                    if (! $customerId) {
+                        return '
+                        <div class="d-flex justify-content-between w-100">
+                            <span>Rp.</span>
+                            <span>0</span>
+                        </div>
+                    ';
+                    }
+
+                    $sbum = Pemasukan::where('id_customer', $customerId)
+                        ->where('keterangan', 'NOT LIKE', 'GANTI NAMA%')
+                        ->where('id_kategori_transaksi', 21)
+                        ->sum('nominal');
+
+                    return '
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Rp.</span>
+                        <span>' . number_format($sbum, 0, ',', '.') . '</span>
+                    </div>
+                ';
+                })
+
+                ->addColumn('sisa', function ($row) {
+                    $customerId = optional($row->customer)->id;
+
+                    if (! $customerId) {
+                        return '
+                        <div class="d-flex justify-content-between w-100">
+                            <span>Rp.</span>
+                            <span>0</span>
+                        </div>
+                    ';
+                    }
+
+                    $totalTagihan = Piutang::where('id_customer', $customerId)->sum('nominal');
+                    $jumlahBayar  = Pemasukan::where('id_customer', $customerId)
+                        ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
+                        ->sum('nominal');
+
+                    $sisaBayar = $totalTagihan - $jumlahBayar;
+
+                    return '
+                    <div class="d-flex justify-content-between w-100">
+                        <span>Rp.</span>
+                        <span>' . number_format($sisaBayar, 0, ',', '.') . '</span>
+                    </div>
+                ';
+                })
+
+                ->addColumn('action', function ($row) {
+                    $customerId = optional($row->customer)->id;
+
+                    $detailUrl = $customerId
+                        ? route('pembayaran.show', $customerId)
+                        : null;
+
+                    $btn = '<div class="d-flex justify-content-center">';
+
+                    if (! empty($customerId)) {
+                        $btn .= '
+                        <button class="btn btn-primary btn-sm mx-1 bayar-button"
+                            data-id="' . e($customerId) . '"
+                            data-toggle="modal"
+                            data-target="#modalForm">
+                            Bayar
+                        </button>
+                    ';
+                    } else {
+                        $btn .= '<button class="btn btn-secondary btn-sm mx-1" disabled>Bayar</button>';
+                    }
+
+                    if (! empty($customerId)) {
+                        $btn .= '<a href="' . $detailUrl . '" class="btn btn-success btn-sm mx-1">Detail</a>';
+                    } else {
+                        $btn .= '<button class="btn btn-secondary btn-sm mx-1" disabled>Detail</button>';
+                    }
+
+                    $btn .= '</div>';
+
+                    return $btn;
+                })
+
+                ->rawColumns([
+                    'lokasi',
+                    'hrg_jual',
+                    'pembayaran',
+                    'pencairan',
+                    'sbum',
+                    'sisa',
+                    'action',
+                ])
+                ->make(true);
+        }
+
+        return view('admin.pembayaran.rekap', compact('pembayaran', 'lokasi', 'bankList', 'metodeBayar'));
+    }
+
+}

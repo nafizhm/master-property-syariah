@@ -52,8 +52,8 @@ class MarketingFreelanceController extends Controller
                     return "{$nama_bank}<br>{$no_rekening}" . ($atas_nama ? "<br>{$atas_nama}" : '');
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
-                    $editUrl   = route('marketing-freelance.edit', $row->id);
-                    $deleteUrl = route('marketing-freelance.destroy', $row->id);
+                    $editUrl   = route('marketing-agen.edit', $row->id);
+                    $deleteUrl = route('marketing-agen.destroy', $row->id);
                     $btn       = '<div class="text-center">';
 
                     if ($permissions['edit']) {

@@ -184,7 +184,7 @@
                 serverSide: false,
                 responsive: true,
                 ordering: false,
-                ajax: "{{ route('marketing-offline.index') }}",
+                ajax: "{{ route('marketing-inhouse.index') }}",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -300,9 +300,9 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('marketing-offline.update', ['marketing_offline' => ':id']) }}'.replace(':id',
+            let url = id ? '{{ route('marketing-inhouse.update', ['marketing_offline' => ':id']) }}'.replace(':id',
                     id) :
-                '{{ route('marketing-offline.store') }}';
+                '{{ route('marketing-inhouse.store') }}';
             let method = id ? 'PUT' : 'POST';
 
             $('.is-invalid').removeClass('is-invalid');

@@ -156,7 +156,7 @@ class SerahTerimaKunciController extends Controller
         $customer = Customer::findOrFail($data->id_customer);
         $kavling = KavlingPeta::findOrFail($customer->id_kavling);
 
-        return view('frontend.form_aduan.form_input', compact('customer', 'kavling'));
+        return view('frontend.form_aduan.form_input', compact('customer', 'kavling', 'data'));
     }
 
     public function fetchCustomer(Request $request)
@@ -198,6 +198,7 @@ class SerahTerimaKunciController extends Controller
                 'nama_lengkap' => $customer->nama_lengkap,
                 'lokasi' => $kavling && $kavling->lokasi ? $kavling->lokasi->nama_kavling : '',
                 'blok_unit' => $kavling ? $kavling->kode_kavling : '',
+                'tgl_serah_terima' => $serahKunci ? $serahKunci->tgl_serah_terima : null,
             ]);
 
         } catch (\Exception $e) {

@@ -208,7 +208,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
                                     </div>
-                                    <input type="text" name="peningkatan_mutu" id="peningkatan_mutu"
+                                    <input type="text" name="biaya_lain" id="biaya_lain"
                                         class="form-control format-number">
                                 </div>
                             </div>
@@ -473,7 +473,7 @@
                     $('#tipe_bangunan').val(formatNumber(data.tipe_bangunan));
                     $('#hrg_jual').val(formatNumber(data.hrg_jual));
                     $('#biaya_surat').val(formatNumber(data.biaya_surat));
-                    $('#peningkatan_mutu').val(formatNumber(data.peningkatan_mutu));
+                    $('#biaya_lain').val(formatNumber(data.biaya_lain));
                     $('#daya_listrik').val(formatNumber(data.daya_listrik));
 
                     $('#keterangan').val(data.keterangan);

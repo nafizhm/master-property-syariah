@@ -15,7 +15,7 @@ class Customer extends Model
         'id_kavling',
         'hrg_jual',
         'biaya_surat',
-        'peningkatan_mutu',
+        'biaya_lain',
         'total_harga',
         'id_status_progres',
         'nama_lengkap',

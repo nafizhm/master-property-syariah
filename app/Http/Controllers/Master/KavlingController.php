@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
@@ -18,6 +19,7 @@ use TCPDF;
 class KavlingController extends Controller
 {
     use LogAktivitasTrait;
+
     public function index(Request $request)
     {
         $permissions = HakAksesController::getUserPermissions();
@@ -33,20 +35,20 @@ class KavlingController extends Controller
                 ->addIndexColumn()
                 ->addColumn('panjang', function ($row) {
                     return '
-                <p>Pjg Kanan : <strong>' . $row->panjang_kanan . ' m</strong></p>
-                <p>Pjg Kiri : <strong>' . $row->panjang_kiri . ' m</strong></p>
+                <p>Pjg Kanan : <strong>'.$row->panjang_kanan.' m</strong></p>
+                <p>Pjg Kiri : <strong>'.$row->panjang_kiri.' m</strong></p>
             ';
                 })
                 ->addColumn('lebar', function ($row) {
                     return '
-                <p>Lebar Depan: <strong>' . $row->lebar_depan . ' m</strong></p>
-                <p>Lebar Belakang: <strong>' . $row->lebar_belakang . ' m</strong></p>
+                <p>Lebar Depan: <strong>'.$row->lebar_depan.' m</strong></p>
+                <p>Lebar Belakang: <strong>'.$row->lebar_belakang.' m</strong></p>
             ';
                 })
                 ->addColumn('luas', function ($row) {
                     return '
-                <p>Luas Tanah: <strong>' . $row->luas_tanah . ' m</strong></p>
-                <p>Luas Bangunan: <strong>' . $row->luas_bangunan . ' m</strong></p>
+                <p>Luas Tanah: <strong>'.$row->luas_tanah.' m</strong></p>
+                <p>Luas Bangunan: <strong>'.$row->luas_bangunan.' m</strong></p>
             ';
                 })
                 ->editColumn('rincian_harga', function ($row) {
@@ -54,32 +56,32 @@ class KavlingController extends Controller
         <div class="w-100">
             <div class="d-flex justify-content-between harga-format">
                 <span>Harga Rumah : </span>
-                <span>Rp. ' . number_format($row->hrg_jual, 0, ',', '.') . '</span>
+                <span>Rp. '.number_format($row->hrg_jual, 0, ',', '.').'</span>
             </div>
             <div class="d-flex justify-content-between harga-format">
                 <span>Biaya Surat : </span>
-                <span>Rp. ' . number_format($row->biaya_surat, 0, ',', '.') . '</span>
+                <span>Rp. '.number_format($row->biaya_surat, 0, ',', '.').'</span>
             </div>
             <div class="d-flex justify-content-between harga-format">
                 <span>Peningkatan Mutu : </span>
-                <span>Rp. ' . number_format($row->peningkatan_mutu, 0, ',', '.') . '</span>
+                <span>Rp. '.number_format($row->biaya_lain, 0, ',', '.').'</span>
             </div>
         </div>
     ';
                 })
 
                 ->addColumn('total_harga', function ($row) {
-                    $total = $row->hrg_jual + $row->biaya_surat + $row->peningkatan_mutu;
+                    $total = $row->hrg_jual + $row->biaya_surat + $row->biaya_lain;
 
                     return '
         <div class="d-flex justify-content-between harga-format w-100">
             <span>Rp.</span>
-            <span>' . number_format($total, 0, ',', '.') . '</span>
+            <span>'.number_format($total, 0, ',', '.').'</span>
         </div>
     ';
                 })
 
-                ->addColumn('id_lokasi', fn($row) => $row->lokasi->nama_kavling ?? '-')
+                ->addColumn('id_lokasi', fn ($row) => $row->lokasi->nama_kavling ?? '-')
                 ->addColumn('action', function ($row) use ($permissions): string {
                     $editUrl = route('kavling.edit', $row->id);
                     $showUrl = route('kavling.show', $row->id);
@@ -87,11 +89,12 @@ class KavlingController extends Controller
                     $btn = '<div class="text-center">';
 
                     if ($permissions['edit']) {
-                        $btn .= '<button class="btn btn-primary btn-sm edit-button mr-1" data-id="' . e($row->id) . '" data-url="' . e($editUrl) . '">Edit</button>';
-                        $btn .= '<button class="btn btn-success btn-sm foto-button" data-id="' . e($row->id) . '" data-url="' . e($showUrl) . '">Foto</button>';
+                        $btn .= '<button class="btn btn-primary btn-sm edit-button mr-1" data-id="'.e($row->id).'" data-url="'.e($editUrl).'">Edit</button>';
+                        $btn .= '<button class="btn btn-success btn-sm foto-button" data-id="'.e($row->id).'" data-url="'.e($showUrl).'">Foto</button>';
                     }
 
                     $btn .= '</div>';
+
                     return $btn;
                 })
                 ->rawColumns(['panjang', 'lebar', 'luas', 'rincian_harga', 'total_harga', 'action', 'id_lokasi'])
@@ -109,16 +112,17 @@ class KavlingController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => $data,
+            'data' => $data,
         ]);
     }
+
     public function show($id)
     {
         $data = KavlingPeta::with('lokasi')->findOrFail($id);
 
         return response()->json([
             'status' => 'success',
-            'data'   => $data,
+            'data' => $data,
         ]);
     }
 
@@ -127,27 +131,27 @@ class KavlingController extends Controller
         $data = KavlingPeta::findOrFail($id);
 
         $rules = [
-            'panjang_kanan'  => 'required',
-            'panjang_kiri'   => 'required',
-            'lebar_depan'    => 'required',
+            'panjang_kanan' => 'required',
+            'panjang_kiri' => 'required',
+            'lebar_depan' => 'required',
             'lebar_belakang' => 'required',
-            'luas_tanah'     => 'required',
-            'luas_bangunan'  => 'required',
-            'hrg_meter'      => 'required',
-            'tipe_bangunan'  => 'required',
-            'hrg_jual'       => 'required',
+            'luas_tanah' => 'required',
+            'luas_bangunan' => 'required',
+            'hrg_meter' => 'required',
+            'tipe_bangunan' => 'required',
+            'hrg_jual' => 'required',
         ];
 
         $messages = [
-            'panjang_kanan.required'  => 'Panjang kanan wajib diisi.',
-            'panjang_kiri.required'   => 'Panjang kiri wajib diisi.',
-            'lebar_depan.required'    => 'Lebar depan wajib diisi.',
+            'panjang_kanan.required' => 'Panjang kanan wajib diisi.',
+            'panjang_kiri.required' => 'Panjang kiri wajib diisi.',
+            'lebar_depan.required' => 'Lebar depan wajib diisi.',
             'lebar_belakang.required' => 'Lebar belakang wajib diisi.',
-            'luas_tanah.required'     => 'Luas tanah wajib diisi.',
-            'luas_bangunan.required'  => 'Luas bangunan wajib diisi.',
-            'hrg_meter.required'      => 'Harga per meter wajib diisi.',
-            'tipe_bangunan.required'  => 'Tipe rumah wajib diisi.',
-            'hrg_jual.required'       => 'Harga jual wajib diisi.',
+            'luas_tanah.required' => 'Luas tanah wajib diisi.',
+            'luas_bangunan.required' => 'Luas bangunan wajib diisi.',
+            'hrg_meter.required' => 'Harga per meter wajib diisi.',
+            'tipe_bangunan.required' => 'Tipe rumah wajib diisi.',
+            'hrg_jual.required' => 'Harga jual wajib diisi.',
         ];
 
         $request->validate($rules, $messages);
@@ -155,33 +159,36 @@ class KavlingController extends Controller
         DB::beginTransaction();
         try {
             $db = [
-                'panjang_kanan'  => $request->panjang_kanan,
-                'panjang_kiri'   => $request->panjang_kiri,
-                'lebar_depan'    => $request->lebar_depan,
+                'panjang_kanan' => $request->panjang_kanan,
+                'panjang_kiri' => $request->panjang_kiri,
+                'lebar_depan' => $request->lebar_depan,
                 'lebar_belakang' => $request->lebar_belakang,
-                'luas_tanah'     => $request->luas_tanah,
-                'luas_bangunan'  => $request->luas_bangunan,
-                'hrg_meter'      => str_replace('.', '', $request->hrg_meter ?? 0),
-                'tipe_bangunan'  => str_replace('.', '', $request->tipe_bangunan ?? 0),
-                'hrg_jual'       => str_replace('.', '', $request->hrg_jual ?? 0),
-                'daya_listrik'   => str_replace('.', '', $request->daya_listrik ?? 0),
-                'keterangan'     => $request->keterangan ?? '',
-                'no_sertifikat'  => $request->no_sertifikat ?? '',
+                'luas_tanah' => $request->luas_tanah,
+                'luas_bangunan' => $request->luas_bangunan,
+                'hrg_meter' => str_replace('.', '', $request->hrg_meter ?? 0),
+                'tipe_bangunan' => str_replace('.', '', $request->tipe_bangunan ?? 0),
+                'hrg_jual' => str_replace('.', '', $request->hrg_jual ?? 0),
+                'daya_listrik' => str_replace('.', '', $request->daya_listrik ?? 0),
+                'keterangan' => $request->keterangan ?? '',
+                'no_sertifikat' => $request->no_sertifikat ?? '',
             ];
 
             $data->update($db);
             $this->logEdit('Kavling', $data->id);
 
             DB::commit();
+
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'error'  => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
+
     public function updateFoto(Request $request, $id)
     {
         $data = KavlingPeta::findOrFail($id);
@@ -194,8 +201,8 @@ class KavlingController extends Controller
 
         $messages = [
             'foto.required' => 'Foto wajib diupload jika belum ada.',
-            'foto.mimes'    => 'Foto harus berformat JPG, JPEG, PNG, atau WEBP.',
-            'foto.max'      => 'Ukuran foto maksimal 2 MB.',
+            'foto.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'foto.max' => 'Ukuran foto maksimal 2 MB.',
         ];
 
         $request->validate($rules, $messages);
@@ -204,9 +211,9 @@ class KavlingController extends Controller
         try {
             if ($request->hasFile('foto')) {
                 $foto = $request->file('foto');
-                $ext  = $foto->getClientOriginalExtension();
+                $ext = $foto->getClientOriginalExtension();
 
-                $filename = Str::random(25) . '.' . $ext;
+                $filename = Str::random(25).'.'.$ext;
                 $foto->move(public_path('assets/foto_kavling/'), $filename);
             }
 
@@ -217,12 +224,14 @@ class KavlingController extends Controller
             $data->update($db);
 
             DB::commit();
+
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
-                'error'  => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -252,7 +261,7 @@ class KavlingController extends Controller
             $namaLokasi = LokasiKavling::find($request->id_lokasi)->nama_kavling ?? 'Semua Lokasi';
         }
 
-        $pdf->Cell(0, 10, 'Data Kavling ' . $namaLokasi, 0, 1, 'C');
+        $pdf->Cell(0, 10, 'Data Kavling '.$namaLokasi, 0, 1, 'C');
 
         $pdf->Ln(5);
 
@@ -290,7 +299,7 @@ class KavlingController extends Controller
                 1, 'L', false, 0, '', '', true, 0, false, true, 10, 'M'
             );
 
-            $pdf->Cell(35, 10, 'Rp ' . number_format($row->hrg_jual, 0, ',', '.'), 1, 1, 'R');
+            $pdf->Cell(35, 10, 'Rp '.number_format($row->hrg_jual, 0, ',', '.'), 1, 1, 'R');
         }
 
         $pdf->Output('data_kavling.pdf', 'I');
@@ -306,9 +315,9 @@ class KavlingController extends Controller
 
         $data = $query->get();
 
-        $spreadsheet = new Spreadsheet();
-        $sheet       = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Data Kavling ' . ($id_lokasi ? LokasiKavling::find($id_lokasi)->nama_kavling : 'Semua Lokasi'));
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Kavling '.($id_lokasi ? LokasiKavling::find($id_lokasi)->nama_kavling : 'Semua Lokasi'));
 
         $sheet->mergeCells('A1:G1');
         $sheet->setCellValue('A1', 'Data Kavling');
@@ -316,17 +325,17 @@ class KavlingController extends Controller
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $headers = ['No', 'Perumahan', 'Kode Kavling', 'Panjang', 'Lebar', 'Luas', 'Harga'];
-        $col     = 'A';
+        $col = 'A';
         foreach ($headers as $header) {
-            $sheet->setCellValue($col . '2', $header);
-            $sheet->getStyle($col . '2')->getFont()->setBold(true);
-            $sheet->getStyle($col . '2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->setCellValue($col.'2', $header);
+            $sheet->getStyle($col.'2')->getFont()->setBold(true);
+            $sheet->getStyle($col.'2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getColumnDimension($col)->setAutoSize(true);
             $col++;
         }
 
         $rowNum = 3;
-        $no     = 1;
+        $no = 1;
         foreach ($data as $row) {
             $sheet->setCellValue("A{$rowNum}", $no++);
             $sheet->setCellValue("B{$rowNum}", $row->lokasi->nama_kavling ?? '-');
@@ -352,11 +361,11 @@ class KavlingController extends Controller
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color'       => ['argb' => 'FF000000'],
+                    'color' => ['argb' => 'FF000000'],
                 ],
             ],
         ];
-        $sheet->getStyle("A2:G" . ($rowNum - 1))->applyFromArray($styleArray);
+        $sheet->getStyle('A2:G'.($rowNum - 1))->applyFromArray($styleArray);
 
         foreach (range(2, $rowNum - 1) as $r) {
             $sheet->getRowDimension($r)->setRowHeight(-1);
@@ -371,5 +380,4 @@ class KavlingController extends Controller
         $writer->save('php://output');
         exit;
     }
-
 }

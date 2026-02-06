@@ -52,8 +52,8 @@ class MarketingOfflineController extends Controller
                     return "{$nama_bank}<br>{$no_rekening}" . ($atas_nama ? "<br>{$atas_nama}" : '');
                 })
                 ->addColumn('action', function ($row) use ($permissions): string {
-                    $editUrl   = route('marketing-offline.edit', $row->id);
-                    $deleteUrl = route('marketing-offline.destroy', $row->id);
+                    $editUrl   = route('marketing-inhouse.edit', $row->id);
+                    $deleteUrl = route('marketing-inhouse.destroy', $row->id);
                     $btn       = '<div class="text-center">';
 
                     if ($permissions['edit']) {

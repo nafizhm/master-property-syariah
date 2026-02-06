@@ -242,7 +242,7 @@ class PengajuanHoldController extends Controller
             'booking_fee'      => str_replace('.', '', $request->booking_fee),
             'hrg_jual'         => str_replace('.', '', $request->hrg_jual),
             'biaya_surat'      => str_replace('.', '', $request->biaya_surat),
-            'peningkatan_mutu' => str_replace('.', '', $request->peningkatan_mutu),
+            'biaya_lain' => str_replace('.', '', $request->biaya_lain),
             'total_harga'      => str_replace('.', '', $request->total_harga),
         ]);
 
@@ -262,7 +262,7 @@ class PengajuanHoldController extends Controller
             'booking_fee'      => 'required|gt:0',
             'hrg_jual'         => 'required|gt:0',
             'biaya_surat'      => 'required|gt:0',
-            'peningkatan_mutu' => 'required|gt:0',
+            'biaya_lain' => 'required|gt:0',
             'total_harga'      => 'required|gt:0',
             'jenis_perumahan'  => 'required',
             'jenis_pembelian'  => 'required',
@@ -286,8 +286,8 @@ class PengajuanHoldController extends Controller
             'hrg_jual.gt'               => 'Harga jual harus lebih dari 0.',
             'biaya_surat.required'      => 'Biaya surat wajib diisi.',
             'biaya_surat.gt'            => 'Biaya surat harus lebih dari 0.',
-            'peningkatan_mutu.required' => 'Peningkatan mutu wajib diisi.',
-            'peningkatan_mutu.gt'       => 'Peningkatan mutu harus lebih dari 0.',
+            'biaya_lain.required' => 'Peningkatan mutu wajib diisi.',
+            'biaya_lain.gt'       => 'Peningkatan mutu harus lebih dari 0.',
             'total_harga.required'      => 'Total harga wajib diisi.',
             'total_harga.gt'            => 'Total harga harus lebih dari 0.',
             'jenis_perumahan.required'  => 'Jenis Perumahan wajib dipilih.',
@@ -323,7 +323,7 @@ class PengajuanHoldController extends Controller
                 'booking_fee'       => str_replace('.', '', $request->booking_fee),
                 'hrg_jual'          => str_replace('.', '', $request->hrg_jual),
                 'biaya_surat'       => str_replace('.', '', $request->biaya_surat),
-                'peningkatan_mutu'  => str_replace('.', '', $request->peningkatan_mutu),
+                'biaya_lain'  => str_replace('.', '', $request->biaya_lain),
                 'total_harga'       => str_replace('.', '', $request->total_harga),
                 'id_marketing'      => $request->id_marketing,
                 'id_freelance'      => $request->id_freelance,
@@ -493,17 +493,17 @@ class PengajuanHoldController extends Controller
 
         $total = ($data->hrg_jual ?? 0)
              + ($data->biaya_surat ?? 0)
-             + ($data->peningkatan_mutu ?? 0);
+             + ($data->biaya_lain ?? 0);
 
         return response()->json([
             'hrg_jual'         => $data->hrg_jual,
             'biaya_surat'      => $data->biaya_surat,
-            'peningkatan_mutu' => $data->peningkatan_mutu,
+            'biaya_lain' => $data->biaya_lain,
             'total_harga'      => $total,
             'formatted'        => [
                 'hrg_jual'         => number_format($data->hrg_jual, 0, ',', '.'),
                 'biaya_surat'      => number_format($data->biaya_surat, 0, ',', '.'),
-                'peningkatan_mutu' => number_format($data->peningkatan_mutu, 0, ',', '.'),
+                'biaya_lain' => number_format($data->biaya_lain, 0, ',', '.'),
                 'total_harga'      => number_format($total, 0, ',', '.'),
             ],
         ]);
@@ -534,7 +534,7 @@ class PengajuanHoldController extends Controller
             'booking_fee'      => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
             'hrg_jual'         => $request->hrg_jual ? str_replace('.', '', $request->hrg_jual) : 0,
             'biaya_surat'      => $request->biaya_surat ? str_replace('.', '', $request->biaya_surat) : 0,
-            'peningkatan_mutu' => $request->peningkatan_mutu ? str_replace('.', '', $request->biaya_surat) : 0,
+            'biaya_lain' => $request->biaya_lain ? str_replace('.', '', $request->biaya_surat) : 0,
             'total_harga'      => $request->total_harga ? str_replace('.', '', $request->biaya_surat) : 0,
         ]);
 
@@ -552,7 +552,7 @@ class PengajuanHoldController extends Controller
             'id_kavling'       => 'required',
             'hrg_jual'         => 'required',
             'biaya_surat'      => 'required',
-            'peningkatan_mutu' => 'required',
+            'biaya_lain' => 'required',
             'total_harga'      => 'required',
             'id_marketing'     => 'required',
             'booking_fee'      => 'required|gt:0',
@@ -581,7 +581,7 @@ class PengajuanHoldController extends Controller
             'id_kavling.required'       => 'Kavling wajib dipilih.',
             'hrg_jual.required'         => 'Harga jual wajib diisi.',
             'biaya_surat.required'      => 'Biaya surat wajib diisi.',
-            'peningkatan_mutu.required' => 'Peningkatan mutu wajib diisi.',
+            'biaya_lain.required' => 'Peningkatan mutu wajib diisi.',
             'total_harga.required'      => 'Total harga wajib diisi.',
             'id_marketing.required'     => 'Marketing wajib dipilih.',
             'booking_fee.required'      => 'Booking fee wajib diisi.',
@@ -652,7 +652,7 @@ class PengajuanHoldController extends Controller
                 'id_kavling'        => $request->id_kavling,
                 'hrg_jual'          => $request->hrg_jual,
                 'biaya_surat'       => $request->biaya_surat,
-                'peningkatan_mutu'  => $request->peningkatan_mutu,
+                'biaya_lain'  => $request->biaya_lain,
                 'total_harga'       => $request->total_harga,
                 'booking_fee'       => $request->booking_fee ?? 0,
                 'id_marketing'      => $request->id_marketing ?? 0,
@@ -801,7 +801,7 @@ class PengajuanHoldController extends Controller
             'id_kavling'        => $data->id_kavling,
             'hrg_jual'          => $data->hrg_jual,
             'biaya_surat'       => $data->biaya_surat,
-            'peningkatan_mutu'  => $data->peningkatan_mutu,
+            'biaya_lain'  => $data->biaya_lain,
             'total_harga'       => $data->total_harga,
             'nama_lengkap'      => $data->nama_lengkap,
             'nik'               => $data->nik,
@@ -891,6 +891,7 @@ class PengajuanHoldController extends Controller
         ]);
 
         $rules = [
+            'fee_marketing'   => 'required',
             'stt_reg'         => 'required',
             'jenis_pembelian' => 'required',
             'id_metode_bayar' => 'required',
@@ -906,6 +907,7 @@ class PengajuanHoldController extends Controller
             'id_bank.required'            => 'Bank wajib dipilih!',
             'an_surat_cash.required_if'   => 'Atas Nama Surat wajib diisi!',
             'termin_x_cash_b.required_if' => 'Termin wajib diisi!',
+            'fee_marketing.required'      => 'Fee Marketing wajib diisi!',
         ];
 
         $request->validate($rules, $messages);
@@ -972,11 +974,11 @@ class PengajuanHoldController extends Controller
                     'id_bank'         => $request->id_bank,
                     'tanggal_piutang' => $tglNow,
                     'deskripsi'       => 'Biaya Peningkatan Mutu Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
-                    'nominal'         => $data->peningkatan_mutu,
+                    'nominal'         => $data->biaya_lain,
                     'lampiran'        => '',
                     'status'          => 1,
                     'terbayar'        => 0,
-                    'sisa_bayar'      => $data->peningkatan_mutu,
+                    'sisa_bayar'      => $data->biaya_lain,
                     'tgl_pelunasan'   => null,
                 ];
 
@@ -1004,6 +1006,7 @@ class PengajuanHoldController extends Controller
             } else {
                 $db = [
                     'stt_reg' => $request->stt_reg,
+                    'fee_marketing' => $request->fee_marketing,
                 ];
 
                 $data->update($db);

@@ -184,7 +184,7 @@
                 serverSide: false,
                 responsive: true,
                 ordering: false,
-                ajax: "{{ route('marketing-freelance.index') }}",
+                ajax: "{{ route('marketing-agen.index') }}",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -301,10 +301,10 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('marketing-freelance.update', ['marketing_freelance' => ':id']) }}'.replace(
+            let url = id ? '{{ route('marketing-agen.update', ['marketing_freelance' => ':id']) }}'.replace(
                     ':id',
                     id) :
-                '{{ route('marketing-freelance.store') }}';
+                '{{ route('marketing-agen.store') }}';
             let method = id ? 'PUT' : 'POST';
 
             $('.is-invalid').removeClass('is-invalid');

@@ -251,7 +251,7 @@ class PembayaranController extends Controller
         $pdf->SetX(145);
         $pdf->Cell(30, 6, 'Peningkatan Mutu', 0, 0);
         $pdf->Cell(3, 6, ': Rp.', 0, 0);
-        $pdf->Cell(23, 6, number_format($customer->peningkatan_mutu ?? 0, 0, ',', '.'), 0, 1, 'R');
+        $pdf->Cell(23, 6, number_format($customer->biaya_lain ?? 0, 0, ',', '.'), 0, 1, 'R');
 
         $pdf->SetX(145);
         $pdf->Cell(30, 6, 'Total Harga', 0, 0);

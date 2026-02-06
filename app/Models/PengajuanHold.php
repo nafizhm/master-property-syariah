@@ -44,7 +44,7 @@ class PengajuanHold extends Model
         'id_kavling',
         'hrg_jual',
         'biaya_surat',
-        'peningkatan_mutu',
+        'biaya_lain',
         'total_harga',
         'jenis_perumahan',
         'jenis_pembelian',
@@ -57,6 +57,7 @@ class PengajuanHold extends Model
         'cicilan_kpr',
         'tgl_tempo_cicilan_1',
         'an_surat_kpr',
+        'fee_marketing',
         'stt_reg',
     ];
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Booking Gia Group')
+@section('title', 'Booking Sentosa Era Wijaya')
 
 @section('content')
     <div class="container">
@@ -94,7 +94,8 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">Alamat Domisili <span style="color: red;">*</span></label>
+                            <label class="control-label col-sm-3">Alamat Domisili <span
+                                    style="color: red;">*</span></label>
                             <div class="col-sm-6">
                                 <textarea name="alamat_domisili" id="alamat_domisili" class="form-control" rows="2"></textarea>
                             </div>
@@ -180,13 +181,13 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">Peningkatan Mutu</label>
+                            <label class="control-label col-sm-3">Biaya Lain Lain</label>
                             <div class="col-sm-4">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
                                     </div>
-                                    <input type="text" name="peningkatan_mutu" id="peningkatan_mutu"
+                                    <input type="text" name="biaya_lain" id="biaya_lain"
                                         class="form-control format-number">
                                 </div>
                             </div>
@@ -205,7 +206,8 @@
                         <hr>
 
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">Marketing <span style="color: red;">*</span></label>
+                            <label class="control-label col-sm-3">Marketing Inhouse<span
+                                    style="color: red;">*</span></label>
                             <div class="col-sm-4">
                                 <select class="form-control select-marketing" name="id_marketing" id="id_marketing">
                                     <option value=""></option>
@@ -215,7 +217,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <label class="control-label col-sm-2">Marketing Freelance</label>
+                            <label class="control-label col-sm-2">Marketing Agen</label>
                             <div class="col-sm-3">
                                 <select class="form-control select-freelance" name="id_freelance" id="id_freelance">
                                     <option value=""></option>
@@ -526,18 +528,18 @@
                     $.get(urlHarga, function(data) {
                         $('#hrg_jual').val(data.formatted.hrg_jual);
                         $('#biaya_surat').val(data.formatted.biaya_surat);
-                        $('#peningkatan_mutu').val(data.formatted.peningkatan_mutu);
+                        $('#biaya_lain').val(data.formatted.biaya_lain);
                         $('#total_harga').val(data.formatted.total_harga);
                     });
                 } else {
-                    $('#hrg_jual, #biaya_surat, #peningkatan_mutu, #total_harga').val('');
+                    $('#hrg_jual, #biaya_surat, #biaya_lain, #total_harga').val('');
                 }
             });
 
-            $('#hrg_jual, #biaya_surat, #peningkatan_mutu').on('input', function() {
+            $('#hrg_jual, #biaya_surat, #biaya_lain').on('input', function() {
                 let hrgJual = parseInt($('#hrg_jual').val().replace(/\./g, '')) || 0;
                 let biayaSurat = parseInt($('#biaya_surat').val().replace(/\./g, '')) || 0;
-                let peningkatanMutu = parseInt($('#peningkatan_mutu').val().replace(/\./g, '')) || 0;
+                let peningkatanMutu = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
 
                 let total = hrgJual + biayaSurat + peningkatanMutu;
 

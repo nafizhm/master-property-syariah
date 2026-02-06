@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\BankKPR;
@@ -25,12 +26,12 @@ class DashboardController extends Controller
         }
 
         Carbon::setLocale('id');
-        $tglSekarang   = Carbon::now()->translatedFormat('j F Y');
-        $totalKavling  = KavlingPeta::count();
+        $tglSekarang = Carbon::now()->translatedFormat('j F Y');
+        $totalKavling = KavlingPeta::count();
         $totalCustomer = Customer::count();
-        $merah        = Customer::where('id_status_progres', 2)->count();
-        $hijau         = Customer::where('id_status_progres', 7)->count();
-        $ungu           = Customer::where('id_status_progres', 3)->count();
+        $merah = Customer::where('id_status_progres', 2)->count();
+        $hijau = Customer::where('id_status_progres', 7)->count();
+        $ungu = Customer::where('id_status_progres', 3)->count();
 
         $kolomStatus = ProgresListPenjualan::where('stt_tampil', 1)
             ->where('id', '!=', 8)
@@ -38,16 +39,16 @@ class DashboardController extends Controller
             ->get();
 
         $totalSemua = [
-            'jumlah'         => 0,
-            'kpr'            => 0,
-            'cash'           => 0,
-            'kredit'         => 0,
+            'jumlah' => 0,
+            'kpr' => 0,
+            'cash' => 0,
+            'kredit' => 0,
             'total_customer' => $totalCustomer,
-            'hold'           => 0,
+            'hold' => 0,
         ];
 
         foreach ($kolomStatus as $status) {
-            $key              = strtolower(str_replace(' ', '_', $status->short_name));
+            $key = strtolower(str_replace(' ', '_', $status->short_name));
             $totalSemua[$key] = 0;
         }
 
@@ -56,14 +57,14 @@ class DashboardController extends Controller
             $id = $lokasi->id;
 
             $data = [
-                'id'           => $id,
-                'nama'         => $lokasi->nama_kavling,
-                'jumlah'       => KavlingPeta::where('id_lokasi', $id)->count(),
+                'id' => $id,
+                'nama' => $lokasi->nama_kavling,
+                'jumlah' => KavlingPeta::where('id_lokasi', $id)->count(),
                 'nama_singk_1' => $lokasi->nama_singkat,
-                'kpr'          => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'KPR')->count(),
-                'cash'         => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'Pembelian Cash')->count(),
-                'kredit'       => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'Cash Bertahap')->count(),
-                'hold'         => KavlingPeta::where('id_lokasi', $id)->where('status', 1)->count(),
+                'kpr' => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'KPR')->count(),
+                'cash' => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'Pembelian Cash')->count(),
+                'kredit' => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'Cash Bertahap')->count(),
+                'hold' => KavlingPeta::where('id_lokasi', $id)->where('status', 1)->count(),
             ];
 
             $totalSemua['jumlah'] += $data['jumlah'];
@@ -91,24 +92,24 @@ class DashboardController extends Controller
 
         $progresList = ProgresListPenjualan::where('id', '!=', 1)->get();
         $dataProgres = [];
-        $noProgres   = 1;
+        $noProgres = 1;
 
         foreach ($progresList as $progres) {
-            $jumlah     = Customer::where('id_status_progres', $progres->id)->count();
+            $jumlah = Customer::where('id_status_progres', $progres->id)->count();
             $persentase = $totalCustomer > 0 ? round(($jumlah / $totalCustomer) * 100) : 0;
 
             $dataProgres[] = [
-                'no'                => $noProgres++,
-                'status_progres'    => $progres->status_progres,
-                'jumlah'            => $jumlah,
-                'persentase'        => $persentase,
+                'no' => $noProgres++,
+                'status_progres' => $progres->status_progres,
+                'jumlah' => $jumlah,
+                'persentase' => $persentase,
                 'id_status_progres' => $progres->id,
             ];
         }
 
         $bankList = BankKPR::all();
         $dataBank = [];
-        $noBank   = 1;
+        $noBank = 1;
 
         $totalWawancara = WawancaraSp3k::where('status', 1)->count();
 
@@ -127,44 +128,44 @@ class DashboardController extends Controller
                 : 0;
 
             $dataBank[] = [
-                'no'         => $noBank++,
-                'bank'       => $bank->nama,
-                'jumlah'     => $jumlah,
+                'no' => $noBank++,
+                'bank' => $bank->nama,
+                'jumlah' => $jumlah,
                 'persentase' => $persentase,
-                'id_bank'    => $bank->id,
+                'id_bank' => $bank->id,
             ];
         }
 
         $marketingList = MarketingOffline::all();
         $dataMarketing = [];
-        $noMarketing   = 1;
+        $noMarketing = 1;
 
         foreach ($marketingList as $marketing) {
-            $jumlah     = Customer::where('id_marketing', $marketing->id)->count();
+            $jumlah = Customer::where('id_marketing', $marketing->id)->count();
             $persentase = $totalCustomer > 0 ? round(($jumlah / $totalCustomer) * 100) : 0;
 
             $dataMarketing[] = [
-                'no'           => $noMarketing++,
-                'marketing'    => $marketing->nama_marketing,
-                'jumlah'       => $jumlah,
-                'persentase'   => $persentase,
+                'no' => $noMarketing++,
+                'marketing' => $marketing->nama_marketing,
+                'jumlah' => $jumlah,
+                'persentase' => $persentase,
                 'id_marketing' => $marketing->id,
             ];
         }
 
         $freelanceList = MarketingFreelance::all();
         $dataFreelance = [];
-        $noFreelance   = 1;
+        $noFreelance = 1;
 
         foreach ($freelanceList as $freelance) {
-            $jumlah     = Customer::where('id_freelance', $freelance->id)->count();
+            $jumlah = Customer::where('id_freelance', $freelance->id)->count();
             $persentase = $totalCustomer > 0 ? round(($jumlah / $totalCustomer) * 100) : 0;
 
             $dataFreelance[] = [
-                'no'           => $noFreelance++,
-                'freelance'    => $freelance->nama_freelance,
-                'jumlah'       => $jumlah,
-                'persentase'   => $persentase,
+                'no' => $noFreelance++,
+                'freelance' => $freelance->nama_freelance,
+                'jumlah' => $jumlah,
+                'persentase' => $persentase,
                 'id_freelance' => $freelance->id,
             ];
         }
@@ -176,19 +177,64 @@ class DashboardController extends Controller
             $id = $lokasi->id;
 
             $data = [
-                'id'     => $id,
-                'nama'   => $lokasi->nama_kavling,
+                'id' => $id,
+                'nama' => $lokasi->nama_kavling,
                 'jumlah' => KavlingPeta::where('id_lokasi', $id)->count(),
             ];
 
             foreach ($kolomStatusReady as $status) {
-                $key        = strtolower(str_replace(' ', '_', $status->keterangan));
+                $key = strtolower(str_replace(' ', '_', $status->keterangan));
                 $data[$key] = KavlingPeta::where('id_lokasi', $id)
                     ->where('status_ready', $status->id)
                     ->count();
             }
 
             return $data;
+        });
+
+        // Payment Summary per Lokasi (tampilkan semua lokasi)
+        $dataPembayaranPerLokasi = LokasiKavling::all()->map(function ($lokasi) {
+            $id = $lokasi->id;
+
+            $customers = Customer::with('piutangs')
+                ->where('id_lokasi', $id)
+                ->where('stt_arsip', 0)
+                ->get()
+                ->sortBy(function ($customer) {
+                    return $customer->kavling->kode_kavling ?? '';
+                }, SORT_NATURAL);
+
+            $dataCustomers = [];
+            $totalHarga = 0;
+            $totalTerbayar = 0;
+            $totalSisa = 0;
+
+            foreach ($customers as $customer) {
+                $harga = $customer->piutangs->sum('nominal');
+                $terbayar = $customer->piutangs->sum('terbayar');
+                $sisa = max($customer->piutangs->sum('sisa_bayar'), 0);
+
+                $totalHarga += $harga;
+                $totalTerbayar += $terbayar;
+                $totalSisa += $sisa;
+
+                $dataCustomers[] = [
+                    'nama' => $customer->nama_lengkap,
+                    'kavling' => $customer->kavling->kode_kavling ?? '-',
+                    'harga' => $harga,
+                    'terbayar' => $terbayar,
+                    'sisa' => $sisa,
+                ];
+            }
+
+            return [
+                'id' => $id,
+                'nama_lokasi' => $lokasi->nama_kavling,
+                'customers' => $dataCustomers,
+                'total_harga' => $totalHarga,
+                'total_terbayar' => $totalTerbayar,
+                'total_sisa' => $totalSisa,
+            ];
         });
 
         return view('admin.dashboard.dashboard', compact(
@@ -205,17 +251,18 @@ class DashboardController extends Controller
             'kolomStatus',
             'kolomStatusReady',
             'dataLokasiReady',
-            'totalSemua'
+            'totalSemua',
+            'dataPembayaranPerLokasi'
         ));
     }
 
     public function showLokasiPenjualan(string $id)
     {
-        $getName  = LokasiKavling::find($id);
+        $getName = LokasiKavling::find($id);
         $viewData = [
             'lokasi_id' => $id,
-            'scope'     => 'Lokasi Kavling',
-            'nama'      => $getName->nama_kavling,
+            'scope' => 'Lokasi Kavling',
+            'nama' => $getName->nama_kavling,
         ];
 
         $query = KavlingPeta::with(['customer.progres', 'customer.marketing'])
@@ -244,16 +291,16 @@ class DashboardController extends Controller
     public function showCustomer(string $id)
     {
         $routeName = request()->route()->getName();
-        $getName   = [];
-        $viewData  = [];
+        $getName = [];
+        $viewData = [];
 
         if ($routeName === 'dashboard.customer-status-progres-show') {
-            $query    = Customer::where('id_status_progres', $id);
-            $getName  = ProgresListPenjualan::find($id);
+            $query = Customer::where('id_status_progres', $id);
+            $getName = ProgresListPenjualan::find($id);
             $viewData = [
                 'status_progres_id' => $id,
-                'scope'             => 'Progres Penjualan',
-                'nama'              => $getName->status_progres ?? '-',
+                'scope' => 'Progres Penjualan',
+                'nama' => $getName->status_progres ?? '-',
             ];
         } elseif ($routeName === 'dashboard.customer-bank-show') {
 
@@ -272,24 +319,24 @@ class DashboardController extends Controller
 
             $viewData = [
                 'bank_id' => $id,
-                'scope'   => 'Bank KPR',
-                'nama'    => $getName->nama ?? '-',
+                'scope' => 'Bank KPR',
+                'nama' => $getName->nama ?? '-',
             ];
         } elseif ($routeName === 'dashboard.customer-marketing-show') {
-            $query    = Customer::where('id_marketing', $id);
-            $getName  = MarketingOffline::find($id);
+            $query = Customer::where('id_marketing', $id);
+            $getName = MarketingOffline::find($id);
             $viewData = [
                 'marketing_id' => $id,
-                'scope'        => 'Marketing',
-                'nama'         => $getName->nama_marketing ?? '-',
+                'scope' => 'Marketing',
+                'nama' => $getName->nama_marketing ?? '-',
             ];
         } elseif ($routeName === 'dashboard.customer-freelance-show') {
-            $query    = Customer::where('id_freelance', $id);
-            $getName  = MarketingFreelance::find($id);
+            $query = Customer::where('id_freelance', $id);
+            $getName = MarketingFreelance::find($id);
             $viewData = [
                 'freelance_id' => $id,
-                'scope'        => 'Freelance',
-                'nama'         => $getName->nama_freelance ?? '-',
+                'scope' => 'Freelance',
+                'nama' => $getName->nama_freelance ?? '-',
             ];
         }
 
@@ -301,44 +348,49 @@ class DashboardController extends Controller
                 ->addIndexColumn()
 
                 ->editColumn('tanggal_verif', function ($row) {
-                    $tgl  = $row->tanggal_verif ? Carbon::parse($row->tanggal_verif)->translatedFormat('d F Y') : '-';
-                    $kode = $row->kode_customer ? '<strong>' . $row->kode_customer . '</strong>' : '';
+                    $tgl = $row->tanggal_verif ? Carbon::parse($row->tanggal_verif)->translatedFormat('d F Y') : '-';
+                    $kode = $row->kode_customer ? '<strong>'.$row->kode_customer.'</strong>' : '';
+
                     return "$tgl<br>$kode";
                 })
 
                 ->editColumn('id_marketing', function ($row) {
-                    $namaMarketing  = $row->marketing->nama_marketing ?? '<span class="badge bg-danger">None Marketing</span>';
-                    $namaFreelance  = $row->freelance->nama_freelance ?? null;
-                    $freelanceBadge = $namaFreelance ? '<span class="badge bg-info">' . $namaFreelance . '</span>' : '';
-                    return $namaMarketing . ($freelanceBadge ? '<br>' . $freelanceBadge : '');
+                    $namaMarketing = $row->marketing->nama_marketing ?? '<span class="badge bg-danger">None Marketing</span>';
+                    $namaFreelance = $row->freelance->nama_freelance ?? null;
+                    $freelanceBadge = $namaFreelance ? '<span class="badge bg-info">'.$namaFreelance.'</span>' : '';
+
+                    return $namaMarketing.($freelanceBadge ? '<br>'.$freelanceBadge : '');
                 })
 
                 ->editColumn('id_lokasi', function ($row) {
-                    $namaLokasi  = $row->lokasi->nama_kavling ?? '-';
+                    $namaLokasi = $row->lokasi->nama_kavling ?? '-';
                     $kodeKavling = $row->kavling->kode_kavling ?? '-';
-                    return '<strong>' . $namaLokasi . '</strong><br>' . $kodeKavling;
+
+                    return '<strong>'.$namaLokasi.'</strong><br>'.$kodeKavling;
                 })
 
                 ->editColumn('id_status_progres', function ($row) {
-                    $status      = $row->progres->status_progres ?? '-';
+                    $status = $row->progres->status_progres ?? '-';
                     $ketCashback = $row->progres->ket_cashback ?? '';
                     $badgeColors = [
-                        'BOOKING FEE'  => 'warning',
-                        'SP3K'         => 'success',
-                        'AKAD'         => 'info',
+                        'BOOKING FEE' => 'warning',
+                        'SP3K' => 'success',
+                        'AKAD' => 'info',
                         'SERAH TERIMA' => 'dark',
                     ];
                     $statusDisplay = isset($badgeColors[$status])
-                        ? '<span class="badge bg-' . $badgeColors[$status] . '">' . $status . '</span>'
+                        ? '<span class="badge bg-'.$badgeColors[$status].'">'.$status.'</span>'
                         : $status;
-                    $cashbackText = $ketCashback ? '<br><small>' . $ketCashback . '</small>' : '';
-                    return $statusDisplay . $cashbackText;
+                    $cashbackText = $ketCashback ? '<br><small>'.$ketCashback.'</small>' : '';
+
+                    return $statusDisplay.$cashbackText;
                 })
 
                 ->editColumn('nama_lengkap', function ($row) {
-                    $nama = '<strong>' . $row->nama_lengkap . '</strong>';
-                    $wa   = $row->no_telp ?? '-';
-                    $ktp  = $row->nik ? '<span class="badge bg-info">NIK: ' . $row->nik . '</span>' : '';
+                    $nama = '<strong>'.$row->nama_lengkap.'</strong>';
+                    $wa = $row->no_telp ?? '-';
+                    $ktp = $row->nik ? '<span class="badge bg-info">NIK: '.$row->nik.'</span>' : '';
+
                     return "$nama<br>$wa<br>$ktp";
                 })
                 ->rawColumns([
@@ -367,20 +419,20 @@ class DashboardController extends Controller
                 ->addIndexColumn()
                 ->addColumn('panjang', function ($row) {
                     return '
-                        <p>pjg kanan: <strong>' . $row->panjang_kanan . ' m</strong></p>
-                        <p>pjg kiri: <strong>' . $row->panjang_kiri . ' m</strong></p>
+                        <p>pjg kanan: <strong>'.$row->panjang_kanan.' m</strong></p>
+                        <p>pjg kiri: <strong>'.$row->panjang_kiri.' m</strong></p>
                     ';
                 })
                 ->addColumn('lebar', function ($row) {
                     return '
-                        <p>lebar depan: <strong>' . $row->lebar_depan . ' m</strong></p>
-                        <p>lebar belakang: <strong>' . $row->lebar_belakang . ' m</strong></p>
+                        <p>lebar depan: <strong>'.$row->lebar_depan.' m</strong></p>
+                        <p>lebar belakang: <strong>'.$row->lebar_belakang.' m</strong></p>
                     ';
                 })
                 ->addColumn('luas', function ($row) {
                     return '
-                        <p>luas tanah: <strong>' . $row->luas_tanah . ' m</strong></p>
-                        <p>luas bangunan: <strong>' . $row->luas_bangunan . ' m</strong></p>
+                        <p>luas tanah: <strong>'.$row->luas_tanah.' m</strong></p>
+                        <p>luas bangunan: <strong>'.$row->luas_bangunan.' m</strong></p>
                     ';
                 })
                 ->addColumn('harga', function ($row) {
@@ -435,6 +487,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard.Wawancara');
     }
+
     public function akad(Request $request)
     {
         if ($request->ajax()) {
@@ -454,5 +507,4 @@ class DashboardController extends Controller
 
         return view('admin.dashboard.Akad');
     }
-
 }

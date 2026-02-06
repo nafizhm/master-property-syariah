@@ -274,8 +274,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('admin/marketing')->group(function () {
-        Route::resource('marketing-offline', MarketingOfflineController::class);
-        Route::resource('marketing-freelance', MarketingFreelanceController::class);
+        Route::resource('marketing-inhouse', MarketingOfflineController::class);
+        Route::resource('marketing-agen', MarketingFreelanceController::class);
     });
 
     Route::prefix('admin/op-bangunan')->group(function () {

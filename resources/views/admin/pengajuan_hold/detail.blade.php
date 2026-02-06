@@ -180,15 +180,15 @@
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="peningkatan_mutu" class="col-sm-4 col-form-label">Peningkatan
+                                            <label for="biaya_lain" class="col-sm-4 col-form-label">Peningkatan
                                                 Mutu</label>
                                             <div class="col-sm-8">
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text">Rp.</span>
                                                     </div>
-                                                    <input type="text" id="peningkatan_mutu"
-                                                        value="{{ number_format($data->peningkatan_mutu, 0, ',', '.') }}"
+                                                    <input type="text" id="biaya_lain"
+                                                        value="{{ number_format($data->biaya_lain, 0, ',', '.') }}"
                                                         class="form-control" readonly>
                                                 </div>
                                             </div>
@@ -358,6 +358,7 @@
                                     //     $bank = $bankList->firstWhere('id', $data->id_bank);
                                     //     $bankNama = $bank->nama ?? '-';
                                     // }
+
                                 @endphp
 
                                 <div class="form-group row">
@@ -365,6 +366,20 @@
                                     <div class="col-sm-3">
                                         <input type="text" id="stt_reg" value="{{ $statusVerifikasi }}"
                                             class="form-control" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label for="fee_marketing" class="col-sm-2 col-form-label">Fee Marketing</label>
+                                    <div class="col-sm-4">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">Rp.</span>
+                                            </div>
+                                            <input type="text" id="fee_marketing"
+                                                value="{{ number_format($data->fee_marketing ?? 0, 0, ',', '.') }}"
+                                                class="form-control" readonly>
+                                        </div>
                                     </div>
                                 </div>
 

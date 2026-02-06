@@ -64,6 +64,7 @@
                         <input type="hidden" name="id_customer" value="{{ $customer->id }}">
                         <input type="hidden" name="id_kavling" value="{{ $kavling->id }}">
                     @endif
+                    <input type="hidden" id="tgl_serah_terima" value="{{ isset($data) ? $data->tgl_serah_terima : '' }}">
 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">Nomor Kontrak <span
@@ -82,6 +83,18 @@
                             <input type="text" name="no_telepon" class="form-control" id="no_telepon"
                                 value="{{ isset($customer) ? $customer->no_telp ?? '' : '' }}"
                                 {{ isset($customer) ? 'readonly' : '' }} required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold">Jenis Aduan <span
+                                class="text-danger">*</span></label>
+                        <div class="col-sm-8">
+                            <select name="jenis_aduan" id="jenis_aduan" class="form-control select-jenis" required>
+                                <option value="">Pilih Jenis Aduan</option>
+                                <option value="bocor">Bocor</option>
+                                <option value="lainnya">Lainnya</option>
+                            </select>
                         </div>
                     </div>
 
@@ -162,6 +175,54 @@
 
 @push('scripts')
     <script>
+        $(document).ready(function() {
+            $('.select-jenis').select2({
+                theme: "bootstrap4",
+                minimumResultsForSearch: Infinity,
+                placeholder: "Pilih Jenis Aduan",
+            });
+
+            $('#jenis_aduan').on('change', function() {
+                let tglSerahTerima = $('#tgl_serah_terima').val();
+                if (!tglSerahTerima) return;
+
+                let jenis = $(this).val();
+                let today = new Date();
+                let serahTerimaDate = new Date(tglSerahTerima);
+
+                // Hitung selisih hari
+                let diffTime = Math.abs(today - serahTerimaDate);
+                let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                let limit = 0;
+                let errorMessage = '';
+
+                if (jenis === 'bocor') {
+                    limit = 180;
+                    errorMessage =
+                        'Masa garansi untuk aduan BOCOR adalah 180 hari dari tanggal serah terima.';
+                } else if (jenis === 'lainnya') {
+                    limit = 90;
+                    errorMessage =
+                        'Masa garansi untuk aduan LAINNYA adalah 90 hari dari tanggal serah terima.';
+                }
+
+                // Cek apakah today > serahTerima + limit, atau simple diff check jika asumsi today > serahTerima
+                // Lebih aman cek expired date exactnya
+                let limitDate = new Date(serahTerimaDate);
+                limitDate.setDate(limitDate.getDate() + limit);
+
+                if (today > limitDate && limit > 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Masa Garansi Habis',
+                        text: errorMessage,
+                    });
+                    $(this).val('').trigger('change');
+                }
+            });
+        });
+
         const hasCustomerData = {{ isset($customer) ? 'true' : 'false' }};
 
         document.getElementById('btn-lanjut').addEventListener('click', function() {
@@ -205,6 +266,10 @@
                     document.getElementById('lokasi').value = response.lokasi || '';
                     document.getElementById('blok_unit').value = response.blok_unit || '';
 
+                    if (response.tgl_serah_terima) {
+                        document.getElementById('tgl_serah_terima').value = response.tgl_serah_terima;
+                    }
+
                     if (response.id_customer) {
                         let hiddenCustomer = document.createElement('input');
                         hiddenCustomer.type = 'hidden';
@@ -229,6 +294,7 @@
                 },
                 error: function(xhr) {
                     let errorMessage = 'Terjadi kesalahan saat memuat data!';
+
 
                     if (xhr.status === 410 && xhr.responseJSON && xhr.responseJSON.expired) {
                         window.location.href = '{{ route('form-aduan.expired') }}';

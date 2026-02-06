@@ -275,7 +275,7 @@
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp.</span>
                                         </div>
-                                        <input type="text" name="peningkatan_mutu" id="peningkatan_mutu"
+                                        <input type="text" name="biaya_lain" id="biaya_lain"
                                             class="form-control format-number" readonly>
                                     </div>
                                 </div>
@@ -489,7 +489,7 @@
 
                     $('#hrg_jual').val(formatNumber(data.hrg_jual));
                     $('#biaya_surat').val(formatNumber(data.biaya_surat));
-                    $('#peningkatan_mutu').val(formatNumber(data.peningkatan_mutu));
+                    $('#biaya_lain').val(formatNumber(data.biaya_lain));
                     $('#total_harga').val(formatNumber(data.total_harga));
                     $('#id_marketing').val(data.id_marketing).trigger('change');
                     $('#id_freelance').val(data.id_freelance).trigger('change');
@@ -537,7 +537,7 @@
                 let idLokasi = $(this).val();
 
                 if (!isEditMode) {
-                    $('#hrg_jual, #biaya_surat, #peningkatan_mutu, #total_harga').val('');
+                    $('#hrg_jual, #biaya_surat, #biaya_lain, #total_harga').val('');
                 }
 
                 if (idLokasi) {

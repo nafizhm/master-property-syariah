@@ -245,6 +245,7 @@
         });
 
         $(document).on('click', '#copyUrlBtn', function() {
+            console.log(qrUrl)
             navigator.clipboard.writeText(qrUrl).then(function() {
                 $('#copyFeedback').addClass('show');
                 setTimeout(function() {

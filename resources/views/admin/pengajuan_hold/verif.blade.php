@@ -180,15 +180,14 @@
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="peningkatan_mutu" class="col-sm-4 col-form-label">Peningkatan
-                                                Mutu</label>
+                                            <label for="biaya_lain" class="col-sm-4 col-form-label">Biaya Lainnya</label>
                                             <div class="col-sm-8">
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text">Rp.</span>
                                                     </div>
-                                                    <input type="text" id="peningkatan_mutu" name="peningkatan_mutu"
-                                                        value="{{ number_format($data->peningkatan_mutu, 0, ',', '.') }}"
+                                                    <input type="text" id="biaya_lain" name="biaya_lain"
+                                                        value="{{ number_format($data->biaya_lain, 0, ',', '.') }}"
                                                         class="form-control" readonly>
                                                 </div>
                                             </div>
@@ -337,10 +336,42 @@
                                     </div>
                                 </div>
 
-                                <hr>
 
                                 <form id="formData">
                                     @csrf
+                                    <hr>
+
+
+                                    <div class="form-group row">
+                                        <label for="percent_fee" class="col-sm-2 col-form-label">Fee Marketing</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    inputmode="decimal" id="percent_fee" name="percent_fee"
+                                                    value="3" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="fee_marketing" class="col-sm-2 col-form-label">Total Fee</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="fee_marketing_display" name="fee_marketing_display"
+                                                    value="0" class="form-control format-number" readonly>
+                                                <input type="hidden" id="fee_marketing" name="fee_marketing"
+                                                    value="0" class="form-control" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
                                     <input type="hidden" id="primary_id" name="primary_id"
                                         value="{{ $data->id }}">
                                     <input type="hidden" name="booking_fee" id="booking_fee"
@@ -486,9 +517,7 @@
                 placeholder: 'Pilih Jenis Pembelian',
                 minimumResultsForSearch: Infinity,
             });
-        });
 
-        $(document).ready(function() {
             function hideAllTransactionForms() {
                 $('#trx_cash').hide();
                 $('#trx_cash_bertahap').hide();
@@ -512,8 +541,30 @@
             });
 
             $('#jenis_pembelian').trigger('change');
-        });
 
+            function hitungFeeMarketing() {
+                let total_harga = parseInt($('#total_harga').val().replace(/\./g, '')) || 0;
+                let biaya_surat = parseInt($('#biaya_surat').val().replace(/\./g, '')) || 0;
+                let biaya_lain = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
+                let percent_fee = parseFloat($('#percent_fee').val()) || 0;
+                let fee_marketing = total_harga - (biaya_surat + biaya_lain) * percent_fee / 100;
+
+                console.log('total_harga:', total_harga);
+                console.log('biaya_surat:', biaya_surat);
+                console.log('biaya_lain:', biaya_lain);
+                console.log('percent_fee:', percent_fee);
+                console.log('fee_marketing:', fee_marketing);
+
+                $('#fee_marketing_display').val(fee_marketing.toLocaleString('id-ID'));
+                $('#fee_marketing').val(fee_marketing);
+            }
+
+            hitungFeeMarketing();
+
+            $('#percent_fee').on('input', function() {
+                hitungFeeMarketing();
+            });
+        });
 
         var audio = new Audio('{{ asset('audio/notification.ogg') }}');
 

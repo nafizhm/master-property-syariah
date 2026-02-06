@@ -402,7 +402,79 @@
                     </div>
                 </div>
             </div>
-            <!-- /.row -->
+
+            <!-- Start Statistik Pembayaran per Lokasi -->
+            @foreach ($dataPembayaranPerLokasi as $lokasiPembayaran)
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card card-widget widget-user-2 shadow-sm">
+                            <div class="widget-user-header bg-olive">
+                                <div class="widget-user-image">
+                                    <img class="mt-3" style="max-width: 70px; height: auto;"
+                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
+                                        alt="User Avatar">
+                                </div>
+                                <h3 class="widget-user-username">Statistik Pembayaran -
+                                    {{ $lokasiPembayaran['nama_lokasi'] }}</h3>
+                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
+                            </div>
+                            <div class="card-footer p-0">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" width="5%">No</th>
+                                            <th width="25%">Nama</th>
+                                            <th width="10%" class="text-center">Lokasi</th>
+                                            <th width="20%" class="text-right">Harga</th>
+                                            <th width="20%" class="text-right">Terbayar</th>
+                                            <th width="20%" class="text-right">Sisa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($lokasiPembayaran['customers'] ?? [] as $index => $customer)
+                                            <tr>
+                                                <td class="text-center">{{ $index + 1 }}</td>
+                                                <td>{{ $customer['nama'] ?? '' }}</td>
+                                                <td class="text-center">{{ $customer['kavling'] ?? '' }}</td>
+                                                <td class="text-right">Rp.
+                                                    {{ number_format($customer['harga'] ?? 0, 0, ',', '.') }}</td>
+                                                <td class="text-right">Rp.
+                                                    {{ number_format($customer['terbayar'] ?? 0, 0, ',', '.') }}</td>
+                                                <td class="text-right">
+                                                    @if (($customer['sisa'] ?? 0) == 0)
+                                                        <span class="badge badge-success">LUNAS</span>
+                                                    @else
+                                                        Rp. {{ number_format($customer['sisa'] ?? 0, 0, ',', '.') }}
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="6" class="text-center">Tidak ada data customer</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-primary">
+                                            <th colspan="3" class="text-center">TOTAL</th>
+                                            <th class="text-right">Rp.
+                                                {{ number_format($lokasiPembayaran['total_harga'], 0, ',', '.') }}</th>
+                                            <th class="text-right">Rp.
+                                                {{ number_format($lokasiPembayaran['total_terbayar'], 0, ',', '.') }}</th>
+                                            <th class="text-right">Rp.
+                                                {{ number_format($lokasiPembayaran['total_sisa'], 0, ',', '.') }}</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+            <!-- End Statistik Pembayaran per Lokasi -->
+
+    </div>
+    <!-- /.row -->
     </div><!-- /.container-fluid -->
     </section>
 @endsection

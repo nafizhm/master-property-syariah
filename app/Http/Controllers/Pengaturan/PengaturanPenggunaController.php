@@ -80,7 +80,9 @@ class PengaturanPenggunaController extends Controller
         $roles     = Role::select('id', 'role')->get();
         $marketing = MarketingOffline::select('id', 'nama_marketing')->get();
 
-        return view('admin.pengaturan.pengguna.index', compact('roles', 'permissions', 'marketing'));
+        $auth = Auth::user();
+
+        return view('admin.pengaturan.pengguna.index', compact('roles', 'permissions', 'marketing', 'auth'));
     }
 
     public function edit($id)

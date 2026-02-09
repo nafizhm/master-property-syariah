@@ -301,7 +301,7 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('marketing-agen.update', ['marketing_freelance' => ':id']) }}'.replace(
+            let url = id ? '{{ route('marketing-agen.update', ['marketing_agengit' => ':id']) }}'.replace(
                     ':id',
                     id) :
                 '{{ route('marketing-agen.store') }}';

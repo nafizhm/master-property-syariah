@@ -300,7 +300,7 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('marketing-inhouse.update', ['marketing_offline' => ':id']) }}'.replace(':id',
+            let url = id ? '{{ route('marketing-inhouse.update', ['marketing_inhouse' => ':id']) }}'.replace(':id',
                     id) :
                 '{{ route('marketing-inhouse.store') }}';
             let method = id ? 'PUT' : 'POST';

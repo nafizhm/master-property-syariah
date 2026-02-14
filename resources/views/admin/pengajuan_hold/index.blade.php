@@ -15,8 +15,13 @@
                                 <div class="d-flex align-content-center justify-content-between">
                                     <h3 class="font-weight-bold text-lg">Data Pengajuan Hold</h3>
                                     <div class="d-flex align-items-center">
-                                        <a href="{{ route('pengajuan-hold.arsip') }}" class="btn btn-sm btn-primary"><i
-                                                class="fas fa-archive mr-1"></i> Arsip Pengajuan Hold</a>
+                                        <a href="{{ route('pengajuan-hold.index') }}" class="btn btn-sm btn-dark mr-2"
+                                            target="_blank">
+                                            <i class="fas fa-plus mr-1"></i> Pengajuan Hold
+                                        </a>
+                                        <a href="{{ route('pengajuan-hold.arsip') }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-archive mr-1"></i> Arsip Pengajuan Hold
+                                        </a>
                                     </div>
                                 </div>
                             </div>

@@ -160,10 +160,10 @@ class PengajuanHoldController extends Controller
                     return $namaLokasi . '<br>' . $kodeKavling;
                 })
                 ->addColumn('action', function ($row) {
-                    $verifUrl = route('pengajuan-hold.arsip.detail', $row->id);
-                    $btn      = '<div class="text-start">';
-                    $btn .= '<a class="btn btn-primary btn-sm mr-1" href="' . e($verifUrl) . '">Detail</a>';
-                    $btn .= '</div>';
+                    $verifUrl  = route('pengajuan-hold.arsip.detail', $row->id);
+                    $btn       = '<div class="text-start">';
+                    $btn      .= '<a class="btn btn-primary btn-sm mr-1" href="' . e($verifUrl) . '">Detail</a>';
+                    $btn      .= '</div>';
 
                     return $btn;
                 })
@@ -220,7 +220,7 @@ class PengajuanHoldController extends Controller
     {
         $list = PengajuanHold::with('kavling')->findOrFail($id);
 
-        if (!empty($list->tgl_booking)) {
+        if (! empty($list->tgl_booking)) {
             $list->tgl_booking_formatted = Carbon::createFromFormat('Y-m-d', $list->tgl_booking)
                 ->locale('id')
                 ->translatedFormat('j F Y');
@@ -239,59 +239,59 @@ class PengajuanHoldController extends Controller
         $data = PengajuanHold::findOrFail($id);
 
         $request->merge([
-            'booking_fee'      => str_replace('.', '', $request->booking_fee),
-            'hrg_jual'         => str_replace('.', '', $request->hrg_jual),
-            'biaya_surat'      => str_replace('.', '', $request->biaya_surat),
-            'biaya_lain' => str_replace('.', '', $request->biaya_lain),
-            'total_harga'      => str_replace('.', '', $request->total_harga),
+            'booking_fee' => str_replace('.', '', $request->booking_fee),
+            'hrg_jual'    => str_replace('.', '', $request->hrg_jual),
+            'biaya_surat' => str_replace('.', '', $request->biaya_surat),
+            'biaya_lain'  => str_replace('.', '', $request->biaya_lain),
+            'total_harga' => str_replace('.', '', $request->total_harga),
         ]);
 
         $request->validate([
-            'nama_lengkap'     => 'required',
-            'nik'              => 'required',
-            'tempat_lahir'     => 'required',
-            'tgl_lahir'        => 'required|date',
-            'jenis_kelamin'    => 'required',
-            'no_telp'          => 'required',
-            'alamat_ktp'       => 'required',
-            'alamat_domisili'  => 'required',
-            'email'            => 'nullable|email',
-            'id_lokasi'        => 'required',
-            'id_kavling'       => 'required',
-            'id_marketing'     => 'required',
-            'booking_fee'      => 'required|gt:0',
-            'hrg_jual'         => 'required|gt:0',
-            'biaya_surat'      => 'required|gt:0',
-            'biaya_lain' => 'required|gt:0',
-            'total_harga'      => 'required|gt:0',
-            'jenis_perumahan'  => 'required',
-            'jenis_pembelian'  => 'required',
+            'nama_lengkap'    => 'required',
+            'nik'             => 'required',
+            'tempat_lahir'    => 'required',
+            'tgl_lahir'       => 'required|date',
+            'jenis_kelamin'   => 'required',
+            'no_telp'         => 'required',
+            'alamat_ktp'      => 'required',
+            'alamat_domisili' => 'required',
+            'email'           => 'nullable|email',
+            'id_lokasi'       => 'required',
+            'id_kavling'      => 'required',
+            'id_marketing'    => 'required',
+            'booking_fee'     => 'required|gt:0',
+            'hrg_jual'        => 'required|gt:0',
+            'biaya_surat'     => 'required|gt:0',
+            'biaya_lain'      => 'required|gt:0',
+            'total_harga'     => 'required|gt:0',
+            'jenis_perumahan' => 'required',
+            'jenis_pembelian' => 'required',
         ], [
-            'nama_lengkap.required'     => 'Nama lengkap wajib diisi.',
-            'nik.required'              => 'NIK wajib diisi.',
-            'tempat_lahir.required'     => 'Tempat lahir wajib diisi.',
-            'tgl_lahir.required'        => 'Tanggal lahir wajib diisi.',
-            'tgl_lahir.date'            => 'Tanggal lahir harus berupa tanggal yang valid.',
-            'jenis_kelamin.required'    => 'Jenis kelamin wajib dipilih.',
-            'no_telp.required'          => 'Nomor telepon wajib diisi.',
-            'alamat_ktp.required'       => 'Alamat KTP wajib diisi.',
-            'alamat_domisili.required'  => 'Alamat domisili wajib diisi.',
-            'email.email'               => 'Format email tidak valid.',
-            'id_lokasi.required'        => 'Lokasi wajib dipilih.',
-            'id_kavling.required'       => 'Kavling wajib dipilih.',
-            'id_marketing.required'     => 'Marketing wajib dipilih.',
-            'booking_fee.required'      => 'Booking fee wajib diisi.',
-            'booking_fee.gt'            => 'Booking fee harus lebih dari 0.',
-            'hrg_jual.required'         => 'Harga jual wajib diisi.',
-            'hrg_jual.gt'               => 'Harga jual harus lebih dari 0.',
-            'biaya_surat.required'      => 'Biaya surat wajib diisi.',
-            'biaya_surat.gt'            => 'Biaya surat harus lebih dari 0.',
-            'biaya_lain.required' => 'Peningkatan mutu wajib diisi.',
-            'biaya_lain.gt'       => 'Peningkatan mutu harus lebih dari 0.',
-            'total_harga.required'      => 'Total harga wajib diisi.',
-            'total_harga.gt'            => 'Total harga harus lebih dari 0.',
-            'jenis_perumahan.required'  => 'Jenis Perumahan wajib dipilih.',
-            'jenis_pembelian.required'  => 'Jenis Pembelian wajib dipilih.',
+            'nama_lengkap.required'    => 'Nama lengkap wajib diisi.',
+            'nik.required'             => 'NIK wajib diisi.',
+            'tempat_lahir.required'    => 'Tempat lahir wajib diisi.',
+            'tgl_lahir.required'       => 'Tanggal lahir wajib diisi.',
+            'tgl_lahir.date'           => 'Tanggal lahir harus berupa tanggal yang valid.',
+            'jenis_kelamin.required'   => 'Jenis kelamin wajib dipilih.',
+            'no_telp.required'         => 'Nomor telepon wajib diisi.',
+            'alamat_ktp.required'      => 'Alamat KTP wajib diisi.',
+            'alamat_domisili.required' => 'Alamat domisili wajib diisi.',
+            'email.email'              => 'Format email tidak valid.',
+            'id_lokasi.required'       => 'Lokasi wajib dipilih.',
+            'id_kavling.required'      => 'Kavling wajib dipilih.',
+            'id_marketing.required'    => 'Marketing wajib dipilih.',
+            'booking_fee.required'     => 'Booking fee wajib diisi.',
+            'booking_fee.gt'           => 'Booking fee harus lebih dari 0.',
+            'hrg_jual.required'        => 'Harga jual wajib diisi.',
+            'hrg_jual.gt'              => 'Harga jual harus lebih dari 0.',
+            'biaya_surat.required'     => 'Biaya surat wajib diisi.',
+            'biaya_surat.gt'           => 'Biaya surat harus lebih dari 0.',
+            'biaya_lain.required'      => 'Peningkatan mutu wajib diisi.',
+            'biaya_lain.gt'            => 'Peningkatan mutu harus lebih dari 0.',
+            'total_harga.required'     => 'Total harga wajib diisi.',
+            'total_harga.gt'           => 'Total harga harus lebih dari 0.',
+            'jenis_perumahan.required' => 'Jenis Perumahan wajib dipilih.',
+            'jenis_pembelian.required' => 'Jenis Pembelian wajib dipilih.',
         ]);
 
         DB::beginTransaction();
@@ -323,7 +323,7 @@ class PengajuanHoldController extends Controller
                 'booking_fee'       => str_replace('.', '', $request->booking_fee),
                 'hrg_jual'          => str_replace('.', '', $request->hrg_jual),
                 'biaya_surat'       => str_replace('.', '', $request->biaya_surat),
-                'biaya_lain'  => str_replace('.', '', $request->biaya_lain),
+                'biaya_lain'        => str_replace('.', '', $request->biaya_lain),
                 'total_harga'       => str_replace('.', '', $request->total_harga),
                 'id_marketing'      => $request->id_marketing,
                 'id_freelance'      => $request->id_freelance,
@@ -496,15 +496,15 @@ class PengajuanHoldController extends Controller
              + ($data->biaya_lain ?? 0);
 
         return response()->json([
-            'hrg_jual'         => $data->hrg_jual,
-            'biaya_surat'      => $data->biaya_surat,
-            'biaya_lain' => $data->biaya_lain,
-            'total_harga'      => $total,
-            'formatted'        => [
-                'hrg_jual'         => number_format($data->hrg_jual, 0, ',', '.'),
-                'biaya_surat'      => number_format($data->biaya_surat, 0, ',', '.'),
-                'biaya_lain' => number_format($data->biaya_lain, 0, ',', '.'),
-                'total_harga'      => number_format($total, 0, ',', '.'),
+            'hrg_jual'    => $data->hrg_jual,
+            'biaya_surat' => $data->biaya_surat,
+            'biaya_lain'  => $data->biaya_lain,
+            'total_harga' => $total,
+            'formatted'   => [
+                'hrg_jual'    => number_format($data->hrg_jual, 0, ',', '.'),
+                'biaya_surat' => number_format($data->biaya_surat, 0, ',', '.'),
+                'biaya_lain'  => number_format($data->biaya_lain, 0, ',', '.'),
+                'total_harga' => number_format($total, 0, ',', '.'),
             ],
         ]);
     }
@@ -534,73 +534,76 @@ class PengajuanHoldController extends Controller
             'booking_fee'      => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
             'hrg_jual'         => $request->hrg_jual ? str_replace('.', '', $request->hrg_jual) : 0,
             'biaya_surat'      => $request->biaya_surat ? str_replace('.', '', $request->biaya_surat) : 0,
-            'biaya_lain' => $request->biaya_lain ? str_replace('.', '', $request->biaya_surat) : 0,
+            'peningkatan_mutu' => $request->peningkatan_mutu ? str_replace('.', '', $request->peningkatan_mutu) : 0,
+            'biaya_lain'       => $request->biaya_lain ? str_replace('.', '', $request->biaya_surat) : 0,
             'total_harga'      => $request->total_harga ? str_replace('.', '', $request->biaya_surat) : 0,
         ]);
 
         $request->validate([
-            'nama_lengkap'     => 'required',
-            'nik'              => 'required|digits:16',
-            'tempat_lahir'     => 'required',
-            'tgl_lahir'        => 'required|date',
-            'jenis_kelamin'    => 'required',
-            'no_telp'          => 'required',
-            'alamat_ktp'       => 'required',
-            'alamat_domisili'  => 'required',
-            'email'            => 'nullable|email',
-            'id_lokasi'        => 'required',
-            'id_kavling'       => 'required',
-            'hrg_jual'         => 'required',
-            'biaya_surat'      => 'required',
-            'biaya_lain' => 'required',
-            'total_harga'      => 'required',
-            'id_marketing'     => 'required',
-            'booking_fee'      => 'required|gt:0',
-            'jenis_perumahan'  => 'required',
-            'jenis_pembelian'  => 'required',
-            'foto_ktp'         => 'required|mimes:jpg,jpeg,png|max:2048',
-            'foto_npwp'        => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_kk'          => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_bpjs'        => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_ktp_p'       => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'file_bukti'       => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_pemohon'     => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'nama_lengkap'    => 'required',
+            'nik'             => 'required|digits:16',
+            'tempat_lahir'    => 'required',
+            'tgl_lahir'       => 'required|date',
+            'jenis_kelamin'   => 'required',
+            'no_telp'         => 'required',
+            'alamat_ktp'      => 'required',
+            'alamat_domisili' => 'required',
+            'email'           => 'nullable|email',
+            'id_lokasi'       => 'required',
+            'id_kavling'      => 'required',
+            'hrg_jual'        => 'required',
+            'biaya_surat'     => 'required',
+            'peningkatan_mutu'     => 'required',
+            'biaya_lain'      => 'required',
+            'total_harga'     => 'required',
+            'id_marketing'    => 'required',
+            'booking_fee'     => 'required|gt:0',
+            'jenis_perumahan' => 'required',
+            'jenis_pembelian' => 'required',
+            'foto_ktp'        => 'required|mimes:jpg,jpeg,png|max:2048',
+            'foto_npwp'       => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'foto_kk'         => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'foto_bpjs'       => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'foto_ktp_p'      => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'file_bukti'      => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'foto_pemohon'    => 'nullable|mimes:jpg,jpeg,png|max:2048',
         ], [
-            'nama_lengkap.required'     => 'Nama lengkap wajib diisi.',
-            'nik.required'              => 'NIK wajib diisi.',
-            'nik.digits'                => 'NIK harus 16 digit.',
-            'tempat_lahir.required'     => 'Tempat lahir wajib diisi.',
-            'tgl_lahir.required'        => 'Tanggal lahir wajib diisi.',
-            'tgl_lahir.date'            => 'Tanggal lahir harus berupa tanggal yang valid.',
-            'jenis_kelamin.required'    => 'Jenis kelamin wajib dipilih.',
-            'no_telp.required'          => 'Nomor telepon wajib diisi.',
-            'alamat_ktp.required'       => 'Alamat KTP wajib diisi.',
-            'alamat_domisili.required'  => 'Alamat domisili wajib diisi.',
-            'email.email'               => 'Format email tidak valid.',
-            'id_lokasi.required'        => 'Lokasi wajib dipilih.',
-            'id_kavling.required'       => 'Kavling wajib dipilih.',
-            'hrg_jual.required'         => 'Harga jual wajib diisi.',
-            'biaya_surat.required'      => 'Biaya surat wajib diisi.',
-            'biaya_lain.required' => 'Peningkatan mutu wajib diisi.',
-            'total_harga.required'      => 'Total harga wajib diisi.',
-            'id_marketing.required'     => 'Marketing wajib dipilih.',
-            'booking_fee.required'      => 'Booking fee wajib diisi.',
-            'booking_fee.gt'            => 'Booking fee harus lebih dari 0.',
-            'jenis_perumahan.required'  => 'Jenis Perumahan wajib dipilih.',
-            'jenis_pembelian.required'  => 'Jenis Pembelian wajib dipilih.',
-            'foto_ktp.required'         => 'Foto KTP wajib diunggah.',
-            'foto_ktp.mimes'            => 'Foto KTP harus berformat JPG atau PNG.',
-            'foto_ktp.max'              => 'Foto KTP maksimal 2 MB.',
-            'foto_npwp.mimes'           => 'Foto NPWP harus berformat JPG atau PNG.',
-            'foto_npwp.max'             => 'Foto NPWP maksimal 2 MB.',
-            'foto_kk.mimes'             => 'Foto KK harus berformat JPG atau PNG.',
-            'foto_kk.max'               => 'Foto KK maksimal 2 MB.',
-            'foto_bpjs.mimes'           => 'Foto BPJS harus berformat JPG atau PNG.',
-            'foto_bpjs.max'             => 'Foto BPJS maksimal 2 MB.',
-            'foto_ktp_p.mimes'          => 'Foto KTP pasangan harus berformat JPG atau PNG.',
-            'foto_ktp_p.max'            => 'Foto KTP pasangan maksimal 2 MB.',
-            'foto_pemohon.mimes'        => 'Foto pemohon harus berformat JPG atau PNG.',
-            'foto_pemohon.max'          => 'Foto pemohon maksimal 2 MB.',
+            'nama_lengkap.required'    => 'Nama lengkap wajib diisi.',
+            'nik.required'             => 'NIK wajib diisi.',
+            'nik.digits'               => 'NIK harus 16 digit.',
+            'tempat_lahir.required'    => 'Tempat lahir wajib diisi.',
+            'tgl_lahir.required'       => 'Tanggal lahir wajib diisi.',
+            'tgl_lahir.date'           => 'Tanggal lahir harus berupa tanggal yang valid.',
+            'jenis_kelamin.required'   => 'Jenis kelamin wajib dipilih.',
+            'no_telp.required'         => 'Nomor telepon wajib diisi.',
+            'alamat_ktp.required'      => 'Alamat KTP wajib diisi.',
+            'alamat_domisili.required' => 'Alamat domisili wajib diisi.',
+            'email.email'              => 'Format email tidak valid.',
+            'id_lokasi.required'       => 'Lokasi wajib dipilih.',
+            'id_kavling.required'      => 'Kavling wajib dipilih.',
+            'hrg_jual.required'        => 'Harga jual wajib diisi.',
+            'biaya_surat.required'     => 'Biaya surat wajib diisi.',
+            'peningkatan_mutu.required'     => 'Peningkatan mutu wajib diisi.',
+            'biaya_lain.required'      => 'Peningkatan mutu wajib diisi.',
+            'total_harga.required'     => 'Total harga wajib diisi.',
+            'id_marketing.required'    => 'Marketing wajib dipilih.',
+            'booking_fee.required'     => 'Booking fee wajib diisi.',
+            'booking_fee.gt'           => 'Booking fee harus lebih dari 0.',
+            'jenis_perumahan.required' => 'Jenis Perumahan wajib dipilih.',
+            'jenis_pembelian.required' => 'Jenis Pembelian wajib dipilih.',
+            'foto_ktp.required'        => 'Foto KTP wajib diunggah.',
+            'foto_ktp.mimes'           => 'Foto KTP harus berformat JPG atau PNG.',
+            'foto_ktp.max'             => 'Foto KTP maksimal 2 MB.',
+            'foto_npwp.mimes'          => 'Foto NPWP harus berformat JPG atau PNG.',
+            'foto_npwp.max'            => 'Foto NPWP maksimal 2 MB.',
+            'foto_kk.mimes'            => 'Foto KK harus berformat JPG atau PNG.',
+            'foto_kk.max'              => 'Foto KK maksimal 2 MB.',
+            'foto_bpjs.mimes'          => 'Foto BPJS harus berformat JPG atau PNG.',
+            'foto_bpjs.max'            => 'Foto BPJS maksimal 2 MB.',
+            'foto_ktp_p.mimes'         => 'Foto KTP pasangan harus berformat JPG atau PNG.',
+            'foto_ktp_p.max'           => 'Foto KTP pasangan maksimal 2 MB.',
+            'foto_pemohon.mimes'       => 'Foto pemohon harus berformat JPG atau PNG.',
+            'foto_pemohon.max'         => 'Foto pemohon maksimal 2 MB.',
         ]);
 
         DB::beginTransaction();
@@ -650,10 +653,11 @@ class PengajuanHoldController extends Controller
                 'no_bpjs_kes'       => $request->no_bpjs_kes ?? '',
                 'id_lokasi'         => $request->id_lokasi,
                 'id_kavling'        => $request->id_kavling,
-                'hrg_jual'          => $request->hrg_jual,
-                'biaya_surat'       => $request->biaya_surat,
-                'biaya_lain'  => $request->biaya_lain,
-                'total_harga'       => $request->total_harga,
+                'hrg_jual'          => $request->hrg_jual ?? 0,
+                'biaya_surat'       => $request->biaya_surat ?? 0,
+                'peningkatan_mutu'  => $request->peningkatan_mutu ?? 0,
+                'biaya_lain'        => $request->biaya_lain ?? 0,
+                'total_harga'       => $request->total_harga ?? 0,
                 'booking_fee'       => $request->booking_fee ?? 0,
                 'id_marketing'      => $request->id_marketing ?? 0,
                 'id_freelance'      => $request->id_freelance ?? 0,
@@ -801,7 +805,7 @@ class PengajuanHoldController extends Controller
             'id_kavling'        => $data->id_kavling,
             'hrg_jual'          => $data->hrg_jual,
             'biaya_surat'       => $data->biaya_surat,
-            'biaya_lain'  => $data->biaya_lain,
+            'biaya_lain'        => $data->biaya_lain,
             'total_harga'       => $data->total_harga,
             'nama_lengkap'      => $data->nama_lengkap,
             'nik'               => $data->nik,
@@ -883,7 +887,7 @@ class PengajuanHoldController extends Controller
     public function simpanVerifikasi(Request $request, $id)
     {
         $data = PengajuanHold::with(['kavling', 'lokasi'])->findOrFail($id);
-        
+
         $this->logCreate('Verifikasi Data Booking', $data->id);
 
         $request->merge([
@@ -1005,7 +1009,7 @@ class PengajuanHoldController extends Controller
                 Pemasukan::create($p1);
             } else {
                 $db = [
-                    'stt_reg' => $request->stt_reg,
+                    'stt_reg'       => $request->stt_reg,
                     'fee_marketing' => $request->fee_marketing,
                 ];
 

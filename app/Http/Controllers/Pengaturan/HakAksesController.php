@@ -1,33 +1,18 @@
 <?php
-
 namespace App\Http\Controllers\Pengaturan;
 
 use App\Http\Controllers\Controller;
 use App\Models\HakAkses;
 use App\Models\Menu;
+use App\Models\PengaturanPengguna;
+use App\Models\Pengguna;
 use App\Models\User;
-use App\Traits\LogAktivitasTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Yajra\DataTables\DataTables;
+use Yajra\DataTables\Facades\DataTables;
 
 class HakAksesController extends Controller
 {
-    use LogAktivitasTrait;
-    public function index(Request $request)
-    {
-        $permissions = $this->getUserPermissions();
-
-        $users = User::select('id', 'username')
-            ->when(Auth::user()->username != 'dev', function ($query) {
-                $query->where('username', '!=', 'dev');
-            })
-            ->get();
-
-        return view('admin.pengaturan.hak_akses.index', compact('users', 'permissions'));
-    }
-
     public static function getUserPermissions()
     {
         $routeName = request()->route()->getName();
@@ -58,16 +43,26 @@ class HakAksesController extends Controller
         ];
     }
 
-    private function generateHakAkses($id_user)
+    public function index(Request $request)
     {
-        $user = User::find($id_user);
+        $permissions = $this->getUserPermissions();
+
+        $users = User::select('id', 'username')->get();
+
+        return view('admin.pengaturan.hak_akses.index', compact('users', 'permissions'));
+    }
+
+    private function generateHakAkses($id)
+    {
+        $user = PengaturanPengguna::find($id);
+
         if (! $user) {
             return;
         }
 
-        $menus         = Menu::all();
-        $existingMenus = HakAkses::where('id_user', $user->id)->pluck('id_menu')->toArray();
-        $missingMenus  = $menus->whereNotIn('id', $existingMenus);
+        $menus        = Menu::all();
+        $existingMenu = HakAkses::where('id_user', $user->id)->pluck('id_menu')->toArray();
+        $missingMenus = $menus->whereNotIn('id', $existingMenu);
 
         if ($missingMenus->count() > 0) {
             $addedMenus = [];
@@ -76,17 +71,15 @@ class HakAksesController extends Controller
                 $akses = [
                     'id_user' => $user->id,
                     'id_menu' => $menu->id,
-                    'lihat'   => ($user->role == 4 || $user->role == 2) ? $menu->lihat : 0,
-                    'tambah'  => ($user->role == 4 || $user->role == 2) ? $menu->tambah : 0,
-                    'edit'    => ($user->role == 4 || $user->role == 2) ? $menu->edit : 0,
-                    'hapus'   => ($user->role == 4 || $user->role == 2) ? $menu->hapus : 0,
+                    'lihat'   => 1,
+                    'tambah'  => 0,
+                    'edit'    => 0,
+                    'hapus'   => 0,
                 ];
 
                 HakAkses::create($akses);
                 $addedMenus[] = $menu->title ?? $menu->id;
             }
-
-            Log::info("Hak akses ditambahkan untuk user {$user->username}:", $addedMenus);
         }
     }
 
@@ -142,7 +135,7 @@ class HakAksesController extends Controller
 
                 $checked  = $row->lihat == 1 ? 'checked' : '';
                 $disabled = ($permissions['edit'] ?? 1) == 0 ? 'disabled' : '';
-                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='lihat[{$row->id}]' $checked $disabled></div>";
+                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='lihat[{$row->id_menu}]' $checked $disabled></div>";
             })
             ->addColumn('beranda', function ($row) use ($permissions) {
                 if (! $row->menu || $row->menu->title === "Beranda" || $row->menu->route_name === "#") {
@@ -151,7 +144,7 @@ class HakAksesController extends Controller
 
                 $checked  = $row->beranda == 1 ? 'checked' : '';
                 $disabled = ($permissions['edit'] ?? 1) == 0 ? 'disabled' : '';
-                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='beranda[{$row->id}]' $checked $disabled></div>";
+                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='beranda[{$row->id_menu}]' $checked $disabled></div>";
             })
             ->addColumn('tambah', function ($row) use ($permissions) {
                 if (! $row->menu || $row->menu->tambah == 0) {
@@ -160,7 +153,7 @@ class HakAksesController extends Controller
 
                 $checked  = $row->tambah == 1 ? 'checked' : '';
                 $disabled = ($permissions['edit'] ?? 1) == 0 ? 'disabled' : '';
-                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='tambah[{$row->id}]' $checked $disabled></div>";
+                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='tambah[{$row->id_menu}]' $checked $disabled></div>";
             })
             ->addColumn('edit', function ($row) use ($permissions) {
                 if (! $row->menu || $row->menu->edit == 0) {
@@ -169,7 +162,7 @@ class HakAksesController extends Controller
 
                 $checked  = $row->edit == 1 ? 'checked' : '';
                 $disabled = ($permissions['edit'] ?? 1) == 0 ? 'disabled' : '';
-                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='edit[{$row->id}]' $checked $disabled></div>";
+                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='edit[{$row->id_menu}]' $checked $disabled></div>";
             })
             ->addColumn('hapus', function ($row) use ($permissions) {
                 if (! $row->menu || $row->menu->hapus == 0) {
@@ -178,7 +171,7 @@ class HakAksesController extends Controller
 
                 $checked  = $row->hapus == 1 ? 'checked' : '';
                 $disabled = ($permissions['edit'] ?? 1) == 0 ? 'disabled' : '';
-                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='hapus[{$row->id}]' $checked $disabled></div>";
+                return "<div class='text-center'><input type='checkbox' class='form-check-input' name='hapus[{$row->id_menu}]' $checked $disabled></div>";
             })
             ->rawColumns(['induk_menu', 'beranda', 'title', 'route_name', 'lihat', 'tambah', 'edit', 'hapus'])
             ->make(true);
@@ -187,40 +180,40 @@ class HakAksesController extends Controller
     public function updateHakAkses(Request $request)
     {
         $hakAksesData = $request->hak_akses_data;
+        $idUser       = $request->id_user;
 
-        $allIds = collect($hakAksesData)->map(function ($item) {
-            return array_keys($item);
-        })->flatten()->unique();
+        $menuIds = collect($hakAksesData)
+            ->map(fn($item) => array_keys($item))
+            ->flatten()
+            ->unique();
 
-        foreach ($allIds as $id) {
-            $hakAkses = HakAkses::where('id', $id)->first();
-            if ($hakAkses) {
-                $hakAkses->lihat   = $hakAksesData['lihat'][$id] ?? 0;
-                $hakAkses->beranda = $hakAksesData['beranda'][$id] ?? 0;
-                $hakAkses->tambah  = $hakAksesData['tambah'][$id] ?? 0;
-                $hakAkses->edit    = $hakAksesData['edit'][$id] ?? 0;
-                $hakAkses->hapus   = $hakAksesData['hapus'][$id] ?? 0;
-                $hakAkses->save();
-            }
+        foreach ($menuIds as $menuId) {
+            HakAkses::updateOrCreate(
+                [
+                    'id_user' => $idUser,
+                    'id_menu' => $menuId,
+                ],
+                [
+                    'lihat'   => $hakAksesData['lihat'][$menuId] ?? 0,
+                    'beranda' => $hakAksesData['beranda'][$menuId] ?? 0,
+                    'tambah'  => $hakAksesData['tambah'][$menuId] ?? 0,
+                    'edit'    => $hakAksesData['edit'][$menuId] ?? 0,
+                    'hapus'   => $hakAksesData['hapus'][$menuId] ?? 0,
+                ]
+            );
         }
 
-        $userId = Auth::id();
-
-        $hakAkses = HakAkses::where('id_user', $userId)
+        $hakAkses = HakAkses::where('id_user', Auth::id())
             ->where('lihat', 1)
             ->get();
-        
-        $this->logEdit('Hak Akses', $userId);
 
-        $allowedMenuIds = $hakAkses->pluck('id_menu')->toArray();
+        $allowedMenuIds = $hakAkses->pluck('id_menu');
 
         $getmenus = Menu::where('id_parent', 0)
             ->whereIn('id', $allowedMenuIds)
             ->orderBy('urutan')
             ->with([
-                'children' => function ($query) use ($allowedMenuIds) {
-                    $query->whereIn('id', $allowedMenuIds);
-                },
+                'children' => fn($q) => $q->whereIn('id', $allowedMenuIds),
             ])
             ->get();
 
@@ -231,4 +224,5 @@ class HakAksesController extends Controller
             'message' => 'Hak Akses telah diperbarui.',
         ]);
     }
+
 }

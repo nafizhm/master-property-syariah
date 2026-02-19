@@ -21,10 +21,19 @@
                             </div>
                             <div class="card-body">
                                 <div class="form-group row mb-4">
-                                    <label for="" class="col-md-1 col-form-label">Pengguna</label>
+                                    <label for="" class="col-md-2 col-form-label">Pengguna</label>
                                     <div class="col-sm-3">
                                         <select id="pilih-pengguna" class="form-select select-pengguna">
                                             <option value=""></option>
+                                            @foreach ($users as $user)
+                                                <option value="{{ $user->id }}">{{ $user->username }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <label for="" class="col-sm-2 col-form-label">Ubah Akses Seperti</label>
+                                    <div class="col-sm-3">
+                                        <select class="form-select select-pengguna" id="pilih-ubah-akses">
+                                            <option value="" selected disabled>Pilih</option>
                                             @foreach ($users as $user)
                                                 <option value="{{ $user->id }}">{{ $user->username }}</option>
                                             @endforeach
@@ -136,8 +145,9 @@
             ajax: {
                 url: "{{ route('admin.getHakAkses') }}",
                 data: function(d) {
-                    d.id_user = $('#pilih-pengguna').val();
-                    d.permissions = permissions;
+                    d.id_user = $('#pilih-ubah-akses').val() || $('#pilih-pengguna').val();
+                    d.permissions =
+                        permissions;
                 }
             },
             columns: [{
@@ -176,31 +186,36 @@
                     data: 'lihat',
                     name: 'lihat',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'text-center'
                 },
                 {
                     data: 'beranda',
                     name: 'beranda',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'text-center'
                 },
                 {
                     data: 'tambah',
                     name: 'tambah',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'text-center'
                 },
                 {
                     data: 'edit',
                     name: 'edit',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'text-center'
                 },
                 {
                     data: 'hapus',
                     name: 'hapus',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'text-center'
                 }
             ],
             columnDefs: [{
@@ -216,6 +231,9 @@
             table.draw();
         });
 
+        $('#pilih-ubah-akses').change(function() {
+            table.draw();
+        });
 
         $('.data-table').on('draw.dt', function() {
             $('.data-table tbody').find('input[type="checkbox"]').each(function() {
@@ -271,11 +289,14 @@
                     hak_akses_data: hakAksesState
                 },
                 success: function(response) {
+                    console.log('SUCCESS RESPONSE:', response);
+
                     if (response.success) {
                         localStorage.setItem('hakAksesSuccess', response.message);
                         localStorage.setItem('selectedUserId', id_user);
                         location.reload();
                     } else {
+                        console.log('LOGICAL ERROR:', response);
                         audio.play();
                         toastr.error("Terjadi kesalahan saat memperbarui Hak Akses.", "GAGAL!", {
                             progressBar: true,
@@ -284,17 +305,25 @@
                         });
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    console.log('AJAX ERROR');
+                    console.log('Status:', status);
+                    console.log('Error:', error);
+                    console.log('Response Text:', xhr.responseText);
+                    console.log('Status Code:', xhr.status);
+
                     toastr.error("Terjadi kesalahan saat menghubungi server.", "GAGAL!", {
                         progressBar: true,
                         timeOut: 3500,
                         positionClass: "toast-bottom-right",
                     });
+
                     spinner.addClass('d-none');
-                    btnText.text('Simpan Hak Akses');
+                    btnText.text('Simpan');
                     submitBtn.prop('disabled', false);
                 }
             });
+
         });
     </script>
 @endpush

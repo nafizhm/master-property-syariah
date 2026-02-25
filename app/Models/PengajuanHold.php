@@ -43,7 +43,7 @@ class PengajuanHold extends Model
         'id_lokasi',
         'id_kavling',
         'hrg_jual',
-        'biaya_surat',
+        'biaya_notaris',
         'peningkatan_mutu',
         'biaya_lain',
         'total_harga',

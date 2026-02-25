@@ -167,14 +167,27 @@
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="biaya_surat" class="col-sm-4 col-form-label">Biaya Surat</label>
+                                            <label for="peningkatan_mutu" class="col-sm-4 col-form-label">Peningkatan Mutu</label>
                                             <div class="col-sm-8">
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text">Rp.</span>
                                                     </div>
-                                                    <input type="text" id="biaya_surat" name="biaya_surat"
-                                                        value="{{ number_format($data->biaya_surat, 0, ',', '.') }}"
+                                                    <input type="text" id="peningkatan_mutu" name="peningkatan_mutu"
+                                                        value="{{ number_format($data->peningkatan_mutu, 0, ',', '.') }}"
+                                                        class="form-control" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label for="biaya_notaris" class="col-sm-4 col-form-label">Biaya Notaris</label>
+                                            <div class="col-sm-8">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">Rp.</span>
+                                                    </div>
+                                                    <input type="text" id="biaya_notaris" name="biaya_notaris"
+                                                        value="{{ number_format($data->biaya_notaris, 0, ',', '.') }}"
                                                         class="form-control" readonly>
                                                 </div>
                                             </div>

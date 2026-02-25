@@ -169,20 +169,30 @@
                                         class="form-control format-number">
                                 </div>
                             </div>
-                            <label class="control-label col-sm-2">Biaya Surat</label>
+                            <label class="control-label col-sm-2">Peningkatan Mutu</label>
                             <div class="col-sm-3">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
                                     </div>
-                                    <input type="text" name="biaya_surat" id="biaya_surat"
+                                    <input type="text" name="peningkatan_mutu" id="peningkatan_mutu"
                                         class="form-control format-number">
                                 </div>
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">Biaya Lain Lain</label>
+                            <label class="control-label col-sm-3">Biaya Notaris</label>
                             <div class="col-sm-4">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="biaya_notaris" id="biaya_notaris"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                            <label class="control-label col-sm-2">Biaya Lain Lain</label>
+                            <div class="col-sm-3">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
@@ -191,8 +201,10 @@
                                         class="form-control format-number">
                                 </div>
                             </div>
-                            <label class="control-label col-sm-2">Total Harga</label>
-                            <div class="col-sm-3">
+                        </div>
+                        <div class="form-group row">
+                            <label class="control-label col-sm-3">Total Harga</label>
+                            <div class="col-sm-4">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
@@ -527,21 +539,21 @@
                     const urlHarga = routeGetHarga.replace(':id', idKavling);
                     $.get(urlHarga, function(data) {
                         $('#hrg_jual').val(data.formatted.hrg_jual);
-                        $('#biaya_surat').val(data.formatted.biaya_surat);
-                        $('#biaya_lain').val(data.formatted.biaya_lain);
+                        $('#peningkatan_mutu').val(data.formatted.peningkatan_mutu);
                         $('#total_harga').val(data.formatted.total_harga);
                     });
                 } else {
-                    $('#hrg_jual, #biaya_surat, #biaya_lain, #total_harga').val('');
+                    $('#hrg_jual, #peningkatan_mutu, #total_harga').val('');
                 }
             });
 
-            $('#hrg_jual, #biaya_surat, #biaya_lain').on('input', function() {
+            $('#hrg_jual, #peningkatan_mutu, #biaya_notaris, #biaya_lain').on('input', function() {
                 let hrgJual = parseInt($('#hrg_jual').val().replace(/\./g, '')) || 0;
-                let biayaSurat = parseInt($('#biaya_surat').val().replace(/\./g, '')) || 0;
-                let peningkatanMutu = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
+                let biayaSurat = parseInt($('#peningkatan_mutu').val().replace(/\./g, '')) || 0;
+                let biayaNotaris = parseInt($('#biaya_notaris').val().replace(/\./g, '')) || 0;
+                let biayaLain = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
 
-                let total = hrgJual + biayaSurat + peningkatanMutu;
+                let total = hrgJual + biayaSurat + biayaNotaris + biayaLain;
 
                 $('#total_harga').val(total.toLocaleString('id-ID'));
             });

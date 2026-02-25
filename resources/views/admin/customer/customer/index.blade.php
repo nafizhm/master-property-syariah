@@ -488,7 +488,8 @@
                     }, 500);
 
                     $('#hrg_jual').val(formatNumber(data.hrg_jual));
-                    $('#biaya_surat').val(formatNumber(data.biaya_surat));
+                    $('#peningkatan_mutu').val(formatNumber(data.peningkatan_mutu));
+                    $('#biaya_notaris').val(formatNumber(data.biaya_notaris));
                     $('#biaya_lain').val(formatNumber(data.biaya_lain));
                     $('#total_harga').val(formatNumber(data.total_harga));
                     $('#id_marketing').val(data.id_marketing).trigger('change');

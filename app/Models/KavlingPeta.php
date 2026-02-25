@@ -29,6 +29,7 @@ class KavlingPeta extends Model
         'luas_bangunan',
         'hrg_meter',
         'hrg_jual',
+        'peningkatan_mutu',
         'id_rumah_sikumbang',
         'no_sertifikat',
         'jenis_map',

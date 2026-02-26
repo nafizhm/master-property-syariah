@@ -15,11 +15,11 @@
                         <div class="card">
                             <div class="card-header p-3">
                                 <div class="d-flex align-content-center justify-content-between">
-                                    <h3 class="font-weight-bold text-lg">Data Wawancara</h3>
+                                    <h3 class="font-weight-bold text-lg">Data Proses KPR</h3>
                                     <div class="d-flex align-items-center" style="gap: 3px">
                                         <button class="btn btn-primary btn-sm" data-toggle="modal"
                                             data-target="#modalForm"><i class="fas fa-plus" id="btnTambah"></i>
-                                            Tambah Data Wawancara</button>
+                                            Tambah Data Proses KPR</button>
                                     </div>
                                 </div>
                             </div>
@@ -30,7 +30,7 @@
                                             <th width="5%">No</th>
                                             <th>Customer</th>
                                             <th>Lokasi Rumah</th>
-                                            <th>Tgl Wawancara</th>
+                                            <th>Tgl Proses KPR</th>
                                             <th>Bank KPR</th>
                                             <th>Catatan</th>
                                             <th class="text-center" width="15%">Action</th>
@@ -59,7 +59,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-indigo">
-                    <h5 class="modal-title text-white font-weight-bold" id="modalFormLabel">Form Wawancara</h5>
+                    <h5 class="modal-title text-white font-weight-bold" id="modalFormLabel">Form Proses KPR</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -152,7 +152,7 @@
                         </div>
 
                         <div class="form-group row mb-3">
-                            <label class="col-sm-2 col-form-label">Catatan Wawancara</label>
+                            <label class="col-sm-2 col-form-label">Catatan Proses KPR</label>
                             <div class="col-sm-8">
                                 <textarea id="catatan_wawancara" name="catatan_wawancara" class="form-control summernote"></textarea>
                             </div>
@@ -499,7 +499,7 @@
                 success: function(response) {
                     $('#modalForm').modal('hide');
                     audio.play();
-                    let msg = id ? "Wawancara berhasil diupdate!" : "Wawancara berhasil ditambahkan!";
+                    let msg = id ? "Proses KPR berhasil diupdate!" : "Proses KPR berhasil ditambahkan!";
                     toastr.success(msg, "BERHASIL", {
                         progressBar: true,
                         timeOut: 3500,

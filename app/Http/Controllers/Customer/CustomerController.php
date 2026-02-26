@@ -52,7 +52,7 @@ class CustomerController extends Controller
                         : '';
 
                     $btn = '<a href="' . route('subsidi.cetak', $row->id) . '" target="_blank" class="btn btn-warning btn-xs mt-1">
-                                Cetak Form Subsidi
+                                Cetak SPR
                             </a>';
 
                     return "$tgl<br>$kode<br>$jenisPembelian$btn";

@@ -11,7 +11,7 @@ class Pemasukan extends Model
 
     public function metode()
     {
-        return $this->belongsTo(MetodeBayar::class, 'id_metode');
+        return $this->belongsTo(MetodeBayar::class, 'id_metode_bayar');
     }
 
     public function bank()

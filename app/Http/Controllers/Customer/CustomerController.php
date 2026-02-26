@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Yajra\DataTables\Facades\DataTables;
+use setasign\Fpdi\Fpdi;
 
 class CustomerController extends Controller
 {
@@ -599,24 +600,20 @@ class CustomerController extends Controller
             $row++;
         }
 
-        // Auto-resize kolom
         foreach (range('A', 'G') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-                                                       // Set minimum width untuk kolom tertentu
-        $sheet->getColumnDimension('B')->setWidth(25); // Nama
-        $sheet->getColumnDimension('C')->setWidth(15); // Unit
-        $sheet->getColumnDimension('D')->setWidth(15); // Telp
-        $sheet->getColumnDimension('E')->setWidth(20); // Marketing
-        $sheet->getColumnDimension('F')->setWidth(20); // Bank
-        $sheet->getColumnDimension('G')->setWidth(15); // Status
+        $sheet->getColumnDimension('B')->setWidth(25);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(15);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(20);
+        $sheet->getColumnDimension('G')->setWidth(15);
 
-        // Set tinggi baris untuk header
         $sheet->getRowDimension('1')->setRowHeight(30);
         $sheet->getRowDimension('4')->setRowHeight(25);
 
-        // Footer dengan total data
         $totalRow = $row;
         $sheet->setCellValue('A' . $totalRow, 'Total Data: ' . ($no - 1) . ' record');
         $sheet->mergeCells('A' . $totalRow . ':G' . $totalRow);
@@ -647,61 +644,99 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function cetakFormSubsidi($id_customer)
+   public function cetakFormSubsidi($id_customer)
     {
-        $customer = Customer::with(['kavlingPeta.lokasi', 'lokasiKavling'])
-            ->findOrFail($id_customer);
+      $customer = Customer::with([
+            'kavlingPeta.lokasi',
+            'lokasiKavling',
+            'marketing',
+            'pemasukans' => function ($q) {
+                $q->whereIn('id_kategori_transaksi', [1, 2]);
+            }
+        ])->findOrFail($id_customer);
 
-        $kavling = $customer->kavlingPeta;
-        $lokasi  = $kavling?->lokasi ?? $customer->lokasiKavling;
+        $totalKategori1 = $customer->pemasukans
+            ->where('id_kategori_transaksi', 1)
+            ->sum('nominal');
 
-        $templatePath      = public_path('templates/form_subsidi.docx');
-        $templateProcessor = new TemplateProcessor($templatePath);
+        $totalKategori2 = $customer->pemasukans
+            ->where('id_kategori_transaksi', 2)
+            ->sum('nominal');
 
-        $templateProcessor->setValue('tgl_sekarang', Carbon::now()->translatedFormat('d F Y'));
+        $templatePath = public_path('templates/SPR.pdf');
 
-        // Data Nasabah
-        $templateProcessor->setValue('nama_lengkap', $customer->nama_lengkap);
-        $templateProcessor->setValue('id_kavling', $customer->id_kavling);
-        $templateProcessor->setValue('jenis_kelamin', $customer->jenis_kelamin);
-        $templateProcessor->setValue('tempat_lahir', $customer->tempat_lahir);
-        $templateProcessor->setValue('tgl_lahir', Carbon::parse($customer->tgl_lahir)->translatedFormat('d F Y'));
-        $templateProcessor->setValue('pekerjaan', $customer->pekerjaan);
-        $templateProcessor->setValue('nik', $customer->nik);
-        $templateProcessor->setValue('alamat', $customer->alamat_domisili);
-        $templateProcessor->setValue('no_telp', $customer->no_telp);
-        $templateProcessor->setValue('email', $customer->email);
+        $pdf = new Fpdi();
+        $pdf->SetAutoPageBreak(false);
+        $pdf->AddPage();
 
-        // Data Pasangan (optional)
-        $templateProcessor->setValue('nama_lengkap_p', $customer->nama_p ?? '-');
-        $templateProcessor->setValue('nik_p', $customer->nik_p ?? '-');
+        $pageCount = $pdf->setSourceFile($templatePath);
+        $tplId = $pdf->importPage(1);
 
-        // Developer & Kavling
-        $templateProcessor->setValue('nama_perumahan', $lokasi->nama_kavling ?? '-');
-        $templateProcessor->setValue('no_rumah', $kavling->kode_kavling ?? '-');
-        $templateProcessor->setValue('nama_developer', $lokasi->nama_perusahaan ?? '-');
-        $templateProcessor->setValue('alamat_perusahaan', $lokasi->alamat_perusahaan ?? '-');
-        $templateProcessor->setValue('form_nama_penanda_tangan', $lokasi->nama_penandatangan ?? '-');
-        $templateProcessor->setValue('form_nik', $lokasi->form_nik ?? '-');
-        $templateProcessor->setValue('form_jabatan', $lokasi->form_jabatan ?? '-');
+        $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
-        // Detail Rumah
-        $templateProcessor->setValue('lokasi_rumah', $lokasi->nama_kavling ?? '-');
-        $templateProcessor->setValue('kode_kavling', $kavling->kode_kavling ?? '-');
-        $templateProcessor->setValue('tipe_rumah', $kavling->tipe_bangunan ?? '-');
-        $templateProcessor->setValue('luas_tanah', $kavling->luas_tanah ?? '-');
-        $templateProcessor->setValue('luas_bangunan', $kavling->luas_bangunan ?? '-');
-        $templateProcessor->setValue('daya_listrik', $kavling->daya_listrik ?? '-');
-        $templateProcessor->setValue('harga_jual', number_format($kavling->hrg_jual ?? 0, 0, ',', '.'));
-        $templateProcessor->setValue('harga_jual_terbilang', $this->terbilang($kavling->hrg_jual ?? 0));
+        $pdf->SetFont('Arial', '', 8);
 
-        // Save file
-        $fileName = $customer->kode_customer . '_' . $customer->nama_lengkap . '.docx';
-        $savePath = storage_path('app/public/' . $fileName);
-        $templateProcessor->saveAs($savePath);
+        $pdf->SetXY(78, 26);
+        $pdf->Cell(20, 5, $customer->nama_lengkap ?? '-');
 
-        return response()->download($savePath)->deleteFileAfterSend(true);
+        $pdf->SetXY(78, 30);
+        $pdf->MultiCell(150, 5, $customer->alamat_ktp ?? '-');
+
+        $pdf->SetXY(78, 34.5);
+        $pdf->Cell(150, 5, $customer->no_telp ?? '-');
+
+        $pdf->SetXY(78, 39);
+        $pdf->Cell(0, 5, $customer->nik ?? '-');
+
+        $pdf->SetXY(78, 43.5);
+        $pdf->Cell(0, 5, $customer->pekerjaan ?? '-');
+
+        $pdf->SetXY(62, 80);
+        $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
+
+        if ($customer->kavlingPeta) {
+            $pdf->SetXY(62, 85);
+            $pdf->Cell(0, 5, $customer->kavlingPeta->tipe_bangunan ?? '-');
+        }
+
+        if ($customer->kavlingPeta) {
+            $pdf->SetXY(62, 89);
+            $pdf->Cell(0, 5, $customer->kavlingPeta->kode_kavling ?? '-');
+        }
+
+        if ($customer->kavlingPeta) {
+            $luasTanah = $customer->kavlingPeta->luas_tanah ?? '-';
+            $luasBangunan = $customer->kavlingPeta->luas_bangunan ?? '-';
+
+            $pdf->SetXY(62, 94);
+            $pdf->Cell(0, 5, $luasTanah . ' / ' . $luasBangunan);
+        }
+
+        $pdf->SetXY(62, 98);
+        $pdf->Cell(0, 5, optional($customer->marketing)->nama_marketing ?? '-');
+
+        if ($customer->kavlingPeta) {
+            $pdf->SetXY(152, 80);
+            $pdf->Cell(0, 5, number_format($customer->kavlingPeta->hrg_jual ?? 0, 0, ',', '.'));
+        }
+
+        if ($customer->kavlingPeta) {
+            $pdf->SetXY(152, 115);
+            $pdf->Cell(0, 5, number_format($customer->kavlingPeta->hrg_jual ?? 0, 0, ',', '.'));
+        }
+
+        $pdf->SetXY(152, 119);
+        $pdf->Cell(0, 5, number_format($totalKategori1, 0, ',', '.'));
+
+        $pdf->SetXY(152, 123.5);
+        $pdf->Cell(0, 5, number_format($totalKategori2, 0, ',', '.'));
+
+        return response($pdf->Output('S'), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="Form-Subsidi.pdf"');
     }
+
+
     private function terbilang($angka)
     {
         $f = new \NumberFormatter("id", \NumberFormatter::SPELLOUT);

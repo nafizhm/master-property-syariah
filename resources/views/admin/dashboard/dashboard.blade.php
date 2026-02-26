@@ -54,7 +54,7 @@
                             <div class="inner">
                                 <h3>{{ $hijau }}</h3>
 
-                                <p>Wawancara</p>
+                                <p>Proses KPR</p>
                             </div>
                             <div class="icon">
                                 <i class="ion ion-pie-graph"></i>
@@ -165,149 +165,7 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card card-widget widget-user-2 shadow-sm">
-                            <div class="widget-user-header bg-info">
-                                <div class="widget-user-image">
-                                    <img class="mt-3" style="max-width: 70px; height: auto;"
-                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
-                                        alt="User Avatar">
-                                </div>
-                                <h3 class="widget-user-username">Statistik Unit Ready per Perumahan</h3>
-                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
-                            </div>
-                            <div class="card-footer p-0">
 
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center" width="5%">No</th>
-                                            <th width="30%">Nama Perumahan</th>
-                                            <th width="6%" class="text-center">Jumlah</th>
-
-                                            @foreach ($kolomStatusReady as $status)
-                                                <th class="text-center">{{ strtoupper($status->keterangan) }}</th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($dataLokasiReady as $index => $lokasi)
-                                            <tr>
-                                                <td class="text-center">{{ $index + 1 }}</td>
-                                                <td>{{ $lokasi['nama'] }}</td>
-                                                <td align="center" class="table-warning">{{ $lokasi['jumlah'] }}</td>
-
-                                                @foreach ($kolomStatusReady as $status)
-                                                    @php
-                                                        $key = strtolower(str_replace(' ', '_', $status->keterangan));
-                                                    @endphp
-                                                    <td align="center">{{ $lokasi[$key] ?? 0 }}</td>
-                                                @endforeach
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <!-- Widget: user widget style 2 -->
-                        <div class="card card-widget widget-user-2 shadow-sm">
-                            <!-- Add the bg color to the header using any of the bg-* classes -->
-                            <div class="widget-user-header bg-maroon">
-                                <div class="widget-user-image">
-                                    <img class="mt-3" style="max-width: 70px; height: auto;"
-                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
-                                        alt="User Avatar">
-                                </div>
-                                <!-- /.widget-user-image -->
-                                <h3 class="widget-user-username">Statistik Status Progres</h3>
-                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
-                            </div>
-
-                            <div class="card-footer p-0">
-
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center" scope="col" width="5%">No</th>
-                                            <th scope="col" width="45%">Jenis Progres</th>
-                                            <th scope="col" width="10%">Jumlah Progres</th>
-                                            <th scope="col" width="10%">Persentase</th>
-                                            <th scope="col" width="15%">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($dataProgres as $item)
-                                            <tr>
-                                                <td class="text-center">{{ $item['no'] }}</td>
-                                                <td>{{ $item['status_progres'] }}</td>
-                                                <td align="right">{{ $item['jumlah'] }}</td>
-                                                <td align="right">{{ $item['persentase'] }} %</td>
-                                                <td align="center">
-                                                    <a href="{{ route('dashboard.customer-status-progres-show', $item['id_status_progres']) }}"
-                                                        class="btn bg-maroon btn-xs">Detail Data</a>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <!-- Widget: user widget style 2 -->
-                        <div class="card card-widget widget-user-2 shadow-sm">
-                            <!-- Add the bg color to the header using any of the bg-* classes -->
-                            <div class="widget-user-header bg-indigo">
-                                <div class="widget-user-image">
-                                    <img class="mt-3" style="max-width: 70px; height: auto;"
-                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
-                                        alt="User Avatar">
-                                </div>
-                                <!-- /.widget-user-image -->
-                                <h3 class="widget-user-username">Statistik Penggunaan Bank</h3>
-                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
-                            </div>
-
-                            <div class="card-footer p-0">
-
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center" scope="col" width="5%">No</th>
-                                            <th scope="col" width="45%">Nama Bank</th>
-                                            <th scope="col" width="10%">Jumlah Nasabah</th>
-                                            <th scope="col" width="10%">Persentase</th>
-                                            <th scope="col" width="15%">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($dataBank as $bank)
-                                            <tr>
-                                                <td class="text-center">{{ $bank['no'] }}</td>
-                                                <td>{{ $bank['bank'] }}</td>
-                                                <td align="right">{{ $bank['jumlah'] }}</td>
-                                                <td align="right">{{ $bank['persentase'] }} %</td>
-                                                <td align="center">
-                                                    <a href="{{ route('dashboard.customer-bank-show', $bank['id_bank']) }}"
-                                                        class="btn bg-indigo btn-xs">Detail Data</a>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="row">
                     <div class="col-md-6">
@@ -472,6 +330,150 @@
                 </div>
             @endforeach
             <!-- End Statistik Pembayaran per Lokasi -->
+
+             <div class="row">
+                    <div class="col-md-12">
+                        <div class="card card-widget widget-user-2 shadow-sm">
+                            <div class="widget-user-header bg-info">
+                                <div class="widget-user-image">
+                                    <img class="mt-3" style="max-width: 70px; height: auto;"
+                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
+                                        alt="User Avatar">
+                                </div>
+                                <h3 class="widget-user-username">Statistik Unit Ready per Perumahan</h3>
+                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
+                            </div>
+                            <div class="card-footer p-0">
+
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" width="5%">No</th>
+                                            <th width="30%">Nama Perumahan</th>
+                                            <th width="6%" class="text-center">Jumlah</th>
+
+                                            @foreach ($kolomStatusReady as $status)
+                                                <th class="text-center">{{ strtoupper($status->keterangan) }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($dataLokasiReady as $index => $lokasi)
+                                            <tr>
+                                                <td class="text-center">{{ $index + 1 }}</td>
+                                                <td>{{ $lokasi['nama'] }}</td>
+                                                <td align="center" class="table-warning">{{ $lokasi['jumlah'] }}</td>
+
+                                                @foreach ($kolomStatusReady as $status)
+                                                    @php
+                                                        $key = strtolower(str_replace(' ', '_', $status->keterangan));
+                                                    @endphp
+                                                    <td align="center">{{ $lokasi[$key] ?? 0 }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Widget: user widget style 2 -->
+                        <div class="card card-widget widget-user-2 shadow-sm">
+                            <!-- Add the bg color to the header using any of the bg-* classes -->
+                            <div class="widget-user-header bg-maroon">
+                                <div class="widget-user-image">
+                                    <img class="mt-3" style="max-width: 70px; height: auto;"
+                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
+                                        alt="User Avatar">
+                                </div>
+                                <!-- /.widget-user-image -->
+                                <h3 class="widget-user-username">Statistik Status Progres</h3>
+                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
+                            </div>
+
+                            <div class="card-footer p-0">
+
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" scope="col" width="5%">No</th>
+                                            <th scope="col" width="45%">Jenis Progres</th>
+                                            <th scope="col" width="10%">Jumlah Progres</th>
+                                            <th scope="col" width="10%">Persentase</th>
+                                            <th scope="col" width="15%">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($dataProgres as $item)
+                                            <tr>
+                                                <td class="text-center">{{ $item['no'] }}</td>
+                                                <td>{{ $item['status_progres'] }}</td>
+                                                <td align="right">{{ $item['jumlah'] }}</td>
+                                                <td align="right">{{ $item['persentase'] }} %</td>
+                                                <td align="center">
+                                                    <a href="{{ route('dashboard.customer-status-progres-show', $item['id_status_progres']) }}"
+                                                        class="btn bg-maroon btn-xs">Detail Data</a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Widget: user widget style 2 -->
+                        <div class="card card-widget widget-user-2 shadow-sm">
+                            <!-- Add the bg color to the header using any of the bg-* classes -->
+                            <div class="widget-user-header bg-indigo">
+                                <div class="widget-user-image">
+                                    <img class="mt-3" style="max-width: 70px; height: auto;"
+                                        src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
+                                        alt="User Avatar">
+                                </div>
+                                <!-- /.widget-user-image -->
+                                <h3 class="widget-user-username">Statistik Penggunaan Bank</h3>
+                                <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
+                            </div>
+
+                            <div class="card-footer p-0">
+
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" scope="col" width="5%">No</th>
+                                            <th scope="col" width="45%">Nama Bank</th>
+                                            <th scope="col" width="10%">Jumlah Nasabah</th>
+                                            <th scope="col" width="10%">Persentase</th>
+                                            <th scope="col" width="15%">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($dataBank as $bank)
+                                            <tr>
+                                                <td class="text-center">{{ $bank['no'] }}</td>
+                                                <td>{{ $bank['bank'] }}</td>
+                                                <td align="right">{{ $bank['jumlah'] }}</td>
+                                                <td align="right">{{ $bank['persentase'] }} %</td>
+                                                <td align="center">
+                                                    <a href="{{ route('dashboard.customer-bank-show', $bank['id_bank']) }}"
+                                                        class="btn bg-indigo btn-xs">Detail Data</a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
     </div>
     <!-- /.row -->

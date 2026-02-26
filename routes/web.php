@@ -243,6 +243,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('bast', BASTController::class);
         Route::get('cetak-ppjb/{id_customer}', [PPJBController::class, 'cetakPPJB'])
             ->name('ppjb.cetak');
+        Route::get('/ppjb/kpr/{id_customer}',
+            [PPJBController::class, 'cetakKpr']
+        )->name('ppjb.cetakKpr');
         Route::resource('ppjb', PPJBController::class);
 
         Route::get('pindah-unit/kwitansi/{id}', [PindahUnitController::class, 'cetakKwitansi'])->name('pindah-unit.kwitansi');

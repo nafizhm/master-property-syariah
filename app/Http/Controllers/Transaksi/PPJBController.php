@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Transaksi;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\GenerateNumberController;
 use App\Http\Controllers\Pengaturan\HakAksesController;
-use App\Models\BAST;
 use App\Models\Customer;
 use App\Models\KavlingPeta;
 use App\Models\LokasiKavling;
@@ -17,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Yajra\DataTables\Facades\DataTables;
+use setasign\Fpdi\Fpdi;
 
 class PPJBController extends Controller
 {
@@ -49,19 +49,22 @@ class PPJBController extends Controller
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
                     $cetakUrl  = route('ppjb.cetak', $row->id_customer);
+                     $cetakKprUrl  = route('ppjb.cetakKpr', $row->id_customer);
                     $deleteUrl = route('ppjb.destroy', $row->id);
 
-                    $btn = '<div class="d-flex justify-content-center">';
+                    $btn = '<div >';
 
-                    if ($permissions['edit']) {
-                        $btn .= '<a href="' . e($cetakUrl) . '" target="_blank" class="btn btn-dark btn-sm mr-2">Cetak</a>';
-                    }
+                        $btn .= '<a href="' . e($cetakUrl) . '" target="_blank"
+                                    class="btn btn-dark btn-xs mr-1">Cetak</a>';
+
+                        $btn .= '<a href="' . e($cetakKprUrl) . '" target="_blank"
+                                    class="btn btn-primary btn-xs mr-1">PPJB KPR</a>';
 
                     if ($permissions['hapus']) {
                         $btn .= '<form action="' . e($deleteUrl) . '" method="POST" style="display:inline;">'
                         . csrf_field()
                         . method_field('DELETE')
-                            . '<button type="submit" class="delete-button btn btn-danger btn-sm">Hapus</button></form>';
+                            . '<button type="submit" class="delete-button btn btn-danger btn-xs">Hapus</button></form>';
                     }
 
                     return $btn . '</div>';
@@ -145,7 +148,6 @@ class PPJBController extends Controller
 
         $templateProcessor = new TemplateProcessor($templatePath);
 
-        // Set values ke template
         $templateProcessor->setValues([
             'no_ppjb'         => $ppjb->no_ppjb,
             'hari'            => $hari,
@@ -178,6 +180,59 @@ class PPJBController extends Controller
     {
         $f = new \NumberFormatter("id", \NumberFormatter::SPELLOUT);
         return $f->format($number);
+    }
+
+    public function cetakKpr($id_customer)
+    {
+        $customer = Customer::with([
+            'kavlingPeta.lokasi',
+            'lokasiKavling',
+            'marketing'
+        ])->findOrFail($id_customer);
+        $tempatLahir = $customer->tempat_lahir ?? '-';
+
+        $tglLahir = $customer->tgl_lahir
+            ? \Carbon\Carbon::parse($customer->tgl_lahir)->format('d-m-Y')
+            : '-';
+
+        $ttl = $tempatLahir . ', ' . $tglLahir;
+
+        $templatePath = public_path('templates/PPJB_KPR.pdf');
+
+        $pdf = new Fpdi();
+        $pdf->SetAutoPageBreak(false);
+
+        $pageCount = $pdf->setSourceFile($templatePath);
+
+        for ($page = 1; $page <= $pageCount; $page++) {
+            $pdf->AddPage();
+            $tplId = $pdf->importPage($page);
+            $pdf->useTemplate($tplId, 0, 0, 210, 297);
+
+            $pdf->SetFont('Arial', '', 10);
+
+            if ($page == 2) {
+                $pdf->SetXY(66, 96);
+                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
+
+                $pdf->SetXY(66, 103);
+                $pdf->Cell(0, 5, $ttl);
+
+                $pdf->SetXY(66, 110);
+                $pdf->MultiCell(140, 5, $customer->alamat_ktp ?? '-');
+
+                $pdf->SetXY(66, 117);
+                $pdf->Cell(0, 5, $customer->nik ?? '-');
+
+            }
+        }
+
+        return response($pdf->Output('S'), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header(
+                'Content-Disposition',
+                'inline; filename="PPJB-KPR-' . $customer->kode_customer . '.pdf"'
+            );
     }
 
     public function destroy($id)

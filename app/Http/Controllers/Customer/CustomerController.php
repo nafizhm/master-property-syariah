@@ -674,33 +674,37 @@ class CustomerController extends Controller
 
         $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
+        $pdf->SetFont('Arial', 'B', 15);
+        $pdf->SetXY(100, 10);
+        $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
+
         $pdf->SetFont('Arial', '', 8);
 
-        $pdf->SetXY(78, 26);
+        $pdf->SetXY(78, 28.5);
         $pdf->Cell(20, 5, $customer->nama_lengkap ?? '-');
 
-        $pdf->SetXY(78, 30);
+        $pdf->SetXY(78, 32.5);
         $pdf->MultiCell(150, 5, $customer->alamat_ktp ?? '-');
 
-        $pdf->SetXY(78, 34.5);
+        $pdf->SetXY(78, 37);
         $pdf->Cell(150, 5, $customer->no_telp ?? '-');
 
-        $pdf->SetXY(78, 39);
+        $pdf->SetXY(78, 42);
         $pdf->Cell(0, 5, $customer->nik ?? '-');
 
-        $pdf->SetXY(78, 43.5);
+        $pdf->SetXY(78, 46);
         $pdf->Cell(0, 5, $customer->pekerjaan ?? '-');
 
-        $pdf->SetXY(62, 80);
+        $pdf->SetXY(62, 82);
         $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
 
         if ($customer->kavlingPeta) {
-            $pdf->SetXY(62, 85);
+            $pdf->SetXY(62, 87);
             $pdf->Cell(0, 5, $customer->kavlingPeta->tipe_bangunan ?? '-');
         }
 
         if ($customer->kavlingPeta) {
-            $pdf->SetXY(62, 89);
+            $pdf->SetXY(62, 91);
             $pdf->Cell(0, 5, $customer->kavlingPeta->kode_kavling ?? '-');
         }
 
@@ -708,27 +712,27 @@ class CustomerController extends Controller
             $luasTanah = $customer->kavlingPeta->luas_tanah ?? '-';
             $luasBangunan = $customer->kavlingPeta->luas_bangunan ?? '-';
 
-            $pdf->SetXY(62, 94);
+            $pdf->SetXY(62, 96);
             $pdf->Cell(0, 5, $luasTanah . ' / ' . $luasBangunan);
         }
 
-        $pdf->SetXY(62, 98);
+        $pdf->SetXY(62, 100);
         $pdf->Cell(0, 5, optional($customer->marketing)->nama_marketing ?? '-');
 
         if ($customer->kavlingPeta) {
-            $pdf->SetXY(152, 80);
+            $pdf->SetXY(152, 82);
             $pdf->Cell(0, 5, number_format($customer->kavlingPeta->hrg_jual ?? 0, 0, ',', '.'));
         }
 
         if ($customer->kavlingPeta) {
-            $pdf->SetXY(152, 115);
+            $pdf->SetXY(152, 117);
             $pdf->Cell(0, 5, number_format($customer->kavlingPeta->hrg_jual ?? 0, 0, ',', '.'));
         }
 
-        $pdf->SetXY(152, 119);
+        $pdf->SetXY(152, 121.5);
         $pdf->Cell(0, 5, number_format($totalKategori1, 0, ',', '.'));
 
-        $pdf->SetXY(152, 123.5);
+        $pdf->SetXY(152, 125.5);
         $pdf->Cell(0, 5, number_format($totalKategori2, 0, ',', '.'));
 
         return response($pdf->Output('S'), 200)

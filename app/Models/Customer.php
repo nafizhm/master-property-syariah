@@ -45,6 +45,10 @@ class Customer extends Model
         'stt_arsip',
     ];
 
+    public function ppjb()
+    {
+        return $this->hasOne(PPJB::class, 'id_customer', 'id');
+    }
     public function persyaratan()
     {
         return $this->hasOne(PersyaratanLegal::class, 'id_customer');

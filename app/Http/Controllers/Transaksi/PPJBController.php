@@ -18,6 +18,7 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Yajra\DataTables\Facades\DataTables;
 use setasign\Fpdi\Fpdi;
 
+Carbon::setLocale('id');
 class PPJBController extends Controller
 {
     use LogAktivitasTrait;
@@ -48,17 +49,17 @@ class PPJBController extends Controller
                     return '<strong>' . $lokasi . '</strong><br>' . $kavling;
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
-                    $cetakUrl  = route('ppjb.cetak', $row->id_customer);
+                    // $cetakUrl  = route('ppjb.cetak', $row->id_customer);
                      $cetakKprUrl  = route('ppjb.cetakKpr', $row->id_customer);
                     $deleteUrl = route('ppjb.destroy', $row->id);
 
                     $btn = '<div >';
 
-                        $btn .= '<a href="' . e($cetakUrl) . '" target="_blank"
-                                    class="btn btn-dark btn-xs mr-1">Cetak</a>';
+                        // $btn .= '<a href="' . e($cetakUrl) . '" target="_blank"
+                        //             class="btn btn-dark btn-xs mr-1">Cetak</a>';
 
                         $btn .= '<a href="' . e($cetakKprUrl) . '" target="_blank"
-                                    class="btn btn-primary btn-xs mr-1">PPJB KPR</a>';
+                                    class="btn btn-primary btn-xs mr-1">Cetak PPJB</a>';
 
                     if ($permissions['hapus']) {
                         $btn .= '<form action="' . e($deleteUrl) . '" method="POST" style="display:inline;">'
@@ -130,74 +131,42 @@ class PPJBController extends Controller
         }
     }
 
-    public function cetakPPJB($id_customer)
-    {
-        $customer = Customer::findOrFail($id_customer);
-        $ppjb     = PPJB::where('id_customer', $id_customer)->firstOrFail();
-        $kavling  = KavlingPeta::where('id', $customer->id_kavling)->first();
-        $lokasi   = LokasiKavling::where('id', $customer->id_lokasi)->first();
-
-        $tanggal          = Carbon::parse($ppjb->tanggal_ppjb)->locale('id');
-        $tanggalTerbilang = ucwords($this->numberToWords($tanggal->day));
-        $hari             = $ppjb->hari_bast ?? $tanggal->translatedFormat('l');
-        $bulan            = $tanggal->translatedFormat('F');
-        $tahun            = $tanggal->format('Y');
-        $tahun_terbilang  = ucwords($this->numberToWords($tahun));
-
-        $templatePath = public_path('templates/tempate_ppjb.docx');
-
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        $templateProcessor->setValues([
-            'no_ppjb'         => $ppjb->no_ppjb,
-            'hari'            => $hari,
-            'tanggal'         => $tanggalTerbilang,
-            'bulan'           => $bulan,
-            'tahun_terbilang' => $tahun_terbilang,
-            'nama_customer'   => $customer->nama_lengkap,
-            'no_ktp'          => $customer->nik,
-            'no_telp'         => $customer->no_telp,
-            'pekerjaan'       => $customer->pekerjaan ?? '',
-            'alamat_ktp'      => $customer->alamat ?? '',
-            'kode_kavling'    => $kavling->kode_kavling ?? '',
-            'nama_perumahan'  => $lokasi->nama_kavling ?? '',
-            'tipe_rumah'      => $kavling->tipe_bangunan ?? '',
-            'luas_tanah'      => $kavling->luas_tanah ?? '',
-            'norek_listrik'   => $customer->norek_listrik ?? '',
-            'norek_air'       => $customer->norek_air ?? '',
-            'luas_bangunan'   => $kavling->luas_bangunan ?? '',
-            'tanggal_ppjb'    => $tanggal->translatedFormat('j F Y'),
-        ]);
-
-        $fileName = 'ppjb_' . Str::slug($customer->nama_lengkap) . '.docx';
-        $tempFile = tempnam(sys_get_temp_dir(), 'phpword');
-        $templateProcessor->saveAs($tempFile);
-
-        return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
-    }
-
-    private function numberToWords($number)
-    {
-        $f = new \NumberFormatter("id", \NumberFormatter::SPELLOUT);
-        return $f->format($number);
-    }
-
     public function cetakKpr($id_customer)
     {
-        $customer = Customer::with([
+       $customer = Customer::with([
             'kavlingPeta.lokasi',
             'lokasiKavling',
-            'marketing'
+            'marketing',
+            'ppjb',
+            'pemasukans' => function ($q) {
+                $q->whereIn('id_kategori_transaksi', [1 ,2]);
+            }
         ])->findOrFail($id_customer);
-        $tempatLahir = $customer->tempat_lahir ?? '-';
 
+       $totalKategori1 = $customer->pemasukans
+            ->where('id_kategori_transaksi', 1)
+            ->sum('nominal');
+
+        $totalKategori2 = $customer->pemasukans
+            ->where('id_kategori_transaksi', 2)
+            ->sum('nominal');
+
+        $totalKategori1Format = $totalKategori1
+            ? number_format($totalKategori1, 0, ',', '.')
+            : '-';
+
+        $totalKategori2Format = $totalKategori2
+            ? number_format($totalKategori2, 0, ',', '.')
+            : '-';
+
+        $tempatLahir = $customer->tempat_lahir ?? '-';
         $tglLahir = $customer->tgl_lahir
             ? \Carbon\Carbon::parse($customer->tgl_lahir)->format('d-m-Y')
             : '-';
 
         $ttl = $tempatLahir . ', ' . $tglLahir;
 
-        $templatePath = public_path('templates/PPJB_KPR.pdf');
+        $templatePath = public_path('templates/PPJB.pdf');
 
         $pdf = new Fpdi();
         $pdf->SetAutoPageBreak(false);
@@ -209,9 +178,57 @@ class PPJBController extends Controller
             $tplId = $pdf->importPage($page);
             $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
-            $pdf->SetFont('Arial', '', 10);
+            if($page == 1){
+                $pdf->SetFont('Arial', 'B', 25);
+                $pdf->SetXY(75, 30);
+                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
+
+                $pdf->SetFont('Arial', 'B', 23);
+                $pdf->SetXY(68, 99);
+                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
+            }
+
 
             if ($page == 2) {
+                $tanggal = Carbon::now()->translatedFormat('d');
+                $bulan   = Carbon::now()->translatedFormat('F');
+                $tahun   = Carbon::now()->translatedFormat('Y');
+
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(75, 29);
+                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
+
+                 $pdf->SetXY(53.5, 40.5);
+                $pdf->Cell(15, 5, $tanggal);
+
+                $pdf->SetXY(69, 40.5);
+                $pdf->Cell(30, 5, $bulan);
+
+                $pdf->SetXY(98, 40.5);
+                $pdf->Cell(20, 5, $tahun);
+
                 $pdf->SetXY(66, 96);
                 $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
 
@@ -224,6 +241,275 @@ class PPJBController extends Controller
                 $pdf->SetXY(66, 117);
                 $pdf->Cell(0, 5, $customer->nik ?? '-');
 
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetXY(130, 198);
+                $luasTanah = optional($customer->kavlingPeta)->luas_bangunan ?? '-';
+                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
+
+                $pdf->SetXY(115, 204);
+                $luasTanah = optional($customer->kavlingPeta)->luas_tanah ?? '-';
+                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
+                }
+
+            if ($page == 3) {
+
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+
+                $pdf->SetFont('Arial', '', 10);
+
+                $pdf->SetXY(110, 32.4);
+                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
+
+                $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
+
+                $hargaFormat = $hargaJual
+                    ? number_format($hargaJual, 0, ',', '.')
+                    : '-';
+
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetXY(94, 134);
+                $pdf->Cell(0, 5, $hargaFormat);
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(94, 139);
+                $pdf->MultiCell(
+                    110,
+                    10,
+                    $hargaJual
+                        ? '(' . ucwords($this->terbilang($hargaJual)) . ' Rupiah)'
+                        : '-'
+                );
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetXY(94, 147.4);
+                $pdf->Cell(0, 5, $totalKategori2Format);
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(94, 155);
+                $pdf->MultiCell(
+                    110,
+                    5,
+                    $totalKategori2
+                        ? '(' . ucwords($this->terbilang($totalKategori2)) . ' Rupiah)'
+                        : '-'
+                );
+
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetXY(94, 174.4);
+                $pdf->Cell(0, 5, $totalKategori1Format);
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(94, 180);
+                $pdf->MultiCell(
+                    110,
+                    6,
+                    $totalKategori1
+                        ? '(' . ucwords($this->terbilang($totalKategori1)) . ' Rupiah)'
+                        : '-'
+                );
+            }
+            if($page == 4){
+              $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 5){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 6){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 7){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 8){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 9){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 10){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
+            }
+            if($page == 11){
+                $pdf->SetFont('Arial', 'B', 25);
+
+                $xText = 75;
+                $yText = 8;
+
+                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+
+                $pdf->SetLineWidth(1.2);
+
+                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+                $pdf->SetXY($xText, $yText);
+                $pdf->Cell(0, 5, $namaKavling);
+
+                $textWidth = $pdf->GetStringWidth($namaKavling);
+                $pdf->Line(
+                    $xText + $textWidth + 3,
+                    $yText + 3,
+                    190,
+                    $yText + 3
+                );
             }
         }
 
@@ -233,6 +519,39 @@ class PPJBController extends Controller
                 'Content-Disposition',
                 'inline; filename="PPJB-KPR-' . $customer->kode_customer . '.pdf"'
             );
+    }
+
+     private function terbilang($angka)
+    {
+        $angka = abs((int) $angka);
+
+        $bilangan = [
+            '', 'satu', 'dua', 'tiga', 'empat', 'lima',
+            'enam', 'tujuh', 'delapan', 'sembilan',
+            'sepuluh', 'sebelas'
+        ];
+
+        if ($angka < 12) {
+            return $bilangan[$angka];
+        } elseif ($angka < 20) {
+            return $this->terbilang($angka - 10) . ' belas';
+        } elseif ($angka < 100) {
+            return $this->terbilang(intval($angka / 10)) . ' puluh ' . $this->terbilang($angka % 10);
+        } elseif ($angka < 200) {
+            return 'seratus ' . $this->terbilang($angka - 100);
+        } elseif ($angka < 1000) {
+            return $this->terbilang(intval($angka / 100)) . ' ratus ' . $this->terbilang($angka % 100);
+        } elseif ($angka < 2000) {
+            return 'seribu ' . $this->terbilang($angka - 1000);
+        } elseif ($angka < 1000000) {
+            return $this->terbilang(intval($angka / 1000)) . ' ribu ' . $this->terbilang($angka % 1000);
+        } elseif ($angka < 1000000000) {
+            return $this->terbilang(intval($angka / 1000000)) . ' juta ' . $this->terbilang($angka % 1000000);
+        } elseif ($angka < 1000000000000) {
+            return $this->terbilang(intval($angka / 1000000000)) . ' miliar ' . $this->terbilang($angka % 1000000000);
+        }
+
+        return 'angka terlalu besar';
     }
 
     public function destroy($id)

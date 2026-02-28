@@ -241,8 +241,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('bast.cetak');
         Route::get('/bast/generate-no', [BASTController::class, 'generateNoBAST'])->name('generateNoBAST');
         Route::resource('bast', BASTController::class);
-        Route::get('cetak-ppjb/{id_customer}', [PPJBController::class, 'cetakPPJB'])
-            ->name('ppjb.cetak');
+        // Route::get('cetak-ppjb/{id_customer}', [PPJBController::class, 'cetakPPJB'])
+        //     ->name('ppjb.cetak');
         Route::get('/ppjb/kpr/{id_customer}',
             [PPJBController::class, 'cetakKpr']
         )->name('ppjb.cetakKpr');

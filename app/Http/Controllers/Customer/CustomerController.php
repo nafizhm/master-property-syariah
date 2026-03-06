@@ -17,9 +17,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use PhpOffice\PhpWord\TemplateProcessor;
-use Yajra\DataTables\Facades\DataTables;
 use setasign\Fpdi\Fpdi;
+use Yajra\DataTables\Facades\DataTables;
 
 class CustomerController extends Controller
 {
@@ -644,15 +643,15 @@ class CustomerController extends Controller
         ]);
     }
 
-   public function cetakFormSubsidi($id_customer)
+    public function cetakFormSubsidi($id_customer)
     {
-      $customer = Customer::with([
+        $customer = Customer::with([
             'kavlingPeta.lokasi',
             'lokasiKavling',
             'marketing',
             'pemasukans' => function ($q) {
                 $q->whereIn('id_kategori_transaksi', [1, 2]);
-            }
+            },
         ])->findOrFail($id_customer);
 
         $totalKategori1 = $customer->pemasukans
@@ -670,7 +669,7 @@ class CustomerController extends Controller
         $pdf->AddPage();
 
         $pageCount = $pdf->setSourceFile($templatePath);
-        $tplId = $pdf->importPage(1);
+        $tplId     = $pdf->importPage(1);
 
         $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
@@ -709,7 +708,7 @@ class CustomerController extends Controller
         }
 
         if ($customer->kavlingPeta) {
-            $luasTanah = $customer->kavlingPeta->luas_tanah ?? '-';
+            $luasTanah    = $customer->kavlingPeta->luas_tanah ?? '-';
             $luasBangunan = $customer->kavlingPeta->luas_bangunan ?? '-';
 
             $pdf->SetXY(62, 96);
@@ -719,15 +718,14 @@ class CustomerController extends Controller
         $pdf->SetXY(62, 100);
         $pdf->Cell(0, 5, optional($customer->marketing)->nama_marketing ?? '-');
 
-        if ($customer->kavlingPeta) {
-            $pdf->SetXY(152, 82);
-            $pdf->Cell(0, 5, number_format($customer->kavlingPeta->hrg_jual ?? 0, 0, ',', '.'));
-        }
+        $pdf->SetXY(152, 82);
+        $pdf->Cell(0, 5, number_format($customer->hrg_jual ?? 0, 0, ',', '.'));
 
-        if ($customer->kavlingPeta) {
-            $pdf->SetXY(152, 117);
-            $pdf->Cell(0, 5, number_format($customer->kavlingPeta->hrg_jual ?? 0, 0, ',', '.'));
-        }
+        $pdf->SetXY(152, 104);
+        $pdf->Cell(0, 5, number_format($customer->total_harga ?? 0, 0, ',', '.'));
+
+        $pdf->SetXY(152, 117);
+        $pdf->Cell(0, 5, number_format($customer->hrg_jual ?? 0, 0, ',', '.'));
 
         $pdf->SetXY(152, 121.5);
         $pdf->Cell(0, 5, number_format($totalKategori1, 0, ',', '.'));
@@ -739,7 +737,6 @@ class CustomerController extends Controller
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'inline; filename="Form-Subsidi.pdf"');
     }
-
 
     private function terbilang($angka)
     {

@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class PengajuanHoldController extends Controller
@@ -381,27 +382,29 @@ class PengajuanHoldController extends Controller
     {
         $data = PengajuanHold::findOrFail($id);
 
-        $fotoKtpRule = empty($data->foto_ktp) ? 'required|mimes:jpg,jpeg,png' : 'nullable|mimes:jpg,jpeg,png';
+        $fotoKtpRule = empty($data->foto_ktp)
+            ? 'required|mimes:jpg,jpeg,png,pdf'
+            : 'nullable|mimes:jpg,jpeg,png,pdf';
 
         $rules = [
             'foto_ktp'     => $fotoKtpRule,
-            'foto_npwp'    => 'nullable|mimes:jpg,jpeg,png',
-            'foto_kk'      => 'nullable|mimes:jpg,jpeg,png',
-            'foto_bpjs'    => 'nullable|mimes:jpg,jpeg,png',
-            'foto_ktp_p'   => 'nullable|mimes:jpg,jpeg,png',
+            'foto_npwp'    => 'nullable|mimes:jpg,jpeg,png,pdf',
+            'foto_kk'      => 'nullable|mimes:jpg,jpeg,png,pdf',
+            'foto_bpjs'    => 'nullable|mimes:jpg,jpeg,png,pdf',
+            'foto_ktp_p'   => 'nullable|mimes:jpg,jpeg,png,pdf',
             'file_bukti'   => 'nullable|mimes:jpg,jpeg,png,pdf',
-            'foto_pemohon' => 'nullable|mimes:jpg,jpeg,png',
+            'foto_pemohon' => 'nullable|mimes:jpg,jpeg,png,pdf',
         ];
 
         $messages = [
             'foto_ktp.required'  => 'Foto KTP wajib diunggah.',
-            'foto_ktp.mimes'     => 'Foto KTP harus berformat JPG atau PNG.',
-            'foto_npwp.mimes'    => 'Foto NPWP harus berformat JPG atau PNG.',
-            'foto_kk.mimes'      => 'Foto KK harus berformat JPG atau PNG.',
-            'foto_bpjs.mimes'    => 'Foto BPJS harus berformat JPG atau PNG.',
-            'foto_ktp_p.mimes'   => 'Foto KTP pasangan harus berformat JPG atau PNG.',
-            'file_bukti.mimes'   => 'File bukti harus berformat JPG, PNG, atau PDF.',
-            'foto_pemohon.mimes' => 'Foto pemohon harus berformat JPG atau PNG.',
+            'foto_ktp.mimes'     => 'File harus berformat JPG, PNG, atau PDF.',
+            'foto_npwp.mimes'    => 'File harus berformat JPG, PNG, atau PDF.',
+            'foto_kk.mimes'      => 'File harus berformat JPG, PNG, atau PDF.',
+            'foto_bpjs.mimes'    => 'File harus berformat JPG, PNG, atau PDF.',
+            'foto_ktp_p.mimes'   => 'File harus berformat JPG, PNG, atau PDF.',
+            'file_bukti.mimes'   => 'File harus berformat JPG, PNG, atau PDF.',
+            'foto_pemohon.mimes' => 'File harus berformat JPG, PNG, atau PDF.',
         ];
 
         $request->validate($rules, $messages);
@@ -415,28 +418,34 @@ class PengajuanHoldController extends Controller
                 mkdir($folder, 0777, true);
             }
 
-            $nama_file_ktp     = $this->simpanFile($request->file('foto_ktp'), $folder);
-            $nama_file_npwp    = $this->simpanFile($request->file('foto_npwp'), $folder);
-            $nama_file_kk      = $this->simpanFile($request->file('foto_kk'), $folder);
-            $nama_file_bpjs    = $this->simpanFile($request->file('foto_bpjs'), $folder);
-            $nama_file_bukti   = $this->simpanFile($request->file('file_bukti'), $folder);
-            $nama_file_pemohon = $this->simpanFile($request->file('foto_pemohon'), $folder);
-            $nama_file_ktp_p   = $this->simpanFile($request->file('foto_ktp_p'), $folder);
-
-            $nama_file_ktp_p = null;
-            if ($request->hasFile('foto_ktp_p')) {
-                $nama_file_ktp_p = $this->simpanFile($request->file('foto_ktp_p'), $folder);
-            }
-
-            $db = [
-                'foto_ktp'     => $nama_file_ktp ?? $data->foto_ktp,
-                'foto_npwp'    => $nama_file_npwp ?? $data->foto_npwp,
-                'foto_kk'      => $nama_file_kk ?? $data->foto_kk,
-                'foto_bpjs'    => $nama_file_bpjs ?? $data->foto_bpjs,
-                'foto_ktp_p'   => $nama_file_ktp_p ?? $data->foto_ktp_p,
-                'file_bukti'   => $nama_file_bukti ?? $data->file_bukti,
-                'foto_pemohon' => $nama_file_pemohon ?? $data->foto_pemohon,
+            $fields = [
+                'foto_ktp',
+                'foto_npwp',
+                'foto_kk',
+                'foto_bpjs',
+                'foto_ktp_p',
+                'file_bukti',
+                'foto_pemohon',
             ];
+
+            $db = [];
+
+            foreach ($fields as $field) {
+                if ($request->hasFile($field)) {
+
+                    if (! empty($data->$field) && file_exists($folder . '/' . $data->$field)) {
+                        unlink($folder . '/' . $data->$field);
+                    }
+
+                    $file = $request->file($field);
+
+                    $filename = $this->compressImageNative($file, $folder);
+
+                    $db[$field] = $filename;
+                } else {
+                    $db[$field] = $data->$field;
+                }
+            }
 
             $data->update($db);
 
@@ -447,7 +456,7 @@ class PengajuanHoldController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::info($e->getMessage());
+            Log::error($e->getMessage());
 
             return response()->json([
                 'status'  => 'error',
@@ -563,13 +572,13 @@ class PengajuanHoldController extends Controller
             'booking_fee'      => 'required|gt:0',
             'jenis_perumahan'  => 'required',
             'jenis_pembelian'  => 'required',
-            'foto_ktp'         => 'required|mimes:jpg,jpeg,png|max:2048',
-            'foto_npwp'        => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_kk'          => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_bpjs'        => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_ktp_p'       => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'file_bukti'       => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_pemohon'     => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'foto_ktp'         => 'required|file|mimes:jpg,jpeg,png,pdf',
+            'foto_npwp'        => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_kk'          => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_bpjs'        => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_ktp_p'       => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'file_bukti'       => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_pemohon'     => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         ], [
             'nama_lengkap.required'     => 'Nama lengkap wajib diisi.',
             'nik.required'              => 'NIK wajib diisi.',
@@ -595,18 +604,13 @@ class PengajuanHoldController extends Controller
             'jenis_perumahan.required'  => 'Jenis Perumahan wajib dipilih.',
             'jenis_pembelian.required'  => 'Jenis Pembelian wajib dipilih.',
             'foto_ktp.required'         => 'Foto KTP wajib diunggah.',
-            'foto_ktp.mimes'            => 'Foto KTP harus berformat JPG atau PNG.',
-            'foto_ktp.max'              => 'Foto KTP maksimal 2 MB.',
-            'foto_npwp.mimes'           => 'Foto NPWP harus berformat JPG atau PNG.',
-            'foto_npwp.max'             => 'Foto NPWP maksimal 2 MB.',
-            'foto_kk.mimes'             => 'Foto KK harus berformat JPG atau PNG.',
-            'foto_kk.max'               => 'Foto KK maksimal 2 MB.',
-            'foto_bpjs.mimes'           => 'Foto BPJS harus berformat JPG atau PNG.',
-            'foto_bpjs.max'             => 'Foto BPJS maksimal 2 MB.',
-            'foto_ktp_p.mimes'          => 'Foto KTP pasangan harus berformat JPG atau PNG.',
-            'foto_ktp_p.max'            => 'Foto KTP pasangan maksimal 2 MB.',
-            'foto_pemohon.mimes'        => 'Foto pemohon harus berformat JPG atau PNG.',
-            'foto_pemohon.max'          => 'Foto pemohon maksimal 2 MB.',
+            'foto_ktp.mimes'            => 'Foto KTP harus berformat JPG, JPEG, PNG, atau PDF.',
+            'foto_npwp.mimes'           => 'Foto NPWP harus berformat JPG, JPEG, PNG, atau PDF.',
+            'foto_kk.mimes'             => 'Foto KK harus berformat JPG, JPEG, PNG, atau PDF.',
+            'foto_bpjs.mimes'           => 'Foto BPJS harus berformat JPG, JPEG, PNG, atau PDF.',
+            'foto_ktp_p.mimes'          => 'Foto KTP pasangan harus berformat JPG, JPEG, PNG, atau PDF.',
+            'foto_pemohon.mimes'        => 'Foto pemohon harus berformat JPG, JPEG, PNG, atau PDF.',
+            'file_bukti.mimes'          => 'File bukti harus berformat JPG, JPEG, PNG, atau PDF.',
         ]);
 
         DB::beginTransaction();
@@ -627,9 +631,25 @@ class PengajuanHoldController extends Controller
                 'foto_pemohon',
                 'foto_ktp_p',
             ];
+
             $fileNames = [];
+
             foreach ($files as $file) {
-                $fileNames[$file] = $request->hasFile($file) ? $this->simpanFile($request->file($file), $folder) : null;
+
+                if ($request->hasFile($file)) {
+
+                    $uploadedFile = $request->file($file);
+
+                    $filename = $this->compressImageNative($uploadedFile, $folder);
+
+                    $fileNames[$file] = $filename;
+
+                } else {
+
+                    $fileNames[$file] = null;
+
+                }
+
             }
 
             $no_registrasi = $this->generateNoRegistrasi();
@@ -700,42 +720,6 @@ class PengajuanHoldController extends Controller
                 'error'   => $e->getMessage(),
             ], 500);
         }
-    }
-
-    private function simpanFile($file, $folder)
-    {
-        if (! $file) {
-            return null;
-        }
-
-        $filename   = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $filename   = preg_replace('/[^a-zA-Z0-9-_]/', '_', $filename);
-        $filename   = $filename . '_' . time() . '.webp';
-        $outputPath = $folder . '/' . $filename;
-
-        $ext    = strtolower($file->getClientOriginalExtension());
-        $source = null;
-
-        switch ($ext) {
-            case 'jpg':
-            case 'jpeg':
-                $source = imagecreatefromjpeg($file->getPathname());
-                break;
-            case 'png':
-                $source = imagecreatefrompng($file->getPathname());
-                break;
-            default:
-                return null;
-        }
-
-        if ($source) {
-            imagewebp($source, $outputPath, 80);
-            imagedestroy($source);
-
-            return $filename;
-        }
-
-        return null;
     }
 
     private function generateNoRegistrasi()
@@ -1099,5 +1083,37 @@ class PengajuanHoldController extends Controller
                 'error'  => $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function compressImageNative($file, $folder)
+    {
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        if ($ext === 'pdf') {
+            $filename = Str::random(25) . '.pdf';
+            $file->move($folder, $filename);
+            return $filename;
+        }
+
+        $filename    = Str::random(25) . '.jpg';
+        $destination = $folder . '/' . $filename;
+
+        $path = $file->getPathname();
+
+        if ($ext === 'jpg' || $ext === 'jpeg') {
+            $image = imagecreatefromjpeg($path);
+        } elseif ($ext === 'png') {
+            $image = imagecreatefrompng($path);
+        } else {
+            $filename = Str::random(25) . '.' . $ext;
+            $file->move($folder, $filename);
+            return $filename;
+        }
+
+        imagejpeg($image, $destination, 75);
+
+        imagedestroy($image);
+
+        return $filename;
     }
 }

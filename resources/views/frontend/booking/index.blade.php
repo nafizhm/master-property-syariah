@@ -281,7 +281,8 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto Pemohon</label>
                             <div class="col-sm-4">
-                                <input name="foto_pemohon" id="foto_pemohon" type="file" accept=".jpg,.jpeg,.png"
+                                <input name="foto_pemohon" id="foto_pemohon" type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_pemohon')">
                                 <div id="preview_foto_pemohon" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -292,7 +293,7 @@
                             </div>
                             <label class="control-label col-sm-2">Foto KTP <span style="color: red;">*</span></label>
                             <div class="col-sm-3">
-                                <input name="foto_ktp" id="foto_ktp" type="file" accept=".jpg,.jpeg,.png"
+                                <input name="foto_ktp" id="foto_ktp" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_ktp')">
                                 <div id="preview_foto_ktp" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -305,7 +306,7 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto NPWP</label>
                             <div class="col-sm-4">
-                                <input name="foto_npwp" id="foto_npwp" type="file" accept=".jpg,.jpeg,.png"
+                                <input name="foto_npwp" id="foto_npwp" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_npwp')">
                                 <div id="preview_foto_npwp" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -316,7 +317,7 @@
                             </div>
                             <label class="control-label col-sm-2">Foto KK</label>
                             <div class="col-sm-3">
-                                <input name="foto_kk" id="foto_kk" type="file" accept=".jpg,.jpeg,.png"
+                                <input name="foto_kk" id="foto_kk" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_kk')">
                                 <div id="preview_foto_kk" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -330,7 +331,7 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto BPJS</label>
                             <div class="col-sm-4">
-                                <input name="foto_bpjs" id="foto_bpjs" type="file" accept=".jpg,.jpeg,.png"
+                                <input name="foto_bpjs" id="foto_bpjs" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_bpjs')">
                                 <div id="preview_foto_bpjs" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -341,7 +342,7 @@
                             </div>
                             <label class="control-label col-sm-2">Foto KTP Pasangan</label>
                             <div class="col-sm-3">
-                                <input name="foto_ktp_p" id="foto_ktp_p" type="file" accept=".jpg,.jpeg,.png"
+                                <input name="foto_ktp_p" id="foto_ktp_p" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_ktp_p')">
                                 <div id="preview_foto_ktp_p" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -356,7 +357,7 @@
                             <label class="control-label col-sm-3">Bukti Transfer</label>
                             <div class="col-sm-4">
                                 <input name="file_bukti" id="file_bukti" type="file"
-                                    onchange="handleFileChange(this, 'preview_file_bukti')">
+                                    onchange="handleFileChange(this, 'preview_file_bukti')" accept=".jpg,.jpeg,.png,.pdf">
                                 <div id="preview_file_bukti" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
                                         onclick="showPreview(this)">View</button>
@@ -385,20 +386,32 @@
 
     <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" data-focus="false"
         aria-labelledby="previewModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
+
                 <div class="modal-header bg-indigo">
                     <h5 class="modal-title" id="previewModalLabel">Preview File</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
                     </button>
                 </div>
+
                 <div class="modal-body text-center">
-                    <img id="modalPreviewImage" class="img-fluid" alt="Preview">
+
+                    <img id="modalPreviewImage" class="img-fluid d-none" alt="Preview">
+
+                    <iframe id="modalPreviewPdf" class="w-100 d-none" style="height:500px;" frameborder="0">
+                    </iframe>
+
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Keluar
+                    </button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -420,40 +433,54 @@
 
         function handleFileChange(input, previewId) {
             const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewDiv = document.getElementById(previewId);
-                    const viewBtn = previewDiv.querySelector('button.btn-primary');
-                    viewBtn.setAttribute('data-src', e.target.result);
+            if (!file) return;
 
-                    input.style.display = 'none';
-                    previewDiv.classList.remove('d-none');
-                };
-                reader.readAsDataURL(file);
-            }
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const previewDiv = document.getElementById(previewId);
+                const viewBtn = previewDiv.querySelector('button.btn-primary');
+
+                viewBtn.setAttribute('data-src', e.target.result);
+                viewBtn.setAttribute('data-type', file.type);
+
+                input.style.display = 'none';
+                previewDiv.classList.remove('d-none');
+            };
+
+            reader.readAsDataURL(file);
         }
 
-        function showPreview(modalIdOrEvent) {
-            let src = '';
-            if (typeof modalIdOrEvent === 'string') {
-                src = document.querySelector(`[onclick="showPreview('${modalIdOrEvent}')"]`).getAttribute('data-src');
+        function showPreview(btn) {
+            const src = btn.getAttribute('data-src');
+            const type = btn.getAttribute('data-type');
+
+            const img = document.getElementById('modalPreviewImage');
+            const pdf = document.getElementById('modalPreviewPdf');
+
+            if (type === 'application/pdf') {
+                img.classList.add('d-none');
+                pdf.classList.remove('d-none');
+                pdf.src = src;
             } else {
-                src = modalIdOrEvent.getAttribute('data-src');
+                pdf.classList.add('d-none');
+                img.classList.remove('d-none');
+                img.src = src;
             }
 
-            document.getElementById('modalPreviewImage').src = src;
             const myModal = new bootstrap.Modal(document.getElementById('previewModal'));
             myModal.show();
         }
-
 
         function clearFile(inputId, previewId) {
             const input = document.getElementById(inputId);
             input.value = '';
             input.style.display = 'block';
+
             document.getElementById(previewId).classList.add('d-none');
-            document.getElementById('preview_image').src = '';
+
+            document.getElementById('modalPreviewImage').src = '';
+            document.getElementById('modalPreviewPdf').src = '';
         }
 
         $(document).ready(function() {

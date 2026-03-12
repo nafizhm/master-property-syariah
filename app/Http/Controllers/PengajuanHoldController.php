@@ -883,6 +883,7 @@ class PengajuanHoldController extends Controller
         ]);
 
         $rules = [
+            'tgl_booking_fee'   => 'required',
             'fee_marketing'   => 'required',
             'stt_reg'         => 'required',
             'jenis_pembelian' => 'required',
@@ -893,6 +894,7 @@ class PengajuanHoldController extends Controller
         ];
 
         $messages = [
+            'tgl_booking_fee.required'    => 'Tanggal Booking Fee wajib diisi!',
             'stt_reg.required'            => 'Status Verifikasi wajib dipilih!',
             'jenis_pembelian.required'    => 'Jenis Pembelian wajib dipilih!',
             'id_metode_bayar.required'    => 'Metode Pembayaran wajib dipilih!',
@@ -909,18 +911,21 @@ class PengajuanHoldController extends Controller
             if ($request->stt_reg == 2) {
                 if ($request->jenis_pembelian === 'Pembelian Cash') {
                     $db = [
+                        'tgl_booking_fee' => $request->tgl_booking_fee,
                         'stt_reg'         => $request->stt_reg,
                         'jenis_pembelian' => $request->jenis_pembelian,
                         'an_surat_cash'   => $request->an_surat_cash,
                     ];
                 } elseif ($request->jenis_pembelian === 'Cash Bertahap') {
                     $db = [
+                        'tgl_booking_fee' => $request->tgl_booking_fee,
                         'stt_reg'         => $request->stt_reg,
                         'jenis_pembelian' => $request->jenis_pembelian,
                         'termin_x_cash_b' => $request->termin_x_cash_b,
                     ];
                 } elseif ($request->jenis_pembelian === 'KPR') {
                     $db = [
+                        'tgl_booking_fee' => $request->tgl_booking_fee,
                         'stt_reg'         => $request->stt_reg,
                         'jenis_pembelian' => $request->jenis_pembelian,
                     ];
@@ -1010,7 +1015,7 @@ class PengajuanHoldController extends Controller
                     'id_bank'               => $request->id_bank,
                     'id_metode_bayar'       => $request->id_metode_bayar,
                     'id_customer'           => $customer->id,
-                    'tanggal'               => $data->tgl_booking,
+                    'tanggal'               => $data->tgl_booking_fee,
                     'no_kwitansi'           => $no_kwitansi,
                     'nominal'               => $data->booking_fee,
                     'lampiran'              => $data->file_bukti ?? '',

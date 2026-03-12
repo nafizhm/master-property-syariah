@@ -144,30 +144,35 @@ class PembayaranController extends Controller
     {
         Carbon::setLocale('id');
 
-        $customer = Customer::with(['pemasukans'])->with(['pemasukans' => function ($q) {
-            $q->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');
-        }])->findOrFail($id);
+        $customer = Customer::with(['pemasukans', 'lokasi.perusahaan.perusahaan', 'kavlingPeta'])->with(['pemasukans' => function ($q) {$q->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');}])->findOrFail($id);
 
-        $kavling         = $customer->kavlingPeta;
+        $lokasi  = $customer->lokasi;
+        $kavling = $customer->kavlingPeta;
+
+        $dataPerusahaan = null;
+
+        if ($lokasi && $lokasi->perusahaan->count() > 0) {$dataPerusahaan = $lokasi->perusahaan->sortBy('id')->first();}
+
+        $namaPerusahaan   = $dataPerusahaan->perusahaan->nama_perusahaan ?? 'PT. ALAM INDAH SELALU';
+        $alamatPerusahaan = $dataPerusahaan->perusahaan->alamat_perusahaan ?? '-';
+        $telpPerusahaan   = $dataPerusahaan->perusahaan->telp_perusahaan ?? '-';
+
         $pengaturanMedia = PengaturanMedia::where('jenis_data', 'Logo Rekap')->first();
         $logoPath        = null;
-        if ($pengaturanMedia && $pengaturanMedia->nama_file) {
-            $logoPath = public_path('config_media/' . $pengaturanMedia->nama_file);
-        }
+
+        if ($pengaturanMedia && $pengaturanMedia->nama_file) {$logoPath = public_path('config_media/' . $pengaturanMedia->nama_file);}
 
         $pdf = new TCPDF('P', 'mm', 'A4');
-        $pdf->SetTitle('Rekap Pembayaran' . ' - ' . $customer->nama_lengkap);
+        $pdf->SetTitle('Rekap Pembayaran - ' . $customer->nama_lengkap);
         $pdf->AddPage();
 
-        if ($logoPath && file_exists($logoPath)) {
-            $pdf->Image($logoPath, 15, 15, 25);
-        }
+        if ($logoPath && file_exists($logoPath)) {$pdf->Image($logoPath, 10, 15, 40, 0);}
 
-        $pdf->SetXY(57, 14);
+        $pdf->SetY(14);
 
-        $pdf->SetFont('helvetica', 'B', 25);
+        $pdf->SetFont('helvetica', 'B', 20);
         $pdf->SetTextColor(0, 51, 102);
-        $pdf->Cell(0, 7, 'PT. ALAM INDAH SELALU', 0, 1, 'L');
+        $pdf->Cell(0, 7, strtoupper($namaPerusahaan), 0, 1, 'C');
 
         $pdf->SetFont('Times', '', 11);
         $pdf->SetTextColor(218, 0, 0);
@@ -175,28 +180,23 @@ class PembayaranController extends Controller
 
         $pdf->SetFont('Times', '', 9);
         $pdf->SetTextColor(0, 0, 0);
-        $pdf->MultiCell(
-            0,
-            0,
-            'Komplek Ruko Hawai Garden Blok B No. 2 Kelurahan Belian Batan - Center',
-            0,
-            'C'
-        );
-        $pdf->SetX(10);
-        $pdf->cell(0, 0, 'Telp. 0778 - 4173387', 0, 1, 'C');
+        $pdf->MultiCell(0, 0, $alamatPerusahaan, 0, 'C');
+
+        $pdf->Cell(0, 5, 'Telp. ' . $telpPerusahaan, 0, 1, 'C');
 
         $pdf->SetXY(0, 32);
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetLineWidth(0.7);
         $pdf->Line(10, 42, 200, 42);
-
         $pdf->SetLineWidth(0.3);
         $pdf->Line(10, 41, 200, 41);
 
         $pdf->Ln(10);
+
         $pdf->SetFont('Times', 'B', 10);
         $pdf->SetTextColor(218, 0, 0);
         $pdf->Cell(190, 8, 'TABEL REKAP PEMBAYARAN', 0, 1, 'C');
+
         $pdf->Ln(3);
 
         $pdf->SetFont('Times', '', 9);
@@ -208,27 +208,28 @@ class PembayaranController extends Controller
         $pdf->Cell(25, 6, 'Nama', 0, 0);
         $pdf->Cell(3, 6, ':', 0, 0);
         $pdf->Cell(60, 6, strtoupper($customer->nama_lengkap), 0, 1);
-
         $pdf->SetX(10);
         $pdf->Cell(25, 6, 'No. KTP', 0, 0);
         $pdf->Cell(3, 6, ':', 0, 0);
         $pdf->Cell(60, 6, $customer->nik ?? '-', 0, 1);
-
         $pdf->SetX(10);
         $pdf->Cell(25, 6, 'Alamat', 0, 0);
         $pdf->Cell(3, 6, ':', 0, 0);
-        $pdf->Cell(60, 6, $customer->alamat_domisili ?? '-', 0, 1);
-
+        $pdf->Cell(60, 6, $customer->alamat_domisili ?? $customer->alamat ?? '-', 0, 1);
         $pdf->SetX(10);
         $pdf->Cell(25, 6, 'Jenis Pembelian', 0, 0);
         $pdf->Cell(3, 6, ':', 0, 0);
         $pdf->Cell(60, 6, $customer->jenis_pembelian ?? '-', 0, 1);
 
         $pdf->SetXY(90, $startY);
+
+        $blokNomor = '-';
+
+        if ($lokasi && $kavling) {if ($lokasi->is_cluster) {$blokNomor = ($kavling->cluster ?? '-') . '-' . ($kavling->no ?? '-');} else { $blokNomor = $kavling->kode_kavling ?? '-';}}
+
         $pdf->Cell(25, 6, 'Blok/Kav', 0, 0);
         $pdf->Cell(3, 6, ':', 0, 0);
-        $pdf->Cell(40, 6, $kavling->kode_kavling ?? '-', 0, 1);
-
+        $pdf->Cell(40, 6, $blokNomor, 0, 1);
         $pdf->SetX(90);
         $pdf->Cell(25, 6, 'Luas Tanah', 0, 0);
         $pdf->Cell(3, 6, ':', 0, 0);
@@ -239,26 +240,25 @@ class PembayaranController extends Controller
         $pdf->Cell(40, 6, ($kavling->luas_bangunan ?? '-') . ' m²', 0, 1);
 
         $pdf->SetXY(145, $startY);
+
         $pdf->Cell(30, 6, 'Harga Rumah', 0, 0);
         $pdf->Cell(3, 6, ': Rp.', 0, 0);
         $pdf->Cell(23, 6, number_format($customer->hrg_jual ?? 0, 0, ',', '.'), 0, 1, 'R');
-
         $pdf->SetX(145);
         $pdf->Cell(30, 6, 'Biaya Surat', 0, 0);
         $pdf->Cell(3, 6, ': Rp.', 0, 0);
         $pdf->Cell(23, 6, number_format($customer->biaya_surat ?? 0, 0, ',', '.'), 0, 1, 'R');
-
         $pdf->SetX(145);
         $pdf->Cell(30, 6, 'Peningkatan Mutu', 0, 0);
         $pdf->Cell(3, 6, ': Rp.', 0, 0);
         $pdf->Cell(23, 6, number_format($customer->biaya_lain ?? 0, 0, ',', '.'), 0, 1, 'R');
-
         $pdf->SetX(145);
         $pdf->Cell(30, 6, 'Total Harga', 0, 0);
         $pdf->Cell(3, 6, ': Rp.', 0, 0);
         $pdf->Cell(23, 6, number_format($customer->total_harga ?? 0, 0, ',', '.'), 0, 1, 'R');
 
         $pdf->Ln(10);
+
         $pdf->SetFont('Times', 'B', 9);
         $pdf->SetFillColor(211, 236, 230);
         $pdf->Cell(5, 7, '', 0, 0);
@@ -269,10 +269,12 @@ class PembayaranController extends Controller
         $pdf->Cell(31, 7, 'Sisa Pembayaran', 1, 1, 'C', true);
 
         $pdf->SetFont('Times', '', 9);
+
         $no   = 1;
-        $sisa = $kavling->hrg_jual ?? 0;
+        $sisa = $customer->total_harga ?? 0;
 
         foreach ($customer->pemasukans->sortBy('id') as $byr) {
+
             $sisa       -= $byr->nominal;
             $keterangan  = explode('#', $byr->keterangan)[0] ?? '';
             $fill        = ($no % 2 == 0) ? [255, 243, 243] : [255, 255, 255];
@@ -283,29 +285,33 @@ class PembayaranController extends Controller
             $pdf->Cell(8, 7, $no++, 1, 0, 'C', true);
             $pdf->Cell(30, 7, Carbon::parse($byr->tanggal)->translatedFormat('j F Y'), 1, 0, 'C', true);
             $pdf->Cell(75, 7, ($sisa <= 0) ? 'LUNAS' : $keterangan, 1, 0, 'L', true);
-
             $pdf->Cell(6, 7, 'Rp.', 'TBL', 0, 'L', true);
             $pdf->Cell(25, 7, number_format($byr->nominal, 0, ',', '.'), 'TBR', 0, 'R', true);
-
             $pdf->Cell(6, 7, 'Rp.', 'TBL', 0, 'L', true);
             $pdf->Cell(25, 7, number_format(max($sisa, 0), 0, ',', '.'), 'TBR', 1, 'R', true);
         }
 
+        $catatan = "Catatan:\n- Bukti pembayaran dinyatakan sah apabila disertai kwitansi dari tangan pemilik kavling.\n- Apabila ada yang mengaku-ngaku petugas kami \"" . strtoupper($namaPerusahaan) . "\" meminta/menagih pembayaran angsuran, harap waspada. HATI-HATI PENIPUAN.\n- Konsumen dapat menanyakan atau menghubungi informasi resmi \"" . strtoupper($namaPerusahaan) . "\" di nomor " . $telpPerusahaan . ".";
+
+        $blockHeight = 55;
+
+        if (($pdf->GetY() + $blockHeight) > 270) {$pdf->AddPage();}
+
         $pdf->Ln(10);
+
         $pdf->SetFont('', '', 8);
-        $pdf->SetTextColor(0, 0, 0);
-        $catatan = "Catatan:\n"
-            . "- Bukti pembayaran dinyatakan sah apabila disertai kwitansi dari tangan pemilik kavling.\n"
-            . "- Apabila ada yang mengaku-ngaku petugas kami \"PT. ALAM INDAH SELALU\" meminta/menagih pembayaran angsuran, harap waspada. HATI-HATI PENIPUAN.\n"
-            . "- Konsumen dapat menanyakan atau menghubungi informasi resmi \"PT. ALAM INDAH SELALU\" di nomor  0778-4173387.";
         $pdf->MultiCell(0, 0, $catatan, 0, 'L');
 
         $pdf->Ln(15);
+
         $pdf->SetFont('Times', '', 9);
+
         $pdf->Cell(60, 6, 'Mengetahui', 0, 0, 'C');
         $pdf->Cell(70, 6, '', 0, 0);
         $pdf->Cell(60, 6, 'Mengetahui', 0, 1, 'C');
+
         $pdf->Ln(20);
+
         $pdf->Cell(60, 6, 'ADMIN KEUANGAN', 0, 0, 'C');
         $pdf->Cell(70, 6, '', 0, 0);
         $pdf->Cell(60, 6, 'ADMIN DUA', 0, 1, 'C');
@@ -316,76 +322,145 @@ class PembayaranController extends Controller
 
     public function cetak($id)
     {
-        $pembayaran = Pemasukan::with(['customer', 'metode', 'kategori'])->where('id', $id)
+        $pembayaran = Pemasukan::with([
+            'customer.lokasi.perusahaan.perusahaan',
+            'metode',
+            'kategori',
+        ])
+            ->where('id', $id)
             ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
             ->firstOrFail();
+
         $nasabah = $pembayaran->customer;
 
-        $alamatNasabah = $nasabah->alamat ?? $nasabah->alamat_ktp ?? $nasabah->alamat_domisili ?? '-';
+        $alamatNasabah =
+        $nasabah->alamat ??
+        $nasabah->alamat_ktp ??
+        $nasabah->alamat_domisili ??
+            '-';
 
-        $lokasi = LokasiKavling::where('id', $nasabah->id_lokasi)->first();
+        $lokasi = $nasabah->lokasi;
 
-        $kavling = KavlingPeta::with('perusahaan')->where('id', $nasabah->id_kavling)->first();
+        $kavling = KavlingPeta::where('id', $nasabah->id_kavling)->first();
 
-        $dataPerusahaan = $kavling->perusahaan;
+        $dataPerusahaan = null;
+
+        if ($lokasi && $lokasi->perusahaan->count() > 0) {
+            $dataPerusahaan = $lokasi->perusahaan->sortBy('id')->first();
+        }
+
+        $namaPerusahaan =
+        $dataPerusahaan->perusahaan->nama_perusahaan ??
+            'PT. ALAM INDAH SELALU';
+
+        $alamatPerusahaan =
+        $dataPerusahaan->perusahaan->alamat_perusahaan ??
+            '-';
+
+        $telpPerusahaan =
+        $dataPerusahaan->perusahaan->telp_perusahaan ??
+            '-';
 
         $blokNomor = '-';
-        if ($lokasi) {
+
+        if ($lokasi && $kavling) {
             if ($lokasi->is_cluster) {
-                $blokNomor = ($kavling->cluster ?? '-') . '-' . ($kavling->no ?? '-');
+                $blokNomor =
+                    ($kavling->cluster ?? '-') .
+                    '-' .
+                    ($kavling->no ?? '-');
             } else {
-                $blokNomor = $kavling->kode_kavling ?? '-';
+                $blokNomor =
+                $kavling->kode_kavling ??
+                    '-';
             }
         }
 
         $mediaRekap = PengaturanMedia::where('jenis_data', 'Logo Rekap')->first();
-        $pathRekap  = null;
+
+        $pathRekap = null;
+
         if ($mediaRekap && $mediaRekap->nama_file) {
             $pathRekap = public_path('config_media/' . $mediaRekap->nama_file);
         }
 
-        $width  = 210;
-        $height = 297;
-        $fpdf   = new TCPDF('L', 'mm', [$width, $height]);
+        $fpdf = new TCPDF('L', 'mm', 'A4');
 
         $fpdf->SetTitle('Kwitansi - ' . ($pembayaran->no_kwitansi ?? '-'));
+
         $fpdf->SetPrintHeader(false);
         $fpdf->SetPrintFooter(false);
         $fpdf->SetMargins(10, 10, 10);
         $fpdf->SetAutoPageBreak(false, 0);
+
         $fpdf->AddPage();
 
         if ($pathRekap && file_exists($pathRekap)) {
-            $fpdf->Image($pathRekap, 15, 12, 30, 25);
+
+            $logoWidth = 50;
+            $xLogo     = 15;
+            $yLogo     = 12;
+
+            $fpdf->Image(
+                $pathRekap,
+                $xLogo,
+                $yLogo,
+                $logoWidth,
+                0,
+                '',
+                '',
+                '',
+                false,
+                300,
+                '',
+                false,
+                false,
+                0,
+                false,
+                false,
+                false
+            );
         }
 
-        $fpdf->SetFont('helvetica', 'B', 25);
+        $fpdf->SetFont('helvetica', 'B', 24);
         $fpdf->SetTextColor(0, 51, 153);
-        $fpdf->SetXY(55, 10);
-        $fpdf->Cell(0, 8, 'PT. ALAM INDAH SELALU', 0, 1, 'L');
+        $fpdf->SetXY(0, 12);
+        $fpdf->Cell(297, 10, strtoupper($namaPerusahaan), 0, 1, 'C');
 
-        $fpdf->SetFont('helvetica', 'B', 14);
+        $fpdf->SetX(0);
+        $fpdf->SetFont('helvetica', 'B', 13);
         $fpdf->SetTextColor(220, 53, 69);
-        $fpdf->SetX(71);
-        $fpdf->Cell(0, 0, 'DEVELOPER & CONTRACTOR', 0, 1, 'L');
+        $fpdf->Cell(297, 6, 'DEVELOPER & CONTRACTOR', 0, 1, 'C');
 
-        $fpdf->SetFont('helvetica', 'B', 9);
+        $fpdf->SetX(0);
+        $fpdf->SetFont('helvetica', '', 9);
         $fpdf->SetTextColor(0, 51, 153);
-        $fpdf->SetX(75);
-        $fpdf->Cell(0, 0, 'Komplek Ruko Hawaii Garden Blok B No. 2', 0, 1, 'L');
+        $fpdf->Cell(
+            297,
+            5,
+            $alamatPerusahaan . ', Telp. ' . $telpPerusahaan,
+            0,
+            1,
+            'C'
+        );
 
-        $fpdf->SetX(63);
-        $fpdf->Cell(0, 0, 'Kelurahan Belian Batam Center - Batam, Telp. 0778 - 4173387', 0, 1, 'L');
+        $fpdf->Ln(6);
 
-        $fpdf->SetFont('times', 'I', 24);
+        $fpdf->SetFont('times', 'I', 22);
         $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetXY(15, 40);
-        $fpdf->Cell(0, 0, 'Tanda Terima', 0, 0, 'C');
+        $fpdf->Cell(267, 10, 'Tanda Terima', 0, 1, 'C');
 
-        $fpdf->SetFont('times', 'BI', 14);
+        $fpdf->SetFont('times', 'BI', 12);
         $fpdf->SetTextColor(220, 53, 69);
-        $fpdf->SetXY(200, 40);
-        $fpdf->Cell(0, 10, 'No. ' . ($pembayaran->no_kwitansi ?? '-'), 0, 1, 'L');
+        $fpdf->SetXY(200, 42);
+        $fpdf->Cell(
+            80,
+            6,
+            'No. ' . ($pembayaran->no_kwitansi ?? '-'),
+            0,
+            1,
+            'R'
+        );
 
         $fpdf->SetLineWidth(0.5);
         $fpdf->SetDrawColor(0, 102, 204);
@@ -394,7 +469,14 @@ class PembayaranController extends Controller
         $fpdf->SetFont('times', 'I', 16);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetXY(15, 57);
-        $fpdf->Cell(0, 6, 'Telah diterima uang sebanyak :', 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            'Telah diterima uang sebanyak :',
+            0,
+            1,
+            'L'
+        );
 
         $fpdf->SetFont('times', 'BI', 12);
         $fpdf->SetTextColor(0, 0, 0);
@@ -402,11 +484,29 @@ class PembayaranController extends Controller
         $fpdf->Cell(10, 6, 'Rp.', 0, 0, 'L');
 
         $fpdf->SetFont('times', 'BI', 11);
-        $fpdf->Cell(0, 6, number_format($pembayaran->nominal, 0, ',', '.') . ' ( ' . $this->terbilang($pembayaran->nominal) . ' Rupiah )', 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            number_format($pembayaran->nominal, 0, ',', '.') .
+            ' ( ' .
+            $this->terbilang($pembayaran->nominal) .
+            ' Rupiah )',
+            0,
+            1,
+            'L'
+        );
+
         $fpdf->SetFont('times', 'I', 11);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetX(15);
-        $fpdf->Cell(0, 6, 'Untuk Pembayaran', 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            'Untuk Pembayaran',
+            0,
+            1,
+            'L'
+        );
 
         $yCheckbox = $fpdf->GetY() + 8;
         $boxSize   = 5;
@@ -432,18 +532,31 @@ class PembayaranController extends Controller
         $fpdf->SetXY(150, $yCheckbox + 8);
         $fpdf->Rect(150, $yCheckbox + 8, $boxSize, $boxSize);
         $fpdf->Cell($boxSize + 2);
-        $fpdf->Cell(80, $boxSize, 'Lain-lain : ...............................................', 0, 1, 'L');
+        $fpdf->Cell(
+            80,
+            $boxSize,
+            'Lain-lain : ...............................................',
+            0,
+            1,
+            'L'
+        );
 
-        $namaKategori = strtoupper($pembayaran->kategori->kategori ?? '-');
-        $checkIcon    = public_path('check-solid.png');
-        $checkSize    = 4;
-        $xCheck       = null;
-        $yCheck       = null;
+        $namaKategori =
+            strtoupper($pembayaran->kategori->kategori ?? '-');
+
+        $checkIcon = public_path('check-solid.png');
+        $checkSize = 4;
+
+        $xCheck = null;
+        $yCheck = null;
 
         if (str_contains($namaKategori, 'BOOKING FEE')) {
             $xCheck = 18.5;
             $yCheck = $yCheckbox + 0.5;
-        } elseif (str_contains($namaKategori, 'DP') || str_contains($namaKategori, 'UANG MUKA')) {
+        } elseif (
+            str_contains($namaKategori, 'DP') ||
+            str_contains($namaKategori, 'UANG MUKA')
+        ) {
             $xCheck = 18.5;
             $yCheck = $yCheckbox + 8.5;
         } elseif (str_contains($namaKategori, 'SERTIFIKAT')) {
@@ -456,7 +569,14 @@ class PembayaranController extends Controller
             $fpdf->SetXY(185, $yCheckbox + 8);
             $fpdf->SetFont('times', 'BI', 10);
             $fpdf->SetTextColor(0, 0, 0);
-            $fpdf->Cell(50, 5, $pembayaran->kategori->kategori ?? '-', 0, 0, 'L');
+            $fpdf->Cell(
+                50,
+                5,
+                $pembayaran->kategori->kategori ?? '-',
+                0,
+                0,
+                'L'
+            );
         }
 
         if ($xCheck && $yCheck && file_exists($checkIcon)) {
@@ -464,98 +584,206 @@ class PembayaranController extends Controller
         }
 
         $fpdf->Ln(3);
+
         $fpdf->SetFont('times', 'I', 16);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetXY(15, 113);
 
-        $kota         = $dataPerusahaan->kota_penandatangan ?? 'Batam';
-        $alamatProyek = $lokasi->alamat ?? '...................................................';
+        $kota =
+        $dataPerusahaan->perusahaan->kota_penandatangan;
 
-        $fpdf->Cell(0, 6, 'Atas pembelian rumah di ' . $alamatProyek . ', ' . $kota, 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            'Atas pembelian rumah di ' .
+            $alamatPerusahaan .
+            ', ' .
+            $kota,
+            0,
+            1,
+            'L'
+        );
+
         $yDetail = $fpdf->GetY() + 2;
+
         $fpdf->SetFont('times', 'I', 14);
         $fpdf->SetTextColor(0, 102, 204);
 
         $fpdf->SetXY(15, $yDetail);
         $fpdf->Cell(40, 6, 'Nama', 0, 0, 'L');
         $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+
         $fpdf->SetFont('times', 'BI', 10);
         $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(0, 6, $nasabah->nama_lengkap ?? '-', 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            $nasabah->nama_lengkap ?? '-',
+            0,
+            1,
+            'L'
+        );
 
         $fpdf->SetFont('times', 'I', 11);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetX(15);
         $fpdf->Cell(40, 6, 'Alamat / Telp.', 0, 0, 'L');
         $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+
         $fpdf->SetFont('times', 'BI', 10);
         $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(0, 6, $alamatNasabah . ' / ' . ($nasabah->no_telp ?? '-'), 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            $alamatNasabah .
+            ' / ' .
+            ($nasabah->no_telp ?? '-'),
+            0,
+            1,
+            'L'
+        );
 
         $fpdf->SetFont('times', 'I', 11);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetX(15);
         $fpdf->Cell(40, 6, 'Harga Jual', 0, 0, 'L');
         $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+
         $fpdf->SetFont('times', 'BI', 10);
         $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(0, 6, 'Rp. ' . number_format($kavling->harga_jual ?? 0, 0, ',', '.'), 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            'Rp. ' .
+            number_format(
+                $nasabah->hrg_jual ?? 0,
+                0,
+                ',',
+                '.'
+            ),
+            0,
+            1,
+            'L'
+        );
 
         $fpdf->SetFont('times', 'I', 11);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetX(15);
         $fpdf->Cell(40, 6, 'Type Rumah', 0, 0, 'L');
         $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+
         $fpdf->SetFont('helvetica', '', 10);
         $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(0, 6, $kavling->tipe_bangunan ?? '-', 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            $kavling->tipe_bangunan ?? '-',
+            0,
+            1,
+            'L'
+        );
 
         $fpdf->SetFont('times', 'I', 11);
         $fpdf->SetTextColor(0, 102, 204);
         $fpdf->SetX(15);
         $fpdf->Cell(40, 6, 'Blok / No. Rumah', 0, 0, 'L');
         $fpdf->Cell(5, 6, ':', 0, 0, 'C');
+
         $fpdf->SetFont('helvetica', '', 10);
         $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(0, 6, $blokNomor, 0, 1, 'L');
+        $fpdf->Cell(
+            0,
+            6,
+            $blokNomor,
+            0,
+            1,
+            'L'
+        );
 
         $ySign = 165;
+
         $fpdf->SetFont('times', 'I', 10);
         $fpdf->SetTextColor(0, 0, 0);
 
         $fpdf->SetXY(30, $ySign + 30);
-        $fpdf->Cell(60, 5, '( ______________________ )', 0, 1, 'C');
+        $fpdf->Cell(
+            60,
+            5,
+            '( ______________________ )',
+            0,
+            1,
+            'C'
+        );
+
         $fpdf->SetX(30);
         $fpdf->Cell(60, 5, 'Kasir', 0, 1, 'C');
 
         $fpdf->SetXY(115, $ySign + 30);
-        $fpdf->Cell(60, 5, '( ______________________ )', 0, 1, 'C');
+        $fpdf->Cell(
+            60,
+            5,
+            '( ______________________ )',
+            0,
+            1,
+            'C'
+        );
+
         $fpdf->SetX(115);
         $fpdf->Cell(60, 5, 'Penyetor', 0, 1, 'C');
 
         $xCs = 200;
 
         $fpdf->SetFont('helvetica', '', 10);
-        $fpdf->SetTextColor(0, 0, 0);
         $fpdf->SetXY($xCs, $ySign);
 
-        $kota = $dataPerusahaan->kota_penandatangan ?? 'Batam';
-        $fpdf->Cell(60, 5, $kota . ', ' . Carbon::parse($pembayaran->tanggal)->translatedFormat('d F Y'), 0, 1, 'C');
+        $fpdf->Cell(
+            60,
+            5,
+            $kota .
+            ', ' .
+            Carbon::parse($pembayaran->tanggal)
+                ->translatedFormat('d F Y'),
+            0,
+            1,
+            'C'
+        );
 
         $fpdf->SetFont('helvetica', 'B', 11);
         $fpdf->SetTextColor(220, 53, 69);
         $fpdf->SetXY($xCs, $fpdf->GetY());
 
-        $fpdf->Cell(60, 6, strtoupper($dataPerusahaan->nama_perusahaan ?? '-'), 0, 1, 'C');
+        $fpdf->Cell(
+            60,
+            6,
+            strtoupper($namaPerusahaan),
+            0,
+            1,
+            'C'
+        );
 
         $fpdf->SetFont('times', 'I', 10);
         $fpdf->SetTextColor(0, 0, 0);
         $fpdf->SetXY($xCs, $ySign + 30);
-        $fpdf->Cell(60, 5, '( ______________________ )', 0, 1, 'C');
+
+        $fpdf->Cell(
+            60,
+            5,
+            '( ______________________ )',
+            0,
+            1,
+            'C'
+        );
+
         $fpdf->SetX($xCs);
         $fpdf->Cell(60, 5, 'Customer Service', 0, 1, 'C');
 
-        $fpdf->Output('Kwitansi-' . ($pembayaran->no_kwitansi ?? 'draft') . '.pdf', 'I');
+        $fpdf->Output(
+            'Kwitansi-' .
+            ($pembayaran->no_kwitansi ?? 'draft') .
+            '.pdf',
+            'I'
+        );
+
         exit;
     }
 
@@ -674,7 +902,7 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            $cust = Customer::find($id);
+            $cust    = Customer::find($id);
             $piutang = Piutang::create([
                 'id_customer'           => $id,
                 'id_bank'               => 0,

@@ -32,7 +32,7 @@
                                 <div class="row mb-4">
                                     <label class="col-sm-1 col-form-label">Lokasi</label>
                                     <div class="col-sm-3">
-                                        <select name="id_lokasi" id="id_lokasi" class="form-control select-lokasi">
+                                        <select name="id_lokasi" id="id_lokasi" class="form-select select-lokasi">
                                             <option value="0">Semua</option>
                                             @foreach ($lokasiList as $l)
                                                 <option value="{{ $l->id }}"
@@ -484,12 +484,13 @@
             });
         });
 
-
-
-        $('#modalForm').on('hidden.bs.modal', function() {
+       $('#modalForm').on('hidden.bs.modal', function() {
             $('#formData')[0].reset();
+            $('.form-select').val('').trigger('change');
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
+
+            $('#primary_id').val('');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');

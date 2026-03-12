@@ -76,26 +76,30 @@
 
                         <div class="form-group row">
                             <label for="no_rek" class="col-sm-3 col-form-label">Rek. Asal</label>
-                            <div class="col-sm-3">
+                            <div class="col-sm-6">
                                 <select class="form-select select-rekening" name="rekening_asal" id="rekening_asal">
                                     <option value=""></option>
                                     @foreach ($bankList as $data)
-                                        <option value="{{ $data->id }}">{{ $data->nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <label for="no_rek" class="col-sm-2 col-form-label">Rek. Tujuan</label>
-                            <div class="col-sm-3">
-                                <select class="form-select select-rekening" name="rekening_tujuan" id="rekening_tujuan">
-                                    <option value=""></option>
-                                    @foreach ($bankList as $data)
-                                        <option value="{{ $data->id }}">{{ $data->nama }}
+                                        <option value="{{ $data->id }}">{{ $data->nama }} ({{ $data->no_rek }})
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group row">
+                            <label for="no_rek" class="col-sm-3 col-form-label">Rek. Tujuan</label>
+                            <div class="col-sm-6">
+                                <select class="form-select select-rekening" name="rekening_tujuan" id="rekening_tujuan">
+                                    <option value=""></option>
+                                    @foreach ($bankList as $data)
+                                        <option value="{{ $data->id }}">{{ $data->nama }} ({{ $data->no_rek }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="form-group row">
                             <label for="nominal" class="col-sm-3 col-form-label">Nominal</label>
                             <div class="col-sm-6">
@@ -151,7 +155,6 @@
             $('.select-rekening').select2({
                 theme: 'bootstrap4',
                 placeholder: 'Pilih Rekening',
-                minimumResultsForSearch: -1,
             });
         });
 
@@ -249,6 +252,7 @@
             $('#primary_id').val('');
             $('#rekening_asal').val('').trigger('change');
             $('#rekening_tujuan').val('').trigger('change');
+
             $('#lihat-lampiran-wrapper').addClass('d-none');
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();

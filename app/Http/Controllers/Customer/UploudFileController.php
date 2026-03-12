@@ -74,14 +74,14 @@ class UploudFileController extends Controller
     {
         $rules = [
             'nama_file' => 'required',
-            'lampiran'  => 'required|mimes:jpg,jpeg,png|max:2048',
+            'lampiran'  => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
 
         $messages = [
             'nama_file.required' => 'Nama file wajib diisi.',
             'lampiran.required'  => 'Lampiran wajib diisi.',
 
-            'lampiran.mimes'     => 'Lampiran harus berformat JPG, JPEG, atau PNG.',
+            'lampiran.mimes'     => 'Lampiran harus berformat JPG, JPEG, PNG, atau PDF.',
             'lampiran.max'       => 'Ukuran lampiran maksimal 2 MB.',
         ];
 

@@ -179,12 +179,12 @@ class PPJBController extends Controller
             $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
             if($page == 1){
-                $pdf->SetFont('Arial', 'B', 25);
-                $pdf->SetXY(75, 30);
+                $pdf->SetFont('Arial', 'B', 20);
+                $pdf->SetXY(80, 90);
                 $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
 
                 $pdf->SetFont('Arial', 'B', 23);
-                $pdf->SetXY(68, 99);
+                $pdf->SetXY(68, 235);
                 $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
             }
 
@@ -220,13 +220,13 @@ class PPJBController extends Controller
                 $pdf->SetXY(75, 29);
                 $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
 
-                 $pdf->SetXY(53.5, 40.5);
+                 $pdf->SetXY(53.5, 40);
                 $pdf->Cell(15, 5, $tanggal);
 
-                $pdf->SetXY(69, 40.5);
+                $pdf->SetXY(70, 40);
                 $pdf->Cell(30, 5, $bulan);
 
-                $pdf->SetXY(98, 40.5);
+                $pdf->SetXY(103, 40);
                 $pdf->Cell(20, 5, $tahun);
 
                 $pdf->SetXY(66, 96);
@@ -249,9 +249,29 @@ class PPJBController extends Controller
                 $pdf->SetXY(115, 204);
                 $luasTanah = optional($customer->kavlingPeta)->luas_tanah ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-                }
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(80, 225);
+                $pdf->Cell(0, 5,  'nama jalan');
+
+                $pdf->SetXY(80, 232);
+                $pdf->Cell(0, 5,  'desa kelurahan');
+
+                $pdf->SetXY(80, 238);
+                $pdf->Cell(0, 5,  'kecamatan');
+
+                $pdf->SetXY(80, 245);
+                $pdf->Cell(0, 5,  'kabupaten kota');
+
+                $pdf->SetXY(80, 257);
+                $pdf->Cell(0, 5,  'provinsi');
+            }
 
             if ($page == 3) {
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(77, 21.5);
+                $pdf->Cell(0, 5, 'ini no/shm/20080');
 
                 $pdf->SetFont('Arial', 'B', 25);
 
@@ -291,7 +311,7 @@ class PPJBController extends Controller
                 $pdf->Cell(0, 5, $hargaFormat);
 
                 $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(94, 139);
+                $pdf->SetXY(94, 138);
                 $pdf->MultiCell(
                     110,
                     10,
@@ -304,7 +324,7 @@ class PPJBController extends Controller
                 $pdf->Cell(0, 5, $totalKategori2Format);
 
                 $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(94, 155);
+                $pdf->SetXY(94, 154);
                 $pdf->MultiCell(
                     110,
                     5,
@@ -318,7 +338,7 @@ class PPJBController extends Controller
                 $pdf->Cell(0, 5, $totalKategori1Format);
 
                 $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(94, 180);
+                $pdf->SetXY(94, 179);
                 $pdf->MultiCell(
                     110,
                     6,
@@ -395,6 +415,27 @@ class PPJBController extends Controller
                     190,
                     $yText + 3
                 );
+
+                 $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
+
+                $hargaFormat = $hargaJual
+                    ? number_format($hargaJual, 0, ',', '.')
+                    : '-';
+
+                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetXY(70, 251);
+                $pdf->Cell(0, 5, $hargaFormat);
+
+                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetXY(95, 251);
+                $pdf->MultiCell(
+                    110,
+                    5,
+                    $hargaJual
+                        ? '(' . ucwords($this->terbilang($hargaJual)) . ' Rupiah)'
+                        : '-'
+                );
+
             }
             if($page == 7){
                 $pdf->SetFont('Arial', 'B', 25);

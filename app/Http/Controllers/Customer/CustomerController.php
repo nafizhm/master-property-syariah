@@ -721,8 +721,23 @@ class CustomerController extends Controller
         $pdf->SetXY(152, 82);
         $pdf->Cell(0, 5, number_format($customer->hrg_jual ?? 0, 0, ',', '.'));
 
+        $pdf->SetXY(152, 87);
+        $pdf->Cell(0, 5, '120.000');
+
+        $pdf->SetXY(152, 91);
+        $pdf->Cell(0, 5, '120.000');
+
+        $pdf->SetXY(152, 95);
+        $pdf->Cell(0, 5, '120.000');
+
+        $pdf->SetXY(152, 100);
+        $pdf->Cell(0, 5, '120.000');
+
+        $pdf->SetXY(152, 130);
+        $pdf->Cell(0, 5, '120.000');
+
         $pdf->SetXY(152, 104);
-        $pdf->Cell(0, 5, number_format($customer->total_harga ?? 0, 0, ',', '.'));
+        $pdf->Cell(0, 5, '120.000');
 
         $pdf->SetXY(152, 117);
         $pdf->Cell(0, 5, number_format($customer->hrg_jual ?? 0, 0, ',', '.'));

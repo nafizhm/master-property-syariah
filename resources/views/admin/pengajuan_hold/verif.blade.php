@@ -20,7 +20,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Tanggal</label>
+                                            <label class="col-sm-4 col-form-label">Tanggal</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->tgl_booking_formatted }}"
                                                     class="form-control" readonly>
@@ -28,7 +28,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Nama Lengkap</label>
+                                            <label class="col-sm-4 col-form-label">Nama Lengkap</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->nama_lengkap }}" class="form-control"
                                                     readonly>
@@ -36,7 +36,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">NIK</label>
+                                            <label class="col-sm-4 col-form-label">NIK</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->nik }}" class="form-control"
                                                     readonly>
@@ -44,7 +44,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Jenis
+                                            <label class="col-sm-4 col-form-label">Jenis
                                                 Kelamin</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->jenis_kelamin }}"
@@ -53,7 +53,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Tempat Lahir</label>
+                                            <label class="col-sm-4 col-form-label">Tempat Lahir</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->tempat_lahir }}" class="form-control"
                                                     readonly>
@@ -61,7 +61,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Tanggal
+                                            <label class="col-sm-4 col-form-label">Tanggal
                                                 Lahir</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->tgl_lahir_formatted }}"
@@ -70,7 +70,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Alamat</label>
+                                            <label class="col-sm-4 col-form-label">Alamat</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->alamat }}" class="form-control"
                                                     readonly>
@@ -78,7 +78,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">NPWP</label>
+                                            <label class="col-sm-4 col-form-label">NPWP</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->npwp }}" class="form-control"
                                                     readonly>
@@ -94,7 +94,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Email</label>
+                                            <label class="col-sm-4 col-form-label">Email</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->email }}" class="form-control"
                                                     readonly>
@@ -102,7 +102,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Nomor
+                                            <label class="col-sm-4 col-form-label">Nomor
                                                 Telepon</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->no_telp }}" class="form-control"
@@ -111,7 +111,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Nama
+                                            <label class="col-sm-4 col-form-label">Nama
                                                 Saudara</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->nama_saudara }}"
@@ -120,7 +120,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">No. Telp
+                                            <label class="col-sm-4 col-form-label">No. Telp
                                                 Saudara</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->no_telp_saudara }}"
@@ -167,7 +167,8 @@
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="peningkatan_mutu" class="col-sm-4 col-form-label">Peningkatan Mutu</label>
+                                            <label for="peningkatan_mutu" class="col-sm-4 col-form-label">Peningkatan
+                                                Mutu</label>
                                             <div class="col-sm-8">
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
@@ -180,7 +181,8 @@
                                             </div>
                                         </div>
                                         <div class="form-group row">
-                                            <label for="biaya_notaris" class="col-sm-4 col-form-label">Biaya Notaris</label>
+                                            <label for="biaya_notaris" class="col-sm-4 col-form-label">Biaya
+                                                Notaris</label>
                                             <div class="col-sm-8">
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
@@ -220,7 +222,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Jenis
+                                            <label class="col-sm-4 col-form-label">Jenis
                                                 Pembayaran</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->jenis_pembayaran }}"
@@ -229,7 +231,7 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Jenis
+                                            <label class="col-sm-4 col-form-label">Jenis
                                                 Perumahan</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->jenis_perumahan }}"
@@ -237,20 +239,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="form-group row">
-                                            <label for="tgl_registrasi" class="col-sm-4 col-form-label">Booking
-                                                Fee</label>
-                                            <div class="col-sm-8">
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text">Rp.</span>
-                                                    </div>
-                                                    <input type="text" name="booking_fee" id="booking_fee"
-                                                        value="{{ number_format((float) $data->booking_fee, 0, ',', '.') }}"
-                                                        class="form-control" readonly>
-                                                </div>
-                                            </div>
-                                        </div>
+
                                     </div>
 
                                     <div class="col-md-6">
@@ -354,6 +343,25 @@
                                     @csrf
                                     <hr>
 
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Booking
+                                            Fee</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" name="booking_fee" id="booking_fee"
+                                                    value="{{ number_format((float) $data->booking_fee, 0, ',', '.') }}"
+                                                    class="form-control" readonly>
+                                            </div>
+                                        </div>
+                                        <label class="col-sm-2 col-form-label">Tanggal Booking Fee</label>
+                                        <div class="col-sm-4">
+                                            <input type="date" name="tgl_booking_fee" id="tgl_booking_fee"
+                                                value="{{ $data->tgl_booking_fee }}" class="form-control">
+                                        </div>
+                                    </div>
 
                                     <div class="form-group row">
                                         <label for="percent_fee" class="col-sm-2 col-form-label">Fee Marketing</label>
@@ -375,8 +383,9 @@
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text">Rp.</span>
                                                 </div>
-                                                <input type="text" id="fee_marketing_display" name="fee_marketing_display"
-                                                    value="0" class="form-control format-number" readonly>
+                                                <input type="text" id="fee_marketing_display"
+                                                    name="fee_marketing_display" value="0"
+                                                    class="form-control format-number" readonly>
                                                 <input type="hidden" id="fee_marketing" name="fee_marketing"
                                                     value="0" class="form-control" readonly>
                                             </div>

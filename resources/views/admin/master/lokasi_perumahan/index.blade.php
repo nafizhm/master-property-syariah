@@ -80,7 +80,7 @@
                             </div>
                             <label for="stt_tampil" class="col-sm-2 col-form-label">Status</label>
                             <div class="col-sm-3">
-                                <select name="stt_tampil" id="stt_tampil" class="form-control select-status">
+                                <select name="stt_tampil" id="stt_tampil" class="form-select select-status">
                                     <option value=""></option>
                                     <option value="1">Penjualan</option>
                                     <option value="2">Proyek</option>
@@ -112,7 +112,7 @@
                         <div class="form-group row">
                             <label for="is_cluster" class="col-sm-2 col-form-label">Cluster</label>
                             <div class="col-sm-4">
-                                <select name="is_cluster" id="is_cluster" class="form-control select-cluster">
+                                <select name="is_cluster" id="is_cluster" class="form-select select-cluster">
                                     <option value=""></option>
                                     <option value="1">Ya (Cluster)</option>
                                     <option value="0">Tidak (Non-Cluster)</option>
@@ -155,7 +155,7 @@
                             </div>
                             <label class="col-sm-2 col-form-label">Reset</label>
                             <div class="col-sm-4">
-                                <select name="reset_nomor" id="reset_nomor" class="form-control select-reset">
+                                <select name="reset_nomor" id="reset_nomor" class="form-select select-reset">
                                     <option value=""></option>
                                     <option value="1">Ya</option>
                                     <option value="2">Tidak</option>
@@ -287,13 +287,11 @@
         $('#modalForm').on('hidden.bs.modal', function() {
             $('#formData')[0].reset();
 
+            $('.form-select').val('').trigger('change');
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
 
             $('#primary_id').val('');
-            $('#stt_tampil').val('').trigger('change');
-            $('#is_cluster').val('').trigger('change');
-            $('#reset_nomor').val('').trigger('change');
 
             $('#id_perusahaan').val(null).trigger('change.select2');
 

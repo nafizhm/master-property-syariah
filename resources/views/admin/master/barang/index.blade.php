@@ -76,7 +76,7 @@
                             <div class="form-group row">
                                 <label for="id_satuan" class="col-sm-2 col-form-label">Satuan</label>
                                 <div class="col-sm-4">
-                                    <select name="id_satuan" id="id_satuan" class="form-control select-satuan">
+                                    <select name="id_satuan" id="id_satuan" class="form-select select-satuan">
                                         <option value=""></option>
                                         @foreach ($satuans as $satuan)
                                             <option value="{{ $satuan->id }}">{{ $satuan->nama_satuan }}</option>
@@ -85,7 +85,7 @@
                                 </div>
                                 <label for="id_supplier" class="col-sm-2 col-form-label">Supplier</label>
                                 <div class="col-sm-4">
-                                    <select name="id_supplier" id="id_supplier" class="form-control select-supplier">
+                                    <select name="id_supplier" id="id_supplier" class="form-select select-supplier">
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
                                             <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
@@ -300,11 +300,11 @@
 
         $('#modalForm').on('hidden.bs.modal', function() {
             $('#formData')[0].reset();
-            $('.select-satuan').val('').trigger('change');
-            $('.select-supplier').val('').trigger('change');
-            $('.select-stt').val('').trigger('change');
+            $('.form-select').val('').trigger('change');
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
+
+            $('#primary_id').val('');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');

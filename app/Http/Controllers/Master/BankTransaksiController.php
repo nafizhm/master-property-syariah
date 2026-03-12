@@ -1,13 +1,12 @@
 <?php
-
 namespace App\Http\Controllers\Master;
 
-use App\Models\Bank;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Yajra\DataTables\Facades\DataTables;
 use App\Http\Controllers\Pengaturan\HakAksesController;
+use App\Models\Bank;
 use App\Traits\LogAktivitasTrait;
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class BankTransaksiController extends Controller
 {
@@ -22,7 +21,7 @@ class BankTransaksiController extends Controller
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function ($row) use ($permissions) {
-                    $editUrl = route('bank-transaksi.edit', $row->id);
+                    $editUrl   = route('bank-transaksi.edit', $row->id);
                     $deleteUrl = route('bank-transaksi.destroy', $row->id);
 
                     $btn = '<div class="d-flex justify-content-center">';
@@ -49,28 +48,25 @@ class BankTransaksiController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $list,
+            'data'   => $list,
         ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|unique:bank,nama',
-            'no_rek' => 'required|unique:bank,no_rek',
-            'pemilik_rek' => 'required|unique:bank,pemilik_rek',
+            'nama'        => 'required',
+            'no_rek'      => 'required',
+            'pemilik_rek' => 'required',
         ], [
-            'nama.required' => 'Nama bank wajib diisi.',
-            'nama.unique' => 'Nama bank sudah digunakan.',
-            'no_rek.required' => 'Nomor rekening wajib diisi.',
-            'no_rek.unique' => 'Nomor rekening sudah digunakan.',
+            'nama.required'        => 'Nama bank wajib diisi.',
+            'no_rek.required'      => 'Nomor rekening wajib diisi.',
             'pemilik_rek.required' => 'Pemilik rekening wajib diisi.',
-            'pemilik_rek.unique' => 'Pemilik rekening sudah digunakan.',
         ]);
 
         $db = [
-            'nama' => $request->nama,
-            'no_rek' => $request->no_rek,
+            'nama'        => $request->nama,
+            'no_rek'      => $request->no_rek,
             'pemilik_rek' => $request->pemilik_rek,
         ];
 
@@ -85,21 +81,18 @@ class BankTransaksiController extends Controller
         $data = Bank::findOrFail($id);
 
         $request->validate([
-            'nama' => 'required|unique:bank,nama,' . $data->id . ',id',
-            'no_rek' => 'required|unique:bank,no_rek,' . $data->id . ',id',
-            'pemilik_rek' => 'required|unique:bank,pemilik_rek,' . $data->id . ',id',
+            'nama'        => 'required',
+            'no_rek'      => 'required',
+            'pemilik_rek' => 'required',
         ], [
-            'nama.required' => 'Nama bank wajib diisi.',
-            'nama.unique' => 'Nama bank sudah digunakan.',
-            'no_rek.required' => 'Nomor rekening wajib diisi.',
-            'no_rek.unique' => 'Nomor rekening sudah digunakan.',
+            'nama.required'        => 'Nama bank wajib diisi.',
+            'no_rek.required'      => 'Nomor rekening wajib diisi.',
             'pemilik_rek.required' => 'Pemilik rekening wajib diisi.',
-            'pemilik_rek.unique' => 'Pemilik rekening sudah digunakan.',
         ]);
 
         $db = [
-            'nama' => $request->nama,
-            'no_rek' => $request->no_rek,
+            'nama'        => $request->nama,
+            'no_rek'      => $request->no_rek,
             'pemilik_rek' => $request->pemilik_rek,
         ];
 

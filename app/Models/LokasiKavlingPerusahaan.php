@@ -14,4 +14,9 @@ class LokasiKavlingPerusahaan extends Model
         'id_lokasi',
         'id_perusahaan'
     ];
+
+    public function perusahaan()
+    {
+        return $this->belongsTo(Perusahaan::class, 'id_perusahaan');
+    }
 }

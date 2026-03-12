@@ -93,7 +93,7 @@
                             <div class="form-group row">
                                 <label for="status" class="col-sm-4 col-form-label">Status</label>
                                 <div class="col-sm-3">
-                                    <select name="status" id="status" class="form-control select-status">
+                                    <select name="status" id="status" class="form-select select-status">
                                         <option></option>
                                         <option value="1">Aktif</option>
                                         <option value="2">Tidak Aktif</option>
@@ -218,9 +218,11 @@
 
         $('#modalForm').on('hidden.bs.modal', function() {
             $('#formData')[0].reset();
+            $('.form-select').val('').trigger('change');
             $('.is-invalid').removeClass('is-invalid');
-            $('.select-Status').val('').trigger('change');
             $('.invalid-feedback').remove();
+
+            $('#primary_id').val('');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');
@@ -262,7 +264,7 @@
                 success: function(response) {
                     $('#modalForm').modal('hide');
                     audio.play();
-                    let msg = id ? "Data berhasil diupdate!" : "Data berhasil ditambahkan!";
+                    let msg = id ? "Supplier berhasil diupdate!" : "Supplier berhasil ditambahkan!";
                     toastr.success(msg, "BERHASIL", {
                         progressBar: true,
                         timeOut: 3500,

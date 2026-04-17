@@ -301,7 +301,7 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('marketing-agent.update', ['marketing_agen' => ':id']) }}'.replace(
+            let url = id ? '{{ route('marketing-agent.update', ['marketing_agent' => ':id']) }}'.replace(
                     ':id',
                     id) :
                 '{{ route('marketing-agent.store') }}';

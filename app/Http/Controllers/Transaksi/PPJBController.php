@@ -506,8 +506,11 @@ class PPJBController extends Controller
                 $pdf->SetXY(74, 101);
                 $pdf->Cell(0, 5, $ttl);
 
+                $alamat = $customer->alamat_ktp ?? '-';
+                $alamat = mb_substr($alamat, 0, 50);
+
                 $pdf->SetXY(74, 108);
-                $pdf->MultiCell(140, 5, $customer->alamat_ktp ?? '-');
+                $pdf->MultiCell(140, 5, $alamat ?? '-');
 
                 $pdf->SetXY(74, 115);
                 $pdf->Cell(0, 5, $customer->nik ?? '-');
@@ -753,8 +756,11 @@ class PPJBController extends Controller
                 $pdf->SetXY(74, 101);
                 $pdf->Cell(0, 5, $ttl);
 
+                $alamat = $customer->alamat_ktp ?? '-';
+                $alamat = mb_substr($alamat, 0, 50);
+
                 $pdf->SetXY(74, 108);
-                $pdf->MultiCell(140, 5, $customer->alamat_ktp ?? '-');
+                $pdf->MultiCell(140, 5, $alamat ?? '-');
 
                 $pdf->SetXY(74, 115);
                 $pdf->Cell(0, 5, $customer->nik ?? '-');

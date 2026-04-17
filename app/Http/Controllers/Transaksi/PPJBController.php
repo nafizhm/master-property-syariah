@@ -542,10 +542,12 @@ class PPJBController extends Controller
             }
 
             if ($page == 3) {
-                $pdf->SetFont('Times', '', 10);
+                $pdf->SetFont('Times', 'B', 11);
 
-                $pdf->SetXY(120, 21.3);
-                $pdf->Cell(0, 5, optional($customer->lokasi)->nama_kavling ?? '-');
+                $text = (optional($customer->lokasi)->nama_kavling ?? '-') . ', Kavling ' . strtoupper(optional($customer->kavling)->kode_kavling ?? '-');
+
+                $pdf->SetXY(118.5, 21.1);
+                $pdf->Cell(0, 5, $text);
 
                 $hargaJual = optional($customer->kavling)->hrg_jual;
 
@@ -792,11 +794,13 @@ class PPJBController extends Controller
             }
 
             if ($page == 3) {
-                $pdf->SetFont('Times', '', 10);
+                $pdf->SetFont('Times', 'B', 11);
 
-                $pdf->SetXY(120, 21.3);
-                $pdf->Cell(0, 5, optional($customer->lokasi)->nama_kavling ?? '-');
+                $text = (optional($customer->lokasi)->nama_kavling ?? '-') . ', Kavling ' . strtoupper(optional($customer->kavling)->kode_kavling ?? '-');
 
+                $pdf->SetXY(118.5, 21.1);
+                $pdf->Cell(0, 5, $text);
+                
                 $hargaJual = optional($customer->kavling)->hrg_jual;
 
                 $hargaFormat = $hargaJual

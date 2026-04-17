@@ -36,8 +36,6 @@
     <link rel="stylesheet" href="{{ asset('templates/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
     <!-- Daterange picker -->
     <link rel="stylesheet" href="{{ asset('templates/plugins/daterangepicker/daterangepicker.css') }}">
-    <!-- summernote -->
-    <link rel="stylesheet" href="{{ asset('templates/plugins/summernote/summernote-bs4.min.css') }}">
     <!-- DataTables -->
     <link rel="stylesheet" href="{{ asset('templates/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet"
@@ -51,7 +49,6 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('templates/plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('templates/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.css" rel="stylesheet">
 
     @stack('css')
 
@@ -279,8 +276,6 @@
         </aside>
         <!-- /.control-sidebar -->
     </div>
-    <!-- ./wrapper -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
     <!-- jQuery -->
     <script src="{{ asset('templates/plugins/jquery/jquery.min.js') }}"></script>
     <!-- jQuery UI 1.11.4 -->
@@ -295,8 +290,6 @@
     <script src="{{ asset('templates/plugins/select2/js/select2.full.min.js') }}"></script>
     <!-- ChartJS -->
     <script src="{{ asset('templates/plugins/chart.js/Chart.min.js') }}"></script>
-    <!-- Sparkline -->
-    <script src="{{ asset('templates/plugins/sparklines/sparkline.js') }}"></script>
     <!-- JQVMap -->
     <script src="{{ asset('templates/plugins/jqvmap/jquery.vmap.min.js') }}"></script>
     <script src="{{ asset('templates/plugins/jqvmap/maps/jquery.vmap.usa.js') }}"></script>
@@ -307,8 +300,6 @@
     <script src="{{ asset('templates/plugins/daterangepicker/daterangepicker.js') }}"></script>
     <!-- Tempusdominus Bootstrap 4 -->
     <script src="{{ asset('templates/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-    <!-- Summernote -->
-    <script src="{{ asset('templates/plugins/summernote/summernote-bs4.min.js') }}"></script>
     <!-- overlayScrollbars -->
     <script src="{{ asset('templates/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
     <!-- DataTables  & Plugins -->
@@ -337,9 +328,6 @@
     <script src="{{ asset('templates/plugins/toastr/toastr.min.js') }}"></script>
     <!-- bs-custom-file-input -->
     <script src="{{ asset('templates/plugins/bs-custom-file-input/bs-custom-file-input.min.js') }}"></script>
-
-    <!-- Summernote -->
-    <script src="{{ asset('templates/plugins/summernote/summernote-bs4.min.js') }}"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fontawesome-iconpicker/3.2.0/js/fontawesome-iconpicker.min.js">
     </script>

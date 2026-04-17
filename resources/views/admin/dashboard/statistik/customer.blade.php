@@ -61,7 +61,7 @@
                 serverSide: false,
                 ordering: false,
                 responsive: true,
-                ajax: "{{ route(Route::currentRouteName(), ['id' => $status_progres_id ?? ($bank_id ?? ($marketing_id ?? $freelance_id))]) }}",
+                ajax: "{{ route(Route::currentRouteName(), ['id' => $status_progres_id ?? ($bank_id ?? ($marketing_id ?? $agent_id))]) }}",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',

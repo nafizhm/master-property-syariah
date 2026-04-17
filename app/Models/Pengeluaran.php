@@ -11,6 +11,7 @@ class Pengeluaran extends Model
         'id_piutang',
         'id_po',
         'id_mutasi',
+        'id_komisi',
         'id_proyek_bangunan_detail',
         'id_proyek_jalan_detail',
         'id_proyek_saluran_detail',

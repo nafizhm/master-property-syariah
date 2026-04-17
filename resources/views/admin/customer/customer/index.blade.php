@@ -112,39 +112,39 @@
                         <input type="hidden" id="primary_id" name="primary_id">
                         <div class="modal-body">
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Nama Lengkap <span
+                                <label class="col-sm-2 col-form-label">Nama Lengkap <span
                                         style="color: red;">*</span></label>
                                 <div class="col-sm-4">
                                     <input name="nama_lengkap" id="nama_lengkap" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">NIK <span style="color: red;">*</span></label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <input name="nik" id="nik" class="form-control" type="text">
                                 </div>
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Tempat Lahir <span
+                                <label class="col-sm-2 col-form-label">Tempat Lahir <span
                                         style="color: red;">*</span></label>
                                 <div class="col-sm-4">
                                     <input name="tempat_lahir" id="tempat_lahir" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">Tanggal Lahir <span
                                         style="color: red;">*</span></label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <input name="tgl_lahir" id="tgl_lahir" class="form-control" type="date">
                                 </div>
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">No. Telp / WA <span
+                                <label class="col-sm-2 col-form-label">No. Telp / WA <span
                                         style="color: red;">*</span></label>
                                 <div class="col-sm-4">
                                     <input name="no_telp" id="no_telp" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">Jenis Kelamin <span
                                         style="color: red;">*</span></label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <select class="form-control select-jk" name="jenis_kelamin" id="jenis_kelamin">
                                         <option value=""></option>
                                         <option value="Laki-laki">Laki-laki</option>
@@ -154,36 +154,36 @@
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Email</label>
+                                <label class="col-sm-2 col-form-label">Email</label>
                                 <div class="col-sm-4">
                                     <input name="email" id="email" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">NPWP</label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <input name="npwp" id="npwp" class="form-control" type="text">
                                 </div>
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Pekerjaan</label>
+                                <label class="col-sm-2 col-form-label">Pekerjaan</label>
                                 <div class="col-sm-4">
                                     <input name="pekerjaan" id="pekerjaan" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">No. BPJS Kes</label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <input name="no_bpjs_kes" id="no_bpjs_kes" class="form-control" type="text">
                                 </div>
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Alamat KTP <span
+                                <label class="col-sm-2 col-form-label">Alamat KTP <span
                                         style="color: red;">*</span></label>
                                 <div class="col-sm-6">
                                     <textarea name="alamat_ktp" id="alamat_ktp" class="form-control" rows="2"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Alamat Domisili <span
+                                <label class="col-sm-2 col-form-label">Alamat Domisili <span
                                         style="color: red;">*</span></label>
                                 <div class="col-sm-6">
                                     <textarea name="alamat_domisili" id="alamat_domisili" class="form-control" rows="2"></textarea>
@@ -191,7 +191,7 @@
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Status Pernikahan</label>
+                                <label class="col-sm-2 col-form-label">Status Pernikahan</label>
                                 <div class="col-sm-4">
                                     <select class="form-control select-status" name="status_pernikahan"
                                         id="status_pernikahan">
@@ -203,12 +203,12 @@
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Nama Pasangan</label>
+                                <label class="col-sm-2 col-form-label">Nama Pasangan</label>
                                 <div class="col-sm-4">
                                     <input name="nama_p" id="nama_p" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">NIK Pasangan</label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <input name="nik_p" id="nik_p" class="form-control" type="text">
                                 </div>
                             </div>
@@ -216,12 +216,12 @@
                             <hr>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Nama Saudara</label>
+                                <label class="col-sm-2 col-form-label">Nama Saudara</label>
                                 <div class="col-sm-4">
                                     <input name="nama_saudara" id="nama_saudara" class="form-control" type="text">
                                 </div>
                                 <label class="control-label col-sm-2">No. Telp Saudara</label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <input name="no_telp_saudara" id="no_telp_saudara" class="form-control"
                                         type="text">
                                 </div>
@@ -230,7 +230,7 @@
                             <hr>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Lokasi Perumahan</label>
+                                <label class="col-sm-2 col-form-label">Lokasi Perumahan</label>
                                 <div class="col-sm-4">
                                     <select class="form-control select-lokasi" disabled name="id_lokasi" id="id_lokasi">
                                         <option value=""></option>
@@ -240,14 +240,14 @@
                                     </select>
                                 </div>
                                 <label class="control-label col-sm-2">Blok/Kav</label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <select name="id_kavling" id="id_kavling" disabled
                                         class="form-control select-kavling"></select>
                                 </div>
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Harga Rumah</label>
+                                <label class="col-sm-2 col-form-label">Harga Rumah</label>
                                 <div class="col-sm-4">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -257,35 +257,172 @@
                                             class="form-control format-number" readonly>
                                     </div>
                                 </div>
-                                <label class="control-label col-sm-2">Biaya Surat</label>
-                                <div class="col-sm-3">
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">Rp.</span>
-                                        </div>
-                                        <input type="text" name="biaya_surat" id="biaya_surat"
-                                            class="form-control format-number" readonly>
-                                    </div>
-                                </div>
                             </div>
-                            <div class="form-group row">
-                                <label class="control-label col-sm-3">Peningkatan Mutu</label>
+
+                            <hr>
+
+                            <h5 class="font-weight-bold mb-4 text-danger">Potongan Biaya</h5>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Diskon</label>
                                 <div class="col-sm-4">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp.</span>
                                         </div>
-                                        <input type="text" name="biaya_lain" id="biaya_lain"
-                                            class="form-control format-number" readonly>
+                                        <input type="text" id="diskon" name="diskon"
+                                            class="form-control format-number">
                                     </div>
                                 </div>
-                                <label class="control-label col-sm-2">Total Harga</label>
-                                <div class="col-sm-3">
+                            </div>
+
+                            <hr>
+
+                            <h5 class="font-weight-bold mb-4 text-danger">Tambahan Biaya</h5>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Pajak BPHTB</label>
+                                <div class="col-sm-4">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp.</span>
                                         </div>
-                                        <input type="text" name="total_harga" id="total_harga"
+                                        <input type="text" id="pajak_bphtb" name="pajak_bphtb"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <select name="stt_free_pajak_bphtb" id="stt_free_pajak_bphtb"
+                                        class="form-control select-free">
+                                        <option value=""></option>
+                                        <option value="1">Free</option>
+                                        <option value="2">Tidak Free</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Biaya Notaris</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="biaya_notaris" name="biaya_notaris"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <select name="stt_free_biaya_notaris" id="stt_free_biaya_notaris"
+                                        class="form-control select-free">
+                                        <option value=""></option>
+                                        <option value="1">Free</option>
+                                        <option value="2">Tidak Free</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Biaya KPR</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="biaya_kpr" name="biaya_kpr"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <select name="stt_free_biaya_kpr" id="stt_free_biaya_kpr"
+                                        class="form-control select-free">
+                                        <option value=""></option>
+                                        <option value="1">Free</option>
+                                        <option value="2">Tidak Free</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Biaya Custom</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="biaya_custom" name="biaya_custom"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+
+                                <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="biaya_lain_lain" name="biaya_lain_lain"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">PPN</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="ppn" name="ppn"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+
+                                <label class="col-sm-2 col-form-label"> Pajak PPH</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="pajak_pph" name="pajak_pph"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Bonus Konsumen</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="bonus_konsumen" name="bonus_konsumen"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Total Harga Rumah</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="total_harga_rumah" name="total_harga_rumah"
+                                            class="form-control format-number" readonly>
+                                    </div>
+                                </div>
+
+                                <label class="col-sm-2 col-form-label">Total Harga Komisi</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="total_harga_komisi" name="total_harga_komisi"
                                             class="form-control format-number" readonly>
                                     </div>
                                 </div>
@@ -294,7 +431,7 @@
                             <hr>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Marketing</label>
+                                <label class="col-sm-2 col-form-label">Marketing</label>
                                 <div class="col-sm-4">
                                     <select class="form-control select-marketing" disabled name="id_marketing"
                                         id="id_marketing">
@@ -304,20 +441,19 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <label class="control-label col-sm-2">Marketing Freelance</label>
-                                <div class="col-sm-3">
-                                    <select class="form-control select-freelance" disabled name="id_freelance"
-                                        id="id_freelance">
+                                <label class="control-label col-sm-2">Marketing Agent</label>
+                                <div class="col-sm-4">
+                                    <select class="form-control select-agent" disabled name="id_agent" id="id_agent">
                                         <option value=""></option>
-                                        @foreach ($freelance as $f)
-                                            <option value="{{ $f->id }}">{{ $f->nama_freelance }}</option>
+                                        @foreach ($agent as $f)
+                                            <option value="{{ $f->id }}">{{ $f->nama_agent }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
 
                             <div class="form-group row">
-                                <label class="control-label col-sm-3">Jenis Perumahan</label>
+                                <label class="col-sm-2 col-form-label">Jenis Perumahan</label>
                                 <div class="col-sm-4">
                                     <select class="form-control select-jp" disabled name="jenis_perumahan"
                                         id="jenis_perumahan">
@@ -327,7 +463,7 @@
                                     </select>
                                 </div>
                                 <label class="control-label col-sm-2">Jenis Pembelian</label>
-                                <div class="col-sm-3">
+                                <div class="col-sm-4">
                                     <select class="form-control select-pembelian" disabled name="jenis_pembelian"
                                         id="jenis_pembelian">
                                         <option value=""></option>
@@ -343,7 +479,7 @@
                             <div id="trx_cash" style="display: none;">
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Atas Nama Surat</label>
-                                    <div class="col-sm-3">
+                                    <div class="col-sm-4">
                                         <input name="an_surat_cash" id="an_surat_cash" class="form-control"
                                             type="text" readonly>
                                     </div>
@@ -356,7 +492,7 @@
 
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Termin (x)</label>
-                                    <div class="col-sm-3">
+                                    <div class="col-sm-4">
                                         <input name="termin_x_cash_b" id="termin_x_cash_b"
                                             class="form-control format-number" type="number" readonly>
                                     </div>
@@ -400,9 +536,9 @@
                 placeholder: "Pilih Marketing",
             });
 
-            $('.select-freelance').select2({
+            $('.select-agent').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Freelance",
+                placeholder: "Pilih Agent",
             });
 
             $('.select-jp').select2({
@@ -422,6 +558,66 @@
                 placeholder: "Pilih Status",
                 minimumResultsForSearch: Infinity,
             });
+
+            $('.select-free').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Status Free",
+                minimumResultsForSearch: Infinity,
+            });
+
+            function hitungTotal() {
+
+                let hrg_jual = unformatNumber($('#hrg_jual').val());
+
+                let diskon = unformatNumber($('#diskon').val());
+                let pajak_bphtb = unformatNumber($('#pajak_bphtb').val());
+                let biaya_notaris = unformatNumber($('#biaya_notaris').val());
+                let biaya_kpr = unformatNumber($('#biaya_kpr').val());
+                let biaya_custom = unformatNumber($('#biaya_custom').val());
+                let biaya_lain = unformatNumber($('#biaya_lain_lain').val());
+                let ppn = unformatNumber($('#ppn').val());
+                let pajak_pph = unformatNumber($('#pajak_pph').val());
+                let bonus = unformatNumber($('#bonus_konsumen').val());
+
+                let stt_bphtb = $('#stt_free_pajak_bphtb').val();
+                let stt_notaris = $('#stt_free_biaya_notaris').val();
+                let stt_kpr = $('#stt_free_biaya_kpr').val();
+
+                let total_rumah = hrg_jual;
+
+                if (stt_bphtb != '1') total_rumah += pajak_bphtb;
+                if (stt_notaris != '1') total_rumah += biaya_notaris;
+                if (stt_kpr != '1') total_rumah += biaya_kpr;
+
+                total_rumah += biaya_custom + biaya_lain + ppn;
+                total_rumah -= diskon;
+
+                let total_komisi = hrg_jual;
+
+                total_komisi -= pajak_pph;
+                if (stt_bphtb == '1') total_komisi -= pajak_bphtb;
+                if (stt_notaris == '1') total_komisi -= biaya_notaris;
+                if (stt_kpr == '1') total_komisi -= biaya_kpr;
+
+                total_komisi -= bonus + diskon + ppn + biaya_lain;
+
+                $('#total_harga_rumah').val(formatNumber(total_rumah));
+                $('#total_harga_komisi').val(formatNumber(total_komisi));
+            }
+
+            $(document).on('input',
+                '#diskon, #pajak_bphtb, #biaya_notaris, #biaya_kpr, #biaya_custom, #biaya_lain_lain, #ppn, #pajak_pph, #bonus_konsumen',
+                function() {
+                    let input = $(this).val().replace(/[^\d]/g, '');
+                    let formatted = input.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    $(this).val(formatted);
+                    hitungTotal();
+                });
+
+            $(document).on('change', '#stt_free_pajak_bphtb, #stt_free_biaya_notaris, #stt_free_biaya_kpr',
+                function() {
+                    hitungTotal();
+                });
         });
 
         $('#modalForm').on('hidden.bs.modal', function() {
@@ -434,7 +630,7 @@
             $('#id_lokasi').val('').trigger('change');
             $('#id_kavling').val('').trigger('change');
             $('#id_marketing').val('').trigger('change');
-            $('#id_freelance').val('').trigger('change');
+            $('#id_agent').val('').trigger('change');
             $('#jenis_pembelian').val('').trigger('change');
 
             let submitBtn = $('#submitBtn');
@@ -473,7 +669,6 @@
                     $('#email').val(data.email);
                     $('#npwp').val(data.npwp);
                     $('#no_bpjs_kes').val(data.no_bpjs_kes);
-                    $('#booking_fee').val(formatNumber(data.booking_fee));
                     $('#alamat_ktp').val(data.alamat_ktp);
                     $('#alamat_domisili').val(data.alamat_domisili);
                     $('#pekerjaan').val(data.pekerjaan);
@@ -482,18 +677,29 @@
                     $('#nama_saudara').val(data.nama_saudara);
                     $('#no_telp_saudara').val(data.no_telp_saudara);
 
+
                     $('#id_lokasi').val(data.id_lokasi).trigger('change');
                     setTimeout(function() {
                         $('#id_kavling').val(data.id_kavling).trigger('change');
                     }, 500);
 
                     $('#hrg_jual').val(formatNumber(data.hrg_jual));
-                    $('#peningkatan_mutu').val(formatNumber(data.peningkatan_mutu));
+                    $('#diskon').val(formatNumber(data.diskon));
+                    $('#pajak_bphtb').val(formatNumber(data.pajak_bphtb));
                     $('#biaya_notaris').val(formatNumber(data.biaya_notaris));
-                    $('#biaya_lain').val(formatNumber(data.biaya_lain));
-                    $('#total_harga').val(formatNumber(data.total_harga));
+                    $('#biaya_kpr').val(formatNumber(data.biaya_kpr));
+                    $('#biaya_custom').val(formatNumber(data.biaya_custom));
+                    $('#biaya_lain_lain').val(formatNumber(data.biaya_lain_lain));
+                    $('#ppn').val(formatNumber(data.ppn));
+                    $('#pajak_pph').val(formatNumber(data.pajak_pph));
+                    $('#bonus_konsumen').val(formatNumber(data.bonus_konsumen));
+                    $('#total_harga_rumah').val(formatNumber(data.total_harga_rumah));
+                    $('#total_harga_komisi').val(formatNumber(data.total_harga_komisi));
+                    $('#stt_free_pajak_bphtb').val(data.stt_free_pajak_bphtb).trigger('change');
+                    $('#stt_free_biaya_notaris').val(data.stt_free_biaya_notaris).trigger('change');
+                    $('#stt_free_biaya_kpr').val(data.stt_free_biaya_kpr).trigger('change');
                     $('#id_marketing').val(data.id_marketing).trigger('change');
-                    $('#id_freelance').val(data.id_freelance).trigger('change');
+                    $('#id_agent').val(data.id_agent).trigger('change');
                     $('#jenis_pembelian').val(data.jenis_pembelian).trigger('change');
                     $('#jenis_perumahan').val(data.jenis_perumahan).trigger('change');
 
@@ -715,6 +921,11 @@
                         btnText.text('Simpan');
                         submitBtn.prop('disabled', false);
                     }
+                },
+                complete: function() {
+                    spinner.addClass('d-none');
+                    btnText.text('Simpan');
+                    submitBtn.prop('disabled', false);
                 }
             });
         });

@@ -4,15 +4,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MarketingFreelance extends Model
+class MarketingAgent extends Model
 {
     use HasFactory;
 
-    protected $table = 'marketing_freelance';
+    protected $table = 'marketing_agent';
 
     protected $fillable = [
-        'kode_freelance',
-        'nama_freelance',
+        'kode_agent',
+        'nama_agent',
         'jenis_kelamin',
         'alamat',
         'email',

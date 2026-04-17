@@ -20,7 +20,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group row">
-                                            <label class="col-sm-4 col-form-label">Tanggal</label>
+                                            <label class="col-sm-4 col-form-label">Tanggal Booking</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->tgl_booking_formatted }}"
                                                     class="form-control" readonly>
@@ -131,8 +131,7 @@
                                         <div class="form-group row">
                                             <label class="col-sm-4 col-form-label">Nama Marketing</label>
                                             <div class="col-sm-8">
-                                                <input type="text"
-                                                    value="{{ $data->marketing->nama_marketing ?? '-' }}"
+                                                <input type="text" value="{{ $data->marketing->nama_marketing ?? '-' }}"
                                                     class="form-control" readonly>
                                             </div>
                                         </div>
@@ -166,73 +165,9 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="form-group row">
-                                            <label for="peningkatan_mutu" class="col-sm-4 col-form-label">Peningkatan
-                                                Mutu</label>
-                                            <div class="col-sm-8">
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text">Rp.</span>
-                                                    </div>
-                                                    <input type="text" id="peningkatan_mutu" name="peningkatan_mutu"
-                                                        value="{{ number_format($data->peningkatan_mutu, 0, ',', '.') }}"
-                                                        class="form-control" readonly>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="biaya_notaris" class="col-sm-4 col-form-label">Biaya
-                                                Notaris</label>
-                                            <div class="col-sm-8">
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text">Rp.</span>
-                                                    </div>
-                                                    <input type="text" id="biaya_notaris" name="biaya_notaris"
-                                                        value="{{ number_format($data->biaya_notaris, 0, ',', '.') }}"
-                                                        class="form-control" readonly>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="biaya_lain" class="col-sm-4 col-form-label">Biaya Lainnya</label>
-                                            <div class="col-sm-8">
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text">Rp.</span>
-                                                    </div>
-                                                    <input type="text" id="biaya_lain" name="biaya_lain"
-                                                        value="{{ number_format($data->biaya_lain, 0, ',', '.') }}"
-                                                        class="form-control" readonly>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="total_harga" class="col-sm-4 col-form-label">Total Harga</label>
-                                            <div class="col-sm-8">
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text">Rp.</span>
-                                                    </div>
-                                                    <input type="text" id="total_harga" name="total_harga"
-                                                        value="{{ number_format($data->total_harga, 0, ',', '.') }}"
-                                                        class="form-control" readonly>
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         <div class="form-group row">
-                                            <label class="col-sm-4 col-form-label">Jenis
-                                                Pembayaran</label>
-                                            <div class="col-sm-8">
-                                                <input type="text" value="{{ $data->jenis_pembayaran }}"
-                                                    class="form-control" readonly>
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <label class="col-sm-4 col-form-label">Jenis
-                                                Perumahan</label>
+                                            <label class="col-sm-4 col-form-label">Jenis Perumahan</label>
                                             <div class="col-sm-8">
                                                 <input type="text" value="{{ $data->jenis_perumahan }}"
                                                     class="form-control" readonly>
@@ -343,6 +278,8 @@
                                     @csrf
                                     <hr>
 
+                                    <h5 class="font-weight-bold mb-4 text-danger">Pembayaran Booking</h5>
+
                                     <div class="form-group row">
                                         <label class="col-sm-2 col-form-label">Booking
                                             Fee</label>
@@ -353,7 +290,7 @@
                                                 </div>
                                                 <input type="text" name="booking_fee" id="booking_fee"
                                                     value="{{ number_format((float) $data->booking_fee, 0, ',', '.') }}"
-                                                    class="form-control" readonly>
+                                                    class="form-control">
                                             </div>
                                         </div>
                                         <label class="col-sm-2 col-form-label">Tanggal Booking Fee</label>
@@ -363,31 +300,199 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-group row">
-                                        <label for="percent_fee" class="col-sm-2 col-form-label">Fee Marketing</label>
-                                        <div class="col-sm-4">
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    inputmode="decimal" id="percent_fee" name="percent_fee"
-                                                    value="3" class="form-control">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="fee_marketing" class="col-sm-2 col-form-label">Total Fee</label>
+                                    <hr>
+
+                                    <h5 class="font-weight-bold mb-4 text-danger">Potongan Biaya</h5>
+
+                                    @php
+                                        function formatRp($val)
+                                        {
+                                            return !is_null($val) && $val > 0 ? number_format($val, 0, ',', '.') : '';
+                                        }
+                                    @endphp
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Diskon</label>
                                         <div class="col-sm-4">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text">Rp.</span>
                                                 </div>
-                                                <input type="text" id="fee_marketing_display"
-                                                    name="fee_marketing_display" value="0"
-                                                    class="form-control format-number" readonly>
-                                                <input type="hidden" id="fee_marketing" name="fee_marketing"
-                                                    value="0" class="form-control" readonly>
+                                                <input type="text" id="diskon" name="diskon"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->diskon) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <h5 class="font-weight-bold mb-4 text-danger">Tambahan Biaya</h5>
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Pajak BPHTB</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="pajak_bphtb" name="pajak_bphtb"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->pajak_bphtb) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <select name="stt_free_pajak_bphtb" id="stt_free_pajak_bphtb"
+                                                class="form-control select-free">
+                                                <option value=""></option>
+                                                <option value="1"
+                                                    {{ $data->stt_free_pajak_bphtb == 1 ? 'selected' : '' }}>Free</option>
+                                                <option value="2"
+                                                    {{ $data->stt_free_pajak_bphtb == 2 ? 'selected' : '' }}>Tidak Free
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Biaya Notaris</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="biaya_notaris" name="biaya_notaris"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->biaya_notaris) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <select name="stt_free_biaya_notaris" id="stt_free_biaya_notaris"
+                                                class="form-control select-free">
+                                                <option value=""></option>
+                                                <option value="1"
+                                                    {{ $data->stt_free_biaya_notaris == 1 ? 'selected' : '' }}>Free
+                                                </option>
+                                                <option value="2"
+                                                    {{ $data->stt_free_biaya_notaris == 2 ? 'selected' : '' }}>Tidak Free
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Biaya KPR</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="biaya_kpr" name="biaya_kpr"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->biaya_kpr) }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <select name="stt_free_biaya_kpr" id="stt_free_biaya_kpr"
+                                                class="form-control select-free">
+                                                <option value=""></option>
+                                                <option value="1"
+                                                    {{ $data->stt_free_biaya_kpr == 1 ? 'selected' : '' }}>Free</option>
+                                                <option value="2"
+                                                    {{ $data->stt_free_biaya_kpr == 2 ? 'selected' : '' }}>Tidak Free
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Biaya Custom</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="biaya_custom" name="biaya_custom"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->biaya_custom) }}">
+                                            </div>
+                                        </div>
+
+                                        <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="biaya_lain_lain" name="biaya_lain_lain"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->biaya_lain_lain) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">PPN</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="ppn" name="ppn"
+                                                    class="form-control format-number"
+                                                    value="{{ is_null($data->ppn) ? '0' : number_format((float) $data->ppn, 0, ',', '.') }}">
+                                            </div>
+                                        </div>
+
+                                        <label class="col-sm-2 col-form-label"> Pajak PPH</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="pajak_pph" name="pajak_pph"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->pajak_pph) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Bonus Konsumen</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="bonus_konsumen" name="bonus_konsumen"
+                                                    class="form-control format-number"
+                                                    value="{{ formatRp($data->bonus_konsumen) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group row mb-5">
+                                        <label class="col-sm-2 col-form-label">Total Harga Rumah</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="total_harga_rumah" name="total_harga_rumah"
+                                                    class="form-control format-number" readonly
+                                                    value="{{ !is_null($data->total_harga_rumah) ? number_format((float) $data->total_harga_rumah, 0, ',', '.') : number_format((float) $data->hrg_jual, 0, ',', '.') }}">
+                                            </div>
+                                        </div>
+
+                                        <label class="col-sm-2 col-form-label">Total Harga Komisi</label>
+                                        <div class="col-sm-4">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">Rp.</span>
+                                                </div>
+                                                <input type="text" id="total_harga_komisi" name="total_harga_komisi"
+                                                    class="form-control format-number" readonly
+                                                    value="{{ !is_null($data->total_harga_komisi) ? number_format((float) $data->total_harga_komisi, 0, ',', '.') : number_format((float) $data->hrg_jual, 0, ',', '.') }}">
                                             </div>
                                         </div>
                                     </div>
@@ -422,7 +527,7 @@
                                                 id="id_metode_bayar">
                                                 <option value=""></option>
                                                 @foreach ($metodeBayarList as $item)
-                                                    <option value="{{ $item->id }}">{{ $item->jenis_bayar }}</option>
+                                                    <option value="{{ $item->id }}" {{ $data->id_metode_bayar == $item->id ? 'selected' : '' }}>{{ $item->jenis_bayar }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -431,7 +536,7 @@
                                             <select class="form-select select-bank" name="id_bank" id="id_bank">
                                                 <option value=""></option>
                                                 @foreach ($bankList as $item)
-                                                    <option value="{{ $item->id }}">{{ $item->nama }}</option>
+                                                    <option value="{{ $item->id }}" {{ $data->id_bank == $item->id ? 'selected' : '' }}>{{ $item->nama }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -514,6 +619,12 @@
                 minimumResultsForSearch: Infinity,
             });
 
+            $('.select-free').select2({
+                theme: "bootstrap4",
+                minimumResultsForSearch: Infinity,
+                placeholder: 'Pilih Status Free',
+            });
+
             $('.select-jenis').select2({
                 theme: "bootstrap4",
                 placeholder: 'Pilih Jenis Pembelian',
@@ -564,31 +675,61 @@
 
             $('#jenis_pembelian').trigger('change');
 
-            function hitungFeeMarketing() {
-                let total_harga = parseInt($('#total_harga').val().replace(/\./g, '')) || 0;
-                let biaya_surat = parseInt($('#biaya_surat').val().replace(/\./g, '')) || 0;
-                let biaya_lain = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
-                let percent_fee = parseFloat($('#percent_fee').val()) || 0;
-                let fee_marketing = total_harga - (biaya_surat + biaya_lain) * percent_fee / 100;
+            function hitungTotal() {
 
-                console.log('total_harga:', total_harga);
-                console.log('biaya_surat:', biaya_surat);
-                console.log('biaya_lain:', biaya_lain);
-                console.log('percent_fee:', percent_fee);
-                console.log('fee_marketing:', fee_marketing);
+                let hrg_jual = unformatNumber($('#hrg_jual').val());
 
-                $('#fee_marketing_display').val(fee_marketing.toLocaleString('id-ID'));
-                $('#fee_marketing').val(fee_marketing);
+                let diskon = unformatNumber($('#diskon').val());
+                let pajak_bphtb = unformatNumber($('#pajak_bphtb').val());
+                let biaya_notaris = unformatNumber($('#biaya_notaris').val());
+                let biaya_kpr = unformatNumber($('#biaya_kpr').val());
+                let biaya_custom = unformatNumber($('#biaya_custom').val());
+                let biaya_lain = unformatNumber($('#biaya_lain_lain').val());
+                let ppn = unformatNumber($('#ppn').val());
+                let pajak_pph = unformatNumber($('#pajak_pph').val());
+                let bonus = unformatNumber($('#bonus_konsumen').val());
+
+                let stt_bphtb = $('#stt_free_pajak_bphtb').val();
+                let stt_notaris = $('#stt_free_biaya_notaris').val();
+                let stt_kpr = $('#stt_free_biaya_kpr').val();
+
+                let total_rumah = hrg_jual;
+
+                if (stt_bphtb != '1') total_rumah += pajak_bphtb;
+                if (stt_notaris != '1') total_rumah += biaya_notaris;
+                if (stt_kpr != '1') total_rumah += biaya_kpr;
+
+                total_rumah += biaya_custom + biaya_lain + ppn;
+                total_rumah -= diskon;
+
+                let total_komisi = hrg_jual;
+
+                total_komisi -= pajak_pph;
+                if (stt_bphtb == '1') total_komisi -= pajak_bphtb;
+                if (stt_notaris == '1') total_komisi -= biaya_notaris;
+                if (stt_kpr == '1') total_komisi -= biaya_kpr;
+
+                total_komisi -= bonus + diskon + ppn + biaya_lain;
+
+                $('#total_harga_rumah').val(formatNumber(total_rumah));
+                $('#total_harga_komisi').val(formatNumber(total_komisi));
             }
 
-            hitungFeeMarketing();
+            $(document).on('input',
+                '#diskon, #pajak_bphtb, #biaya_notaris, #biaya_kpr, #biaya_custom, #biaya_lain_lain, #ppn, #pajak_pph, #bonus_konsumen',
+                function() {
+                    let input = $(this).val().replace(/[^\d]/g, '');
+                    let formatted = input.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    $(this).val(formatted);
+                    hitungTotal();
+                });
 
-            $('#percent_fee').on('input', function() {
-                hitungFeeMarketing();
-            });
+            $(document).on('change', '#stt_free_pajak_bphtb, #stt_free_biaya_notaris, #stt_free_biaya_kpr',
+                function() {
+                    hitungTotal();
+                });
+
         });
-
-        var audio = new Audio('{{ asset('audio/notification.ogg') }}');
 
         $('#formData').on('submit', function(e) {
             e.preventDefault();

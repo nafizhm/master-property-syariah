@@ -6,7 +6,7 @@ use App\Models\BankKPR;
 use App\Models\Customer;
 use App\Models\KavlingPeta;
 use App\Models\LokasiKavling;
-use App\Models\MarketingFreelance;
+use App\Models\MarketingAgent;
 use App\Models\MarketingOffline;
 use App\Models\ProgresListPenjualan;
 use App\Models\ProgresUnitReady;
@@ -153,20 +153,20 @@ class DashboardController extends Controller
             ];
         }
 
-        $freelanceList = MarketingFreelance::all();
-        $dataFreelance = [];
-        $noFreelance = 1;
+        $agentList = MarketingAgent::all();
+        $dataAgent = [];
+        $noAgent = 1;
 
-        foreach ($freelanceList as $freelance) {
-            $jumlah = Customer::where('id_freelance', $freelance->id)->count();
+        foreach ($agentList as $agent) {
+            $jumlah = Customer::where('id_agent', $agent->id)->count();
             $persentase = $totalCustomer > 0 ? round(($jumlah / $totalCustomer) * 100) : 0;
 
-            $dataFreelance[] = [
-                'no' => $noFreelance++,
-                'freelance' => $freelance->nama_freelance,
+            $dataAgent[] = [
+                'no' => $noAgent++,
+                'agent' => $agent->nama_agent,
                 'jumlah' => $jumlah,
                 'persentase' => $persentase,
-                'id_freelance' => $freelance->id,
+                'id_agent' => $agent->id,
             ];
         }
 
@@ -244,7 +244,7 @@ class DashboardController extends Controller
             'dataProgres',
             'dataBank',
             'dataMarketing',
-            'dataFreelance',
+            'dataAgent',
             'ungu',
             'merah',
             'hijau',
@@ -330,19 +330,19 @@ class DashboardController extends Controller
                 'scope' => 'Marketing',
                 'nama' => $getName->nama_marketing ?? '-',
             ];
-        } elseif ($routeName === 'dashboard.customer-freelance-show') {
-            $query = Customer::where('id_freelance', $id);
-            $getName = MarketingFreelance::find($id);
+        } elseif ($routeName === 'dashboard.customer-agent-show') {
+            $query = Customer::where('id_agent', $id);
+            $getName = MarketingAgent::find($id);
             $viewData = [
-                'freelance_id' => $id,
-                'scope' => 'Freelance',
-                'nama' => $getName->nama_freelance ?? '-',
+                'agent_id' => $id,
+                'scope' => 'Agent',
+                'nama' => $getName->nama_agent ?? '-',
             ];
         }
 
         if (request()->ajax()) {
             Carbon::setLocale('id');
-            $program = $query->with(['marketing', 'freelance', 'lokasi', 'kavling', 'progres']);
+            $program = $query->with(['marketing', 'agent', 'lokasi', 'kavling', 'progres']);
 
             return DataTables::of($program)
                 ->addIndexColumn()
@@ -356,10 +356,10 @@ class DashboardController extends Controller
 
                 ->editColumn('id_marketing', function ($row) {
                     $namaMarketing = $row->marketing->nama_marketing ?? '<span class="badge bg-danger">None Marketing</span>';
-                    $namaFreelance = $row->freelance->nama_freelance ?? null;
-                    $freelanceBadge = $namaFreelance ? '<span class="badge bg-info">'.$namaFreelance.'</span>' : '';
+                    $namaAgent = $row->agent->nama_agent ?? null;
+                    $agentBadge = $namaAgent ? '<span class="badge bg-info">'.$namaAgent.'</span>' : '';
 
-                    return $namaMarketing.($freelanceBadge ? '<br>'.$freelanceBadge : '');
+                    return $namaMarketing.($agentBadge ? '<br>'.$agentBadge : '');
                 })
 
                 ->editColumn('id_lokasi', function ($row) {

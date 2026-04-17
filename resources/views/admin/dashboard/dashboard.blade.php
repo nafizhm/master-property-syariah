@@ -221,7 +221,7 @@
                                         alt="User Avatar">
                                 </div>
                                 <!-- /.widget-user-image -->
-                                <h3 class="widget-user-username">Statistik Penjualan Freelance</h3>
+                                <h3 class="widget-user-username">Statistik Penjualan Agent</h3>
                                 <h5 class="widget-user-desc">Per {{ $tglSekarang }}</h5>
                             </div>
 
@@ -237,14 +237,14 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($dataFreelance as $freelance)
+                                        @foreach ($dataAgent as $agent)
                                             <tr>
-                                                <td class="text-center">{{ $freelance['no'] }}</td>
-                                                <td>{{ $freelance['freelance'] }}</td>
-                                                <td align="right">{{ $freelance['jumlah'] }}</td>
-                                                <td align="right">{{ $freelance['persentase'] }} %</td>
+                                                <td class="text-center">{{ $agent['no'] }}</td>
+                                                <td>{{ $agent['agent'] }}</td>
+                                                <td align="right">{{ $agent['jumlah'] }}</td>
+                                                <td align="right">{{ $agent['persentase'] }} %</td>
                                                 <td align="center">
-                                                    <a href="{{ route('dashboard.customer-freelance-show', $freelance['id_freelance']) }}"
+                                                    <a href="{{ route('dashboard.customer-agent-show', $agent['id_agent']) }}"
                                                         class="btn bg-lightblue btn-xs">Detail Data</a>
                                                 </td>
                                             </tr>

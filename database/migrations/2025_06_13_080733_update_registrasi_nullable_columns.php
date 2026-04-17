@@ -16,7 +16,7 @@ class UpdateRegistrasiNullableColumns extends Migration
             $table->string('status')->nullable()->change();
             $table->string('nama_saudara')->nullable()->change();
             $table->string('no_telp_saudara')->nullable()->change();
-            $table->unsignedBigInteger('id_freelance')->nullable()->change();
+            $table->unsignedBigInteger('id_agent')->nullable()->change();
             $table->string('jenis_perumahan')->nullable()->change();
             $table->string('jenis_pembelian')->nullable()->change();
         });
@@ -33,7 +33,7 @@ class UpdateRegistrasiNullableColumns extends Migration
             $table->string('status')->nullable(false)->change();
             $table->string('nama_saudara')->nullable(false)->change();
             $table->string('no_telp_saudara')->nullable(false)->change();
-            $table->unsignedBigInteger('id_freelance')->nullable(false)->change();
+            $table->unsignedBigInteger('id_agent')->nullable(false)->change();
             $table->string('jenis_perumahan')->nullable(false)->change();
             $table->string('jenis_pembelian')->nullable(false)->change();
         });

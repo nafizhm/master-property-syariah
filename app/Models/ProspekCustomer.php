@@ -19,7 +19,7 @@ class ProspekCustomer extends Model
         'sumber_informasi',
         'rangking',
         'id_marketing',
-        'id_freelance',
+        'id_agent',
         'keterangan_belum',
         'no_telp',
         'email',
@@ -32,9 +32,9 @@ class ProspekCustomer extends Model
         return $this->belongsTo(MarketingOffline::class, 'id_marketing');
     }
 
-    public function freelance()
+    public function agent()
     {
-        return $this->belongsTo(MarketingFreelance::class, 'id_freelance');
+        return $this->belongsTo(MarketingAgent::class, 'id_agent');
     }
 
 }

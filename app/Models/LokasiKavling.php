@@ -25,6 +25,11 @@ class LokasiKavling extends Model
         'no_bast',
         'no_ppjb',
         'reset_nomor',
+        'nama_jalan',
+        'desa_kelurahan',
+        'kecamatan',
+        'kabupaten_kota',
+        'provinsi',
     ];
 
     public function kavlingPeta()

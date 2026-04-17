@@ -6,7 +6,7 @@ use App\Models\Bank;
 use App\Models\Customer;
 use App\Models\KavlingPeta;
 use App\Models\LokasiKavling;
-use App\Models\MarketingFreelance;
+use App\Models\MarketingAgent;
 use App\Models\MarketingOffline;
 use App\Models\MetodeBayar;
 use App\Models\Pemasukan;
@@ -39,7 +39,7 @@ class PengajuanHoldController extends Controller
         $permissions = HakAksesController::getUserPermissions();
 
         if ($request->ajax()) {
-            $data = PengajuanHold::with(['marketing', 'freelance', 'lokasi', 'kavling'])->where('stt_reg', '!=', 2)->get();
+            $data = PengajuanHold::with(['marketing', 'agent', 'lokasi', 'kavling'])->where('stt_reg', '!=', 2)->get();
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -116,19 +116,19 @@ class PengajuanHoldController extends Controller
         Carbon::setLocale('id');
 
         $marketing = MarketingOffline::all();
-        $freelance = MarketingFreelance::all();
+        $agent     = MarketingAgent::all();
         $bank      = Bank::all();
         $progres   = ProgresListPenjualan::all();
         $lokasi    = LokasiKavling::all();
 
-        return view('admin.pengajuan_hold.index', compact('permissions', 'marketing', 'freelance', 'lokasi', 'progres', 'bank'));
+        return view('admin.pengajuan_hold.index', compact('permissions', 'marketing', 'agent', 'lokasi', 'progres', 'bank'));
     }
 
     public function viewArsip(Request $request)
     {
 
         if ($request->ajax()) {
-            $data = PengajuanHold::with(['marketing', 'freelance', 'lokasi', 'kavling'])->where('stt_reg', 2)->get();
+            $data = PengajuanHold::with(['marketing', 'agent', 'lokasi', 'kavling'])->where('stt_reg', 2)->get();
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -182,12 +182,12 @@ class PengajuanHoldController extends Controller
         Carbon::setLocale('id');
 
         $marketing = MarketingOffline::all();
-        $freelance = MarketingFreelance::all();
+        $agent     = MarketingAgent::all();
         $bank      = Bank::all();
         $progres   = ProgresListPenjualan::all();
         $lokasi    = LokasiKavling::all();
 
-        return view('admin.pengajuan_hold.arsip', compact('marketing', 'freelance', 'lokasi', 'progres', 'bank'));
+        return view('admin.pengajuan_hold.arsip', compact('marketing', 'agent', 'lokasi', 'progres', 'bank'));
     }
 
     public function arsipDetail($id, Request $request)
@@ -221,14 +221,6 @@ class PengajuanHoldController extends Controller
     {
         $list = PengajuanHold::with('kavling')->findOrFail($id);
 
-        if (! empty($list->tgl_booking)) {
-            $list->tgl_booking_formatted = Carbon::createFromFormat('Y-m-d', $list->tgl_booking)
-                ->locale('id')
-                ->translatedFormat('j F Y');
-        } else {
-            $list->tgl_booking_formatted = null;
-        }
-
         return response()->json([
             'status' => 'success',
             'data'   => $list,
@@ -240,38 +232,32 @@ class PengajuanHoldController extends Controller
         $data = PengajuanHold::findOrFail($id);
 
         $request->merge([
-            'booking_fee'      => str_replace('.', '', $request->booking_fee),
-            'hrg_jual'         => str_replace('.', '', $request->hrg_jual),
-            'peningkatan_mutu' => str_replace('.', '', $request->peningkatan_mutu),
-            'biaya_notaris'    => str_replace('.', '', $request->biaya_notaris),
-            'biaya_lain'       => str_replace('.', '', $request->biaya_lain),
-            'total_harga'      => str_replace('.', '', $request->total_harga),
+            'booking_fee' => str_replace('.', '', $request->booking_fee),
+            'hrg_jual'    => str_replace('.', '', $request->hrg_jual),
         ]);
 
         $request->validate([
-            'nama_lengkap'     => 'required',
-            'nik'              => 'required',
-            'tempat_lahir'     => 'required',
-            'tgl_lahir'        => 'required|date',
-            'jenis_kelamin'    => 'required',
-            'no_telp'          => 'required',
-            'alamat_ktp'       => 'required',
-            'alamat_domisili'  => 'required',
-            'email'            => 'nullable|email',
-            'id_lokasi'        => 'required',
-            'id_kavling'       => 'required',
-            'id_marketing'     => 'required',
-            'booking_fee'      => 'required|gt:0',
-            'hrg_jual'         => 'required|gt:0',
-            'biaya_notaris'    => 'required',
-            'peningkatan_mutu' => 'required',
-            'biaya_lain'       => 'required',
-            'total_harga'      => 'required|gt:0',
-            'jenis_perumahan'  => 'required',
-            'jenis_pembelian'  => 'required',
+            'tgl_booking'     => 'required',
+            'nama_lengkap'    => 'required',
+            'nik'             => 'required|digits:16',
+            'tempat_lahir'    => 'required',
+            'tgl_lahir'       => 'required|date',
+            'jenis_kelamin'   => 'required',
+            'no_telp'         => 'required',
+            'alamat_ktp'      => 'required',
+            'email'           => 'nullable|email',
+            'id_lokasi'       => 'required',
+            'id_kavling'      => 'required',
+            'id_marketing'    => 'required',
+            'booking_fee'     => 'required|gt:0',
+            'hrg_jual'        => 'required|gt:0',
+            'jenis_perumahan' => 'required',
+            'jenis_pembelian' => 'required',
         ], [
+            'tgl_booking.required'     => 'Tanggal booking wajib diisi.',
             'nama_lengkap.required'    => 'Nama lengkap wajib diisi.',
             'nik.required'             => 'NIK wajib diisi.',
+            'nik.digits'               => 'NIK harus terdiri dari 16 digit.',
             'tempat_lahir.required'    => 'Tempat lahir wajib diisi.',
             'tgl_lahir.required'       => 'Tanggal lahir wajib diisi.',
             'tgl_lahir.date'           => 'Tanggal lahir harus berupa tanggal yang valid.',
@@ -287,12 +273,6 @@ class PengajuanHoldController extends Controller
             'booking_fee.gt'           => 'Booking fee harus lebih dari 0.',
             'hrg_jual.required'        => 'Harga jual wajib diisi.',
             'hrg_jual.gt'              => 'Harga jual harus lebih dari 0.',
-            'biaya_surat.required'     => 'Biaya surat wajib diisi.',
-            'biaya_surat.gt'           => 'Biaya surat harus lebih dari 0.',
-            'biaya_lain.required'      => 'Peningkatan mutu wajib diisi.',
-            'biaya_lain.gt'            => 'Peningkatan mutu harus lebih dari 0.',
-            'total_harga.required'     => 'Total harga wajib diisi.',
-            'total_harga.gt'           => 'Total harga harus lebih dari 0.',
             'jenis_perumahan.required' => 'Jenis Perumahan wajib dipilih.',
             'jenis_pembelian.required' => 'Jenis Pembelian wajib dipilih.',
         ]);
@@ -304,6 +284,7 @@ class PengajuanHoldController extends Controller
             KavlingPeta::find($request->id_kavling)->update(['status' => 1]);
 
             $db = [
+                'tgl_booking'       => $request->tgl_booking,
                 'nama_lengkap'      => $request->nama_lengkap,
                 'nik'               => $request->nik,
                 'no_telp'           => $request->no_telp,
@@ -325,12 +306,8 @@ class PengajuanHoldController extends Controller
                 'id_kavling'        => $request->id_kavling,
                 'booking_fee'       => str_replace('.', '', $request->booking_fee),
                 'hrg_jual'          => str_replace('.', '', $request->hrg_jual),
-                'biaya_notaris'     => str_replace('.', '', $request->biaya_notaris),
-                'peningkatan_mutu'  => str_replace('.', '', $request->peningkatan_mutu),
-                'biaya_lain'        => str_replace('.', '', $request->biaya_lain),
-                'total_harga'       => str_replace('.', '', $request->total_harga),
                 'id_marketing'      => $request->id_marketing,
-                'id_freelance'      => $request->id_freelance,
+                'id_agent'          => $request->id_agent,
                 'jenis_perumahan'   => $request->jenis_perumahan,
                 'jenis_pembelian'   => $request->jenis_pembelian,
             ];
@@ -363,14 +340,14 @@ class PengajuanHoldController extends Controller
         Carbon::setLocale('id');
 
         $marketing = MarketingOffline::all();
-        $freelance = MarketingFreelance::all();
+        $agent     = MarketingAgent::all();
         $bank      = Bank::all();
         $progres   = ProgresListPenjualan::all();
         $lokasi    = LokasiKavling::all();
 
         $tgl = Carbon::now()->translatedFormat('j F Y');
 
-        return view('frontend.booking.index', compact('marketing', 'freelance', 'lokasi', 'progres', 'bank', 'tgl'));
+        return view('frontend.booking.index', compact('marketing', 'agent', 'lokasi', 'progres', 'bank', 'tgl'));
     }
 
     public function bookingSukses()
@@ -503,21 +480,8 @@ class PengajuanHoldController extends Controller
     {
         $data = KavlingPeta::findOrFail($id);
 
-        $total = ($data->hrg_jual ?? 0)
-             + ($data->biaya_surat ?? 0)
-             + ($data->biaya_lain ?? 0);
-
         return response()->json([
-            'hrg_jual'    => $data->hrg_jual,
-            'biaya_surat' => $data->biaya_surat,
-            'biaya_lain'  => $data->biaya_lain,
-            'total_harga' => $total,
-            'formatted'   => [
-                'hrg_jual'    => number_format($data->hrg_jual, 0, ',', '.'),
-                'biaya_surat' => number_format($data->biaya_surat, 0, ',', '.'),
-                'biaya_lain'  => number_format($data->biaya_lain, 0, ',', '.'),
-                'total_harga' => number_format($total, 0, ',', '.'),
-            ],
+            'hrg_jual' => $data->hrg_jual,
         ]);
     }
 
@@ -543,42 +507,34 @@ class PengajuanHoldController extends Controller
     public function bookingStore(Request $request)
     {
         $request->merge([
-            'booking_fee'      => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
-            'hrg_jual'         => $request->hrg_jual ? str_replace('.', '', $request->hrg_jual) : 0,
-            'biaya_notaris'    => $request->biaya_notaris ? str_replace('.', '', $request->biaya_notaris) : 0,
-            'peningkatan_mutu' => $request->peningkatan_mutu ? str_replace('.', '', $request->peningkatan_mutu) : 0,
-            'biaya_lain'       => $request->biaya_lain ? str_replace('.', '', $request->biaya_lain) : 0,
-            'total_harga'      => $request->total_harga ? str_replace('.', '', $request->total_harga) : 0,
+            'booking_fee' => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
+            'hrg_jual'    => $request->hrg_jual ? str_replace('.', '', $request->hrg_jual) : 0,
         ]);
 
         $request->validate([
-            'nama_lengkap'     => 'required',
-            'nik'              => 'required|digits:16',
-            'tempat_lahir'     => 'required',
-            'tgl_lahir'        => 'required|date',
-            'jenis_kelamin'    => 'required',
-            'no_telp'          => 'required',
-            'alamat_ktp'       => 'required',
-            'alamat_domisili'  => 'required',
-            'email'            => 'nullable|email',
-            'id_lokasi'        => 'required',
-            'id_kavling'       => 'required',
-            'hrg_jual'         => 'required',
-            'biaya_notaris'    => 'required',
-            'peningkatan_mutu' => 'required',
-            'biaya_lain'       => 'required',
-            'total_harga'      => 'required',
-            'id_marketing'     => 'required',
-            'booking_fee'      => 'required|gt:0',
-            'jenis_perumahan'  => 'required',
-            'jenis_pembelian'  => 'required',
-            'foto_ktp'         => 'required|file|mimes:jpg,jpeg,png,pdf',
-            'foto_npwp'        => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-            'foto_kk'          => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-            'foto_bpjs'        => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-            'foto_ktp_p'       => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-            'file_bukti'       => 'nullable|file|mimes:jpg,jpeg,png,pdf',
-            'foto_pemohon'     => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'nama_lengkap'    => 'required',
+            'nik'             => 'required|digits:16',
+            'tempat_lahir'    => 'required',
+            'tgl_lahir'       => 'required|date',
+            'jenis_kelamin'   => 'required',
+            'no_telp'         => 'required',
+            'alamat_ktp'      => 'required',
+            'alamat_domisili' => 'nullable',
+            'email'           => 'nullable|email',
+            'id_lokasi'       => 'required',
+            'id_kavling'      => 'required',
+            'hrg_jual'        => 'required',
+            'id_marketing'    => 'required',
+            'booking_fee'     => 'required|gt:0',
+            'jenis_perumahan' => 'required',
+            'jenis_pembelian' => 'required',
+            'foto_ktp'        => 'required|file|mimes:jpg,jpeg,png,pdf',
+            'foto_npwp'       => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_kk'         => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_bpjs'       => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_ktp_p'      => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'file_bukti'      => 'nullable|file|mimes:jpg,jpeg,png,pdf',
+            'foto_pemohon'    => 'nullable|file|mimes:jpg,jpeg,png,pdf',
         ], [
             'nama_lengkap.required'     => 'Nama lengkap wajib diisi.',
             'nik.required'              => 'NIK wajib diisi.',
@@ -589,15 +545,12 @@ class PengajuanHoldController extends Controller
             'jenis_kelamin.required'    => 'Jenis kelamin wajib dipilih.',
             'no_telp.required'          => 'Nomor telepon wajib diisi.',
             'alamat_ktp.required'       => 'Alamat KTP wajib diisi.',
-            'alamat_domisili.required'  => 'Alamat domisili wajib diisi.',
             'email.email'               => 'Format email tidak valid.',
             'id_lokasi.required'        => 'Lokasi wajib dipilih.',
             'id_kavling.required'       => 'Kavling wajib dipilih.',
             'hrg_jual.required'         => 'Harga jual wajib diisi.',
             'biaya_surat.required'      => 'Biaya surat wajib diisi.',
             'peningkatan_mutu.required' => 'Peningkatan mutu wajib diisi.',
-            'biaya_lain.required'       => 'Peningkatan mutu wajib diisi.',
-            'total_harga.required'      => 'Total harga wajib diisi.',
             'id_marketing.required'     => 'Marketing wajib dipilih.',
             'booking_fee.required'      => 'Booking fee wajib diisi.',
             'booking_fee.gt'            => 'Booking fee harus lebih dari 0.',
@@ -662,7 +615,6 @@ class PengajuanHoldController extends Controller
                 'no_telp'           => $request->no_telp ?? '',
                 'email'             => $request->email ?? '',
                 'alamat_ktp'        => $request->alamat_ktp ?? '',
-                'alamat_domisili'   => $request->alamat_domisili ?? '',
                 'jenis_kelamin'     => $request->jenis_kelamin ?? '',
                 'tempat_lahir'      => $request->tempat_lahir ?? '',
                 'tgl_lahir'         => $request->tgl_lahir ?? null,
@@ -677,13 +629,9 @@ class PengajuanHoldController extends Controller
                 'id_lokasi'         => $request->id_lokasi,
                 'id_kavling'        => $request->id_kavling,
                 'hrg_jual'          => $request->hrg_jual ?? 0,
-                'biaya_notaris'     => $request->biaya_notaris ?? 0,
-                'peningkatan_mutu'  => $request->peningkatan_mutu ?? 0,
-                'biaya_lain'        => $request->biaya_lain ?? 0,
-                'total_harga'       => $request->total_harga ?? 0,
                 'booking_fee'       => $request->booking_fee ?? 0,
                 'id_marketing'      => $request->id_marketing ?? 0,
-                'id_freelance'      => $request->id_freelance ?? 0,
+                'id_agent'          => $request->id_agent ?? 0,
                 'jenis_perumahan'   => $request->jenis_perumahan ?? '',
                 'jenis_pembelian'   => $request->jenis_pembelian ?? '',
                 'foto_ktp'          => $fileNames['foto_ktp'] ?? null,
@@ -707,8 +655,7 @@ class PengajuanHoldController extends Controller
             ]);
 
             return response()->json([
-                'status'  => 'success',
-                'message' => 'Booking berhasil.',
+                'status' => 'success',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -786,40 +733,63 @@ class PengajuanHoldController extends Controller
         }
 
         $cust = [
-            'kode_customer'     => $newKode,
-            'tanggal_verif'     => Carbon::now('Asia/Jakarta'),
-            'id_lokasi'         => $data->id_lokasi,
-            'id_kavling'        => $data->id_kavling,
-            'hrg_jual'          => $data->hrg_jual,
-            'peningkatan_mutu'  => $data->peningkatan_mutu,
-            'biaya_notaris'     => $data->biaya_notaris,
-            'biaya_lain'        => $data->biaya_lain,
-            'total_harga'       => $data->total_harga,
-            'nama_lengkap'      => $data->nama_lengkap,
-            'nik'               => $data->nik,
-            'jenis_kelamin'     => $data->jenis_kelamin,
-            'tempat_lahir'      => $data->tempat_lahir,
-            'tgl_lahir'         => $data->tgl_lahir,
-            'alamat_ktp'        => $data->alamat_ktp,
-            'alamat_domisili'   => $data->alamat_domisili,
-            'status_pernikahan' => $data->status_pernikahan,
-            'nama_p'            => $data->nama_p,
-            'nik_p'             => $data->nik_p,
-            'nama_saudara'      => $data->nama_saudara,
-            'no_telp_saudara'   => $data->no_telp_saudara,
-            'jenis_perumahan'   => $data->jenis_perumahan,
-            'jenis_pembelian'   => $data->jenis_pembelian,
-            'id_freelance'      => $data->id_freelance,
-            'id_marketing'      => $data->id_marketing,
-            'no_telp'           => $data->no_telp,
-            'email'             => $data->email,
-            'npwp'              => $data->npwp,
-            'no_bpjs_kes'       => $data->no_bpjs_kes,
-            'pekerjaan'         => $data->pekerjaan,
-            'id_bank'           => $request->id_bank,
-            'id_status_progres' => 2,
-            'an_surat_cash'     => $request->an_surat_cash,
-            'termin_x_cash_b'   => $request->termin_x_cash_b ?? 0,
+            'kode_customer'          => $newKode,
+            'tanggal_verif'          => Carbon::now('Asia/Jakarta'),
+            'id_lokasi'              => $data->id_lokasi,
+            'id_kavling'             => $data->id_kavling,
+            'hrg_jual'               => $data->hrg_jual,
+
+            'nama_lengkap'           => $data->nama_lengkap,
+            'nik'                    => $data->nik,
+            'jenis_kelamin'          => $data->jenis_kelamin,
+            'tempat_lahir'           => $data->tempat_lahir,
+            'tgl_lahir'              => $data->tgl_lahir,
+            'alamat_ktp'             => $data->alamat_ktp,
+            'alamat_domisili'        => $data->alamat_domisili,
+            'status_pernikahan'      => $data->status_pernikahan,
+
+            'nama_p'                 => $data->nama_p,
+            'nik_p'                  => $data->nik_p,
+            'nama_saudara'           => $data->nama_saudara,
+            'no_telp_saudara'        => $data->no_telp_saudara,
+
+            'jenis_perumahan'        => $data->jenis_perumahan,
+            'jenis_pembelian'        => $data->jenis_pembelian,
+
+            'id_agent'               => $data->id_agent,
+            'id_marketing'           => $data->id_marketing,
+
+            'no_telp'                => $data->no_telp,
+            'email'                  => $data->email,
+            'npwp'                   => $data->npwp,
+            'no_bpjs_kes'            => $data->no_bpjs_kes,
+            'pekerjaan'              => $data->pekerjaan,
+
+            'id_status_progres'      => 2,
+
+            'an_surat_cash'          => $request->an_surat_cash,
+            'termin_x_cash_b'        => $request->termin_x_cash_b ?? 0,
+
+            'pajak_bphtb'            => $data->pajak_bphtb,
+            'stt_free_pajak_bphtb'   => $data->stt_free_pajak_bphtb,
+
+            'biaya_notaris'          => $data->biaya_notaris,
+            'stt_free_biaya_notaris' => $data->stt_free_biaya_notaris,
+
+            'biaya_kpr'              => $data->biaya_kpr,
+            'stt_free_biaya_kpr'     => $data->stt_free_biaya_kpr,
+
+            'biaya_custom'           => $data->biaya_custom,
+            'biaya_lain_lain'        => $data->biaya_lain_lain,
+
+            'ppn'                    => $data->ppn,
+            'pajak_pph'              => $data->pajak_pph,
+            'bonus_konsumen'         => $data->bonus_konsumen,
+
+            'diskon'                 => $data->diskon,
+
+            'total_harga_rumah'      => $data->total_harga_rumah,
+            'total_harga_komisi'     => $data->total_harga_komisi,
         ];
 
         $customer = Customer::create($cust);
@@ -876,134 +846,154 @@ class PengajuanHoldController extends Controller
     {
         $data = PengajuanHold::with(['kavling', 'lokasi'])->findOrFail($id);
 
-        $this->logCreate('Verifikasi Data Booking', $data->id);
-
         $request->merge([
-            'termin_x_cash_b' => $request->termin_x_cash_b ? str_replace('.', '', $request->termin_x_cash_b) : 0,
+            'diskon'             => $request->diskon ? str_replace('.', '', $request->diskon) : null,
+            'pajak_bphtb'        => $request->pajak_bphtb ? str_replace('.', '', $request->pajak_bphtb) : null,
+            'biaya_notaris'      => $request->biaya_notaris ? str_replace('.', '', $request->biaya_notaris) : null,
+            'biaya_kpr'          => $request->biaya_kpr ? str_replace('.', '', $request->biaya_kpr) : null,
+            'biaya_custom'       => $request->biaya_custom ? str_replace('.', '', $request->biaya_custom) : null,
+            'biaya_lain_lain'    => $request->biaya_lain_lain ? str_replace('.', '', $request->biaya_lain_lain) : null,
+            'ppn'                => $request->ppn ? str_replace('.', '', $request->ppn) : null,
+            'pajak_pph'          => $request->pajak_pph ? str_replace('.', '', $request->pajak_pph) : null,
+            'bonus_konsumen'     => $request->bonus_konsumen ? str_replace('.', '', $request->bonus_konsumen) : null,
+            'total_harga_rumah'  => $request->total_harga_rumah ? str_replace('.', '', $request->total_harga_rumah) : null,
+            'total_harga_komisi' => $request->total_harga_komisi ? str_replace('.', '', $request->total_harga_komisi) : null,
         ]);
 
         $rules = [
-            'tgl_booking_fee'   => 'required',
-            'fee_marketing'   => 'required',
-            'stt_reg'         => 'required',
-            'jenis_pembelian' => 'required',
-            'id_metode_bayar' => 'required',
-            'id_bank'         => 'required',
-            'an_surat_cash'   => 'required_if:jenis_pembelian,Pembelian Cash',
-            'termin_x_cash_b' => 'required_if:jenis_pembelian,Cash Bertahap',
+            'tgl_booking_fee'        => 'required',
+            'stt_reg'                => 'required',
+            'id_metode_bayar'        => 'required',
+            'id_bank'                => 'required',
+            'jenis_pembelian'        => 'required',
+
+            'diskon'                 => 'nullable',
+            'pajak_bphtb'            => 'nullable',
+            'biaya_notaris'          => 'nullable',
+            'biaya_kpr'              => 'nullable',
+            'biaya_custom'           => 'nullable',
+            'biaya_lain_lain'        => 'nullable',
+            'ppn'                    => 'nullable',
+            'pajak_pph'              => 'nullable',
+            'bonus_konsumen'         => 'nullable',
+            'total_harga_rumah'      => 'nullable',
+            'total_harga_komisi'     => 'nullable',
+
+            'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
+            'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
+            'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
+
+            'an_surat_cash'          => 'required_if:jenis_pembelian,Pembelian Cash',
+            'termin_x_cash_b'        => 'required_if:jenis_pembelian,Cash Bertahap',
         ];
 
         $messages = [
-            'tgl_booking_fee.required'    => 'Tanggal Booking Fee wajib diisi!',
-            'stt_reg.required'            => 'Status Verifikasi wajib dipilih!',
-            'jenis_pembelian.required'    => 'Jenis Pembelian wajib dipilih!',
-            'id_metode_bayar.required'    => 'Metode Pembayaran wajib dipilih!',
-            'id_bank.required'            => 'Bank wajib dipilih!',
-            'an_surat_cash.required_if'   => 'Atas Nama Surat wajib diisi!',
-            'termin_x_cash_b.required_if' => 'Termin wajib diisi!',
-            'fee_marketing.required'      => 'Fee Marketing wajib diisi!',
+            'tgl_booking_fee.required'             => 'Tanggal Booking Fee wajib diisi!',
+            'stt_reg.required'                     => 'Status Verifikasi wajib dipilih!',
+            'jenis_pembelian.required'             => 'Jenis Pembelian wajib dipilih!',
+            'id_metode_bayar.required'             => 'Metode Pembayaran wajib dipilih!',
+            'id_bank.required'                     => 'Bank wajib dipilih!',
+            'an_surat_cash.required_if'            => 'Atas Nama Surat wajib diisi!',
+            'termin_x_cash_b.required_if'          => 'Termin wajib diisi!',
+            'stt_free_pajak_bphtb.required_with'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
+            'stt_free_biaya_notaris.required_with' => 'Status Notaris wajib dipilih jika biaya diisi!',
+            'stt_free_biaya_kpr.required_with'     => 'Status KPR wajib dipilih jika biaya diisi!',
+            'stt_free_pajak_bphtb.in'              => 'Status BPHTB tidak valid!',
+            'stt_free_biaya_notaris.in'            => 'Status Notaris tidak valid!',
+            'stt_free_biaya_kpr.in'                => 'Status KPR tidak valid!',
         ];
 
         $request->validate($rules, $messages);
 
         DB::beginTransaction();
         try {
-            if ($request->stt_reg == 2) {
-                if ($request->jenis_pembelian === 'Pembelian Cash') {
-                    $db = [
-                        'tgl_booking_fee' => $request->tgl_booking_fee,
-                        'stt_reg'         => $request->stt_reg,
-                        'jenis_pembelian' => $request->jenis_pembelian,
-                        'an_surat_cash'   => $request->an_surat_cash,
-                    ];
-                } elseif ($request->jenis_pembelian === 'Cash Bertahap') {
-                    $db = [
-                        'tgl_booking_fee' => $request->tgl_booking_fee,
-                        'stt_reg'         => $request->stt_reg,
-                        'jenis_pembelian' => $request->jenis_pembelian,
-                        'termin_x_cash_b' => $request->termin_x_cash_b,
-                    ];
-                } elseif ($request->jenis_pembelian === 'KPR') {
-                    $db = [
-                        'tgl_booking_fee' => $request->tgl_booking_fee,
-                        'stt_reg'         => $request->stt_reg,
-                        'jenis_pembelian' => $request->jenis_pembelian,
-                    ];
-                }
 
-                $data->update($db);
+            $hasil = $this->hitungTotalHarga([
+                'hrg_jual'               => $data->hrg_jual,
+                'diskon'                 => $request->diskon,
+                'pajak_bphtb'            => $request->pajak_bphtb,
+                'biaya_notaris'          => $request->biaya_notaris,
+                'biaya_kpr'              => $request->biaya_kpr,
+                'biaya_custom'           => $request->biaya_custom,
+                'biaya_lain_lain'        => $request->biaya_lain_lain,
+                'ppn'                    => $request->ppn,
+                'pajak_pph'              => $request->pajak_pph,
+                'bonus_konsumen'         => $request->bonus_konsumen,
+                'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
+                'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
+                'stt_free_biaya_kpr'     => $request->stt_free_biaya_kpr,
+            ]);
+
+            $common = [
+                'tgl_booking_fee'        => $request->tgl_booking_fee,
+                'stt_reg'                => $request->stt_reg,
+                'id_metode_bayar'        => $request->id_metode_bayar,
+                'id_bank'                => $request->id_bank,
+                'jenis_pembelian'        => $request->jenis_pembelian,
+
+                'diskon'                 => $request->diskon,
+                'pajak_bphtb'            => $request->pajak_bphtb,
+                'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
+
+                'biaya_notaris'          => $request->biaya_notaris,
+                'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
+
+                'biaya_kpr'              => $request->biaya_kpr,
+                'stt_free_biaya_kpr'     => $request->stt_free_biaya_kpr,
+
+                'biaya_custom'           => $request->biaya_custom,
+                'biaya_lain_lain'        => $request->biaya_lain_lain,
+
+                'ppn'                    => $request->ppn,
+                'pajak_pph'              => $request->pajak_pph,
+                'bonus_konsumen'         => $request->bonus_konsumen,
+
+                'total_harga_rumah'      => $hasil['total_harga_rumah'],
+                'total_harga_komisi'     => $hasil['total_harga_komisi'],
+            ];
+
+            switch ($request->jenis_pembelian) {
+                case 'Pembelian Cash':
+                    $specific = [
+                        'an_surat_cash'   => $request->an_surat_cash,
+                        'termin_x_cash_b' => null,
+                    ];
+                    break;
+
+                case 'Cash Bertahap':
+                    $specific = [
+                        'termin_x_cash_b' => $request->termin_x_cash_b,
+                        'an_surat_cash'   => null,
+                    ];
+                    break;
+
+                default:
+                    $specific = [
+                        'an_surat_cash'   => null,
+                        'termin_x_cash_b' => null,
+                    ];
+                    break;
+            }
+
+            $data->update(array_merge($common, $specific));
+
+            if ($request->stt_reg == 2) {
 
                 $customer = $this->createCustomer($data->id, $request);
                 $tglNow   = Carbon::now('Asia/Jakarta')->toDateString();
 
-                $pt1 = [
+                Piutang::create([
                     'id_customer'     => $customer->id,
                     'id_bank'         => $request->id_bank,
                     'tanggal_piutang' => $tglNow,
-                    'deskripsi'       => 'Harga Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
-                    'nominal'         => $data->hrg_jual,
+                    'deskripsi'       => 'Total Penjualan Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
+                    'nominal'         => $hasil['total_harga_rumah'],
                     'lampiran'        => '',
                     'status'          => 1,
                     'terbayar'        => $data->booking_fee,
-                    'sisa_bayar'      => $data->hrg_jual - $data->booking_fee,
+                    'sisa_bayar'      => $hasil['total_harga_rumah'] - $data->booking_fee,
                     'tgl_pelunasan'   => null,
-                ];
-
-                Piutang::create($pt1);
-
-                if ($data->biaya_notaris > 0) {
-                    $pt2 = [
-                        'id_customer'     => $customer->id,
-                        'id_bank'         => $request->id_bank,
-                        'tanggal_piutang' => $tglNow,
-                        'deskripsi'       => 'Biaya Surat Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
-                        'nominal'         => $data->biaya_surat,
-                        'lampiran'        => '',
-                        'status'          => 1,
-                        'terbayar'        => 0,
-                        'sisa_bayar'      => $data->biaya_surat,
-                        'tgl_pelunasan'   => null,
-                    ];
-
-                    Piutang::create($pt2);
-                }
-
-                if ($request->peningkatan_mutu > 0) {
-
-                    $pt3 = [
-                        'id_customer'     => $customer->id,
-                        'id_bank'         => $request->id_bank,
-                        'tanggal_piutang' => $tglNow,
-                        'deskripsi'       => 'Biaya Peningkatan Mutu Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
-                        'nominal'         => $data->peningkatan_mutu,
-                        'lampiran'        => '',
-                        'status'          => 1,
-                        'terbayar'        => 0,
-                        'sisa_bayar'      => $data->peningkatan_mutu,
-                        'tgl_pelunasan'   => null,
-                    ];
-
-                    Piutang::create($pt3);
-
-                }
-                if ($request->biaya_lain > 0) {
-
-                    $pt3 = [
-                        'id_customer'     => $customer->id,
-                        'id_bank'         => $request->id_bank,
-                        'tanggal_piutang' => $tglNow,
-                        'deskripsi'       => 'Biaya Lain Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
-                        'nominal'         => $data->biaya_lain,
-                        'lampiran'        => '',
-                        'status'          => 1,
-                        'terbayar'        => 0,
-                        'sisa_bayar'      => $data->biaya_lain,
-                        'tgl_pelunasan'   => null,
-                    ];
-
-                    Piutang::create($pt3);
-
-                }
+                ]);
 
                 $no_kwitansi = $this->generator->generateNomorDokumen(
                     $data->lokasi,
@@ -1011,7 +1001,7 @@ class PengajuanHoldController extends Controller
                     Pemasukan::class
                 );
 
-                $p1 = [
+                Pemasukan::create([
                     'id_bank'               => $request->id_bank,
                     'id_metode_bayar'       => $request->id_metode_bayar,
                     'id_customer'           => $customer->id,
@@ -1021,26 +1011,17 @@ class PengajuanHoldController extends Controller
                     'lampiran'              => $data->file_bukti ?? '',
                     'id_kategori_transaksi' => 1,
                     'keterangan'            => 'Booking Fee Rumah tipe ' . $data->kavling->tipe_bangunan . ' ' . $data->lokasi->nama_kavling . ' Blok ' . $data->kavling->kode_kavling,
-                ];
+                ]);
 
-                Pemasukan::create($p1);
-            } else {
-                $db = [
-                    'stt_reg'       => $request->stt_reg,
-                    'fee_marketing' => $request->fee_marketing,
-                ];
-
-                $data->update($db);
+                KavlingPeta::where('id', $data->id_kavling)->update(['status' => 2]);
             }
-
-            KavlingPeta::where('id', $data->id_kavling)->update(['status' => 2]);
 
             DB::commit();
 
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::info($e->getMessage());
+            Log::error($e->getMessage());
 
             return response()->json([
                 'status' => 'error',
@@ -1120,5 +1101,63 @@ class PengajuanHoldController extends Controller
         imagedestroy($image);
 
         return $filename;
+    }
+
+    public function hitungTotalHarga($data)
+    {
+        $hrg_jual = (int) ($data['hrg_jual'] ?? 0);
+
+        $diskon        = (int) ($data['diskon'] ?? 0);
+        $pajak_bphtb   = (int) ($data['pajak_bphtb'] ?? 0);
+        $biaya_notaris = (int) ($data['biaya_notaris'] ?? 0);
+        $biaya_kpr     = (int) ($data['biaya_kpr'] ?? 0);
+        $biaya_custom  = (int) ($data['biaya_custom'] ?? 0);
+        $biaya_lain    = (int) ($data['biaya_lain_lain'] ?? 0);
+        $ppn           = (int) ($data['ppn'] ?? 0);
+        $pajak_pph     = (int) ($data['pajak_pph'] ?? 0);
+        $bonus         = (int) ($data['bonus_konsumen'] ?? 0);
+
+        $stt_bphtb   = $data['stt_free_pajak_bphtb'] ?? null;
+        $stt_notaris = $data['stt_free_biaya_notaris'] ?? null;
+        $stt_kpr     = $data['stt_free_biaya_kpr'] ?? null;
+
+        $total_rumah = $hrg_jual;
+
+        if ($stt_bphtb != 1) {
+            $total_rumah += $pajak_bphtb;
+        }
+
+        if ($stt_notaris != 1) {
+            $total_rumah += $biaya_notaris;
+        }
+
+        if ($stt_kpr != 1) {
+            $total_rumah += $biaya_kpr;
+        }
+
+        $total_rumah += $biaya_custom + $biaya_lain + $ppn;
+        $total_rumah -= $diskon;
+
+        $total_komisi = $hrg_jual;
+
+        $total_komisi -= $pajak_pph;
+        if ($stt_bphtb == 1) {
+            $total_komisi -= $pajak_bphtb;
+        }
+
+        if ($stt_notaris == 1) {
+            $total_komisi -= $biaya_notaris;
+        }
+
+        if ($stt_kpr == 1) {
+            $total_komisi -= $biaya_kpr;
+        }
+
+        $total_komisi -= ($bonus + $diskon + $ppn + $biaya_lain);
+
+        return [
+            'total_harga_rumah'  => $total_rumah,
+            'total_harga_komisi' => $total_komisi,
+        ];
     }
 }

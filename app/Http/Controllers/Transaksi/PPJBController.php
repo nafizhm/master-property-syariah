@@ -5,18 +5,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\GenerateNumberController;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Customer;
-use App\Models\KavlingPeta;
-use App\Models\LokasiKavling;
 use App\Models\PPJB;
 use App\Traits\LogAktivitasTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use PhpOffice\PhpWord\TemplateProcessor;
-use Yajra\DataTables\Facades\DataTables;
 use setasign\Fpdi\Fpdi;
+use Yajra\DataTables\Facades\DataTables;
 
 Carbon::setLocale('id');
 class PPJBController extends Controller
@@ -49,17 +45,27 @@ class PPJBController extends Controller
                     return '<strong>' . $lokasi . '</strong><br>' . $kavling;
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
-                    // $cetakUrl  = route('ppjb.cetak', $row->id_customer);
-                     $cetakKprUrl  = route('ppjb.cetakKpr', $row->id_customer);
+
+                    $jenis = $row->customer->jenis_pembelian ?? null;
+
+                    $cetakUrl = '#';
+
+                    if ($jenis === 'KPR') {
+                        $cetakUrl = route('ppjb.cetak-kpr', $row->id_customer);
+                    } elseif ($jenis === 'Cash Bertahap') {
+                        $cetakUrl = route('ppjb.cetak-cash-bertahap', $row->id_customer);
+                    } elseif ($jenis === 'Pembelian Cash') {
+                        $cetakUrl = route('ppjb.cetak-pembelian-cash', $row->id_customer);
+                    }
+
                     $deleteUrl = route('ppjb.destroy', $row->id);
 
-                    $btn = '<div >';
+                    $btn = '<div>';
 
-                        // $btn .= '<a href="' . e($cetakUrl) . '" target="_blank"
-                        //             class="btn btn-dark btn-xs mr-1">Cetak</a>';
-
-                        $btn .= '<a href="' . e($cetakKprUrl) . '" target="_blank"
-                                    class="btn btn-primary btn-xs mr-1">Cetak PPJB</a>';
+                    if ($cetakUrl !== '#') {
+                        $btn .= '<a href="' . e($cetakUrl) . '" target="_blank"
+                    class="btn btn-primary btn-xs mr-1">Cetak PPJB</a>';
+                    }
 
                     if ($permissions['hapus']) {
                         $btn .= '<form action="' . e($deleteUrl) . '" method="POST" style="display:inline;">'
@@ -134,35 +140,37 @@ class PPJBController extends Controller
     // kpr
     public function cetakKpr($id_customer)
     {
-       $customer = Customer::with([
-            'kavlingPeta.lokasi',
-            'lokasiKavling',
+        $customer = Customer::with([
+            'kavling',
+            'lokasi',
             'marketing',
             'ppjb',
             'pemasukans' => function ($q) {
-                $q->whereIn('id_kategori_transaksi', [1 ,2]);
-            }
+                $q->whereIn('id_kategori_transaksi', [1, 2]);
+            },
         ])->findOrFail($id_customer);
 
-       $totalKategori1 = $customer->pemasukans
-            ->where('id_kategori_transaksi', 1)
-            ->sum('nominal');
+        $bookingFee = optional(
+            $customer->pemasukans->where('id_kategori_transaksi', 1)->first()
+        )->nominal ?? 0;
 
-        $totalKategori2 = $customer->pemasukans
-            ->where('id_kategori_transaksi', 2)
-            ->sum('nominal');
+        $DP = optional(
+            $customer->pemasukans->where('id_kategori_transaksi', 2)->first()
+        )->nominal ?? 0;
 
-        $totalKategori1Format = $totalKategori1
-            ? number_format($totalKategori1, 0, ',', '.')
+        $bookingFeeFormat = $bookingFee
+            ? number_format($bookingFee, 0, ',', '.')
             : '-';
 
-        $totalKategori2Format = $totalKategori2
-            ? number_format($totalKategori2, 0, ',', '.')
+        $DPFormat = $DP
+            ? number_format($DP, 0, ',', '.')
             : '-';
 
         $tempatLahir = $customer->tempat_lahir ?? '-';
+        \Carbon\Carbon::setLocale('id');
+
         $tglLahir = $customer->tgl_lahir
-            ? \Carbon\Carbon::parse($customer->tgl_lahir)->format('d-m-Y')
+            ? \Carbon\Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y')
             : '-';
 
         $ttl = $tempatLahir . ', ' . $tglLahir;
@@ -179,422 +187,253 @@ class PPJBController extends Controller
             $tplId = $pdf->importPage($page);
             $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
-            if($page == 1){
-                $pdf->SetFont('Arial', 'B', 20);
-                $pdf->SetXY(80, 90);
-                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
-
-                $pdf->SetFont('Arial', 'B', 23);
-                $pdf->SetXY(68, 235);
-                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
+            if ($page >= 2) {
+                $this->headerKavling($pdf, $customer);
+                $this->footerKavling($pdf, $customer);
             }
 
+            if ($page == 1) {
+
+                $pdf->SetFont('Times', 'B', 35);
+
+                $text1      = optional($customer->lokasi)->nama_kavling ?? '-';
+                $textWidth1 = $pdf->GetStringWidth($text1);
+                $pageWidth  = $pdf->GetPageWidth();
+
+                $pdf->SetXY(($pageWidth - $textWidth1) / 2, 75);
+                $pdf->Cell(0, 5, $text1);
+
+                $pdf->SetFont('Times', 'B', 20);
+
+                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
+                $textWidth2 = $pdf->GetStringWidth($text2);
+
+                $pdf->SetXY(($pageWidth - $textWidth2) / 2, 235);
+                $pdf->Cell(0, 5, $text2);
+            }
 
             if ($page == 2) {
                 $tanggal = Carbon::now()->translatedFormat('d');
                 $bulan   = Carbon::now()->translatedFormat('F');
                 $tahun   = Carbon::now()->translatedFormat('Y');
 
-                $pdf->SetFont('Arial', 'B', 25);
+                $pdf->SetFont('Times', 'B', 12);
 
-                $xText = 75;
-                $yText = 8;
+                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
 
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+                $pageWidth = $pdf->GetPageWidth();
+                $textWidth = $pdf->GetStringWidth($text);
 
-                $pdf->SetLineWidth(1.2);
+                $x = ($pageWidth - $textWidth) / 2;
 
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+                $pdf->SetXY($x, 28.8);
+                $pdf->Cell(0, 5, $text);
 
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(75, 29);
-                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
-
-                 $pdf->SetXY(53.5, 40);
+                $pdf->SetXY(53.4, 39.6);
                 $pdf->Cell(15, 5, $tanggal);
 
-                $pdf->SetXY(70, 40);
+                $pdf->SetXY(68.8, 39.6);
                 $pdf->Cell(30, 5, $bulan);
 
-                $pdf->SetXY(103, 40);
+                $pdf->SetXY(97, 39.6);
                 $pdf->Cell(20, 5, $tahun);
 
-                $pdf->SetXY(66, 96);
+                $pdf->SetXY(66, 95);
                 $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
 
-                $pdf->SetXY(66, 103);
+                $pdf->SetXY(66, 102);
                 $pdf->Cell(0, 5, $ttl);
 
-                $pdf->SetXY(66, 110);
-                $pdf->MultiCell(140, 5, $customer->alamat_ktp ?? '-');
+                $pdf->SetXY(66, 109);
+                $alamat = $customer->alamat_ktp ?? '-';
+                $alamat = mb_substr($alamat, 0, 50);
 
-                $pdf->SetXY(66, 117);
+                $pdf->MultiCell(140, 5, $alamat);
+
+                $pdf->SetXY(66, 116);
                 $pdf->Cell(0, 5, $customer->nik ?? '-');
 
-                $pdf->SetFont('Arial', 'B', 10);
+                $pdf->SetFont('Times', 'B', 10);
                 $pdf->SetXY(130, 198);
-                $luasTanah = optional($customer->kavlingPeta)->luas_bangunan ?? '-';
+                $luasTanah = optional($customer->kavling)->luas_bangunan ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
 
                 $pdf->SetXY(115, 204);
-                $luasTanah = optional($customer->kavlingPeta)->luas_tanah ?? '-';
+                $luasTanah = optional($customer->kavling)->luas_tanah ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(80, 225);
-                $pdf->Cell(0, 5,  'nama jalan');
+                $pdf->SetFont('Times', 'B', 12);
 
-                $pdf->SetXY(80, 232);
-                $pdf->Cell(0, 5,  'desa kelurahan');
+                $lokasi = optional($customer->lokasi);
+
+                $pdf->SetXY(80, 224);
+                $pdf->Cell(0, 5, $lokasi->nama_jalan ?? '-');
+
+                $pdf->SetXY(80, 231);
+                $pdf->Cell(0, 5, $lokasi->desa_kelurahan ?? '-');
 
                 $pdf->SetXY(80, 238);
-                $pdf->Cell(0, 5,  'kecamatan');
+                $pdf->Cell(0, 5, $lokasi->kecamatan ?? '-');
 
                 $pdf->SetXY(80, 245);
-                $pdf->Cell(0, 5,  'kabupaten kota');
+                $pdf->Cell(0, 5, $lokasi->kabupaten_kota ?? '-');
 
-                $pdf->SetXY(80, 257);
-                $pdf->Cell(0, 5,  'provinsi');
+                $pdf->SetXY(80, 256);
+                $pdf->Cell(0, 5, $lokasi->provinsi ?? '-');
             }
 
             if ($page == 3) {
+                $pdf->SetFont('Times', 'B', 12);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(77, 21.5);
-                $pdf->Cell(0, 5, 'ini no/shm/20080');
+                $text = (optional($customer->lokasi)->nama_kavling ?? '-') . ', KAVLING ' . strtoupper(optional($customer->kavling)->kode_kavling ?? '-');
 
-                $pdf->SetFont('Arial', 'B', 25);
+                $pdf->SetXY(108.5, 32.3);
+                $pdf->Cell(0, 5, $text);
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
-
-                $pdf->SetXY(110, 32.4);
-                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
-
-                $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
+                $hargaJual = optional($customer->kavling)->hrg_jual;
 
                 $hargaFormat = $hargaJual
                     ? number_format($hargaJual, 0, ',', '.')
                     : '-';
 
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(94, 134);
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->SetXY(94, 133.8);
                 $pdf->Cell(0, 5, $hargaFormat);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(94, 138);
+                $pdf->SetFont('Times', '', 10);
+                $pdf->SetXY(85, 138);
                 $pdf->MultiCell(
                     110,
                     10,
                     $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . ' Rupiah)'
+                        ? '(' . ucwords($this->terbilang($hargaJual)) . 'Rupiah)'
                         : '-'
                 );
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(94, 147.4);
-                $pdf->Cell(0, 5, $totalKategori2Format);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(94, 154);
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->SetXY(94, 147.1);
+                $pdf->Cell(0, 5, $DPFormat);
+
+                $pdf->SetFont('Times', '', 10);
+                $pdf->SetXY(85, 154);
                 $pdf->MultiCell(
                     110,
                     5,
-                    $totalKategori2
-                        ? '(' . ucwords($this->terbilang($totalKategori2)) . ' Rupiah)'
+                    $DP
+                        ? '(' . ucwords($this->terbilang($DP)) . 'Rupiah)'
                         : '-'
                 );
 
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(94, 174.4);
-                $pdf->Cell(0, 5, $totalKategori1Format);
+                $diskon = $customer->diskon ?? 0;
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(94, 179);
+                $diskonFormat = $diskon
+                    ? number_format($diskon, 0, ',', '.')
+                    : '-';
+
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->SetXY(94, 160.5);
+                $pdf->Cell(0, 5, $diskonFormat);
+
+                $pdf->SetFont('Times', '', 10);
+                $pdf->SetXY(85, 166);
+                $pdf->MultiCell(
+                    110,
+                    5,
+                    $diskon
+                        ? '(' . ucwords($this->terbilang($diskon)) . 'Rupiah)'
+                        : '-'
+                );
+
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->SetXY(94, 173.8);
+                $pdf->Cell(0, 5, $bookingFeeFormat);
+
+                $pdf->SetFont('Times', '', 10);
+                $pdf->SetXY(85, 179);
                 $pdf->MultiCell(
                     110,
                     6,
-                    $totalKategori1
-                        ? '(' . ucwords($this->terbilang($totalKategori1)) . ' Rupiah)'
+                    $bookingFee
+                        ? '(' . ucwords($this->terbilang($bookingFee)) . 'Rupiah)'
                         : '-'
                 );
             }
-            if($page == 4){
-              $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-            }
-            if($page == 5){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-            }
-            if($page == 6){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                 $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
-
-                $hargaFormat = $hargaJual
-                    ? number_format($hargaJual, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(70, 251);
-                $pdf->Cell(0, 5, $hargaFormat);
-
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(95, 251);
-                $pdf->MultiCell(
-                    110,
-                    5,
-                    $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . ' Rupiah)'
-                        : '-'
-                );
+            if ($page == 4) {
 
             }
-            if($page == 7){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 5) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
             }
-            if($page == 8){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 6) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
             }
-            if($page == 9){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 7) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
             }
-            if($page == 10){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 8) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
             }
-            if($page == 11){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 9) {
 
-                $xText = 75;
-                $yText = 8;
+            }
+            if ($page == 10) {
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(160.5, 69);
+                $pdf->Cell(0, 5, $customer->ppjb->tanggal_ppjb ? Carbon::parse($customer->ppjb->tanggal_ppjb)->translatedFormat('d F Y') : '-');
 
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(80, 111.5);
+                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
+            }
+            if ($page == 11) {
 
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
             }
         }
+
+        $pdf->SetTitle('PPJB KPR - ' . ($customer->nama_lengkap ?? '-'));
 
         return response($pdf->Output('S'), 200)
             ->header('Content-Type', 'application/pdf')
             ->header(
                 'Content-Disposition',
-                'inline; filename="PPJB-KPR-' . $customer->kode_customer . '.pdf"'
+                'inline; filename="PPJB KPR - ' . ($customer->nama_lengkap ?? '-') . '.pdf"'
             );
     }
 
     // cash bertahap
     public function cetakCashBertahap($id_customer)
     {
-       $customer = Customer::with([
-            'kavlingPeta.lokasi',
-            'lokasiKavling',
+        $customer = Customer::with([
+            'kavling',
+            'lokasi',
             'marketing',
             'ppjb',
             'pemasukans' => function ($q) {
-                $q->whereIn('id_kategori_transaksi', [1 ,2]);
-            }
+                $q->whereIn('id_kategori_transaksi', [1, 2]);
+            },
         ])->findOrFail($id_customer);
 
-       $totalKategori1 = $customer->pemasukans
-            ->where('id_kategori_transaksi', 1)
-            ->sum('nominal');
+        $bookingFee = optional(
+            $customer->pemasukans->where('id_kategori_transaksi', 1)->first()
+        )->nominal ?? 0;
 
-        $totalKategori2 = $customer->pemasukans
-            ->where('id_kategori_transaksi', 2)
-            ->sum('nominal');
+        $DP = optional(
+            $customer->pemasukans->where('id_kategori_transaksi', 2)->first()
+        )->nominal ?? 0;
 
-        $totalKategori1Format = $totalKategori1
-            ? number_format($totalKategori1, 0, ',', '.')
+        $bookingFeeFormat = $bookingFee
+            ? number_format($bookingFee, 0, ',', '.')
             : '-';
 
-        $totalKategori2Format = $totalKategori2
-            ? number_format($totalKategori2, 0, ',', '.')
+        $DPFormat = $DP
+            ? number_format($DP, 0, ',', '.')
             : '-';
 
         $tempatLahir = $customer->tempat_lahir ?? '-';
+        \Carbon\Carbon::setLocale('id');
+
         $tglLahir = $customer->tgl_lahir
-            ? \Carbon\Carbon::parse($customer->tgl_lahir)->format('d-m-Y')
+            ? \Carbon\Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y')
             : '-';
 
         $ttl = $tempatLahir . ', ' . $tglLahir;
@@ -611,55 +450,54 @@ class PPJBController extends Controller
             $tplId = $pdf->importPage($page);
             $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
-            if($page == 1){
-                $pdf->SetFont('Arial', 'B', 20);
-                $pdf->SetXY(80, 90);
-                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
-
-                $pdf->SetFont('Arial', 'B', 23);
-                $pdf->SetXY(68, 232);
-                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
+            if ($page >= 2) {
+                $this->headerKavling($pdf, $customer);
+                $this->footerKavling($pdf, $customer);
             }
 
+            if ($page == 1) {
+
+                $pdf->SetFont('Times', 'B', 35);
+
+                $text1      = optional($customer->lokasi)->nama_kavling ?? '-';
+                $textWidth1 = $pdf->GetStringWidth($text1);
+                $pageWidth  = $pdf->GetPageWidth();
+
+                $pdf->SetXY(($pageWidth - $textWidth1) / 2, 75);
+                $pdf->Cell(0, 5, $text1);
+
+                $pdf->SetFont('Times', 'B', 20);
+
+                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
+                $textWidth2 = $pdf->GetStringWidth($text2);
+
+                $pdf->SetXY(($pageWidth - $textWidth2) / 2, 232);
+                $pdf->Cell(0, 5, $text2);
+            }
 
             if ($page == 2) {
                 $tanggal = Carbon::now()->translatedFormat('d');
                 $bulan   = Carbon::now()->translatedFormat('F');
                 $tahun   = Carbon::now()->translatedFormat('Y');
 
-                $pdf->SetFont('Arial', 'B', 25);
+                $pdf->SetFont('Times', 'B', 12);
 
-                $xText = 75;
-                $yText = 8;
+                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
 
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+                $pageWidth = $pdf->GetPageWidth();
+                $textWidth = $pdf->GetStringWidth($text);
 
-                $pdf->SetLineWidth(1.2);
+                $x = ($pageWidth - $textWidth) / 2;
 
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(80, 29);
-                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
-
-                 $pdf->SetXY(64, 40.5);
+                $pdf->SetXY($x, 28.8);
+                $pdf->Cell(0, 5, $text);
+                $pdf->SetXY(63.5, 40.1);
                 $pdf->Cell(15, 5, $tanggal);
 
-                $pdf->SetXY(80, 40.5);
+                $pdf->SetXY(79.5, 40.1);
                 $pdf->Cell(30, 5, $bulan);
 
-                $pdf->SetXY(105, 40.5);
+                $pdf->SetXY(104, 40.1);
                 $pdf->Cell(20, 5, $tahun);
 
                 $pdf->SetXY(74, 94);
@@ -674,359 +512,175 @@ class PPJBController extends Controller
                 $pdf->SetXY(74, 115);
                 $pdf->Cell(0, 5, $customer->nik ?? '-');
 
-                $pdf->SetFont('Arial', 'B', 8);
+                $pdf->SetFont('Times', 'B', 8);
                 $pdf->SetXY(162, 196);
-                $luasTanah = optional($customer->kavlingPeta)->luas_bangunan ?? '-';
+                $luasTanah = optional($customer->kavling)->luas_bangunan ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
 
                 $pdf->SetXY(149, 203);
-                $luasTanah = optional($customer->kavlingPeta)->luas_tanah ?? '-';
+                $luasTanah = optional($customer->kavling)->luas_tanah ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(87, 223);
-                $pdf->Cell(0, 5,  'nama jalan');
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(87, 222.5);
+                $pdf->Cell(0, 5, $customer->lokasi->nama_jalan ?? '-');
 
-                $pdf->SetXY(87, 230);
-                $pdf->Cell(0, 5,  'desa kelurahan');
+                $pdf->SetXY(87, 229.5);
+                $pdf->Cell(0, 5, $customer->lokasi->desa_kelurahan ?? '-');
 
-                $pdf->SetXY(87, 236);
-                $pdf->Cell(0, 5,  'kecamatan');
+                $pdf->SetXY(87, 235.6);
+                $pdf->Cell(0, 5, $customer->lokasi->kecamatan ?? '-');
 
                 $pdf->SetXY(87, 243);
-                $pdf->Cell(0, 5,  'kabupaten kota');
+                $pdf->Cell(0, 5, $customer->lokasi->kabupaten_kota ?? '-');
 
-                $pdf->SetXY(87, 249);
-                $pdf->Cell(0, 5,  'provinsi');
+                $pdf->SetXY(87, 249.3);
+                $pdf->Cell(0, 5, $customer->lokasi->provinsi ?? '-');
             }
 
             if ($page == 3) {
-
-                // $pdf->SetFont('Arial', '', 10);
-                // $pdf->SetXY(77, 21.5);
-                // $pdf->Cell(0, 5, 'ini no/shm/20080');
-
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetFont('Times', '', 10);
 
                 $pdf->SetXY(120, 21.3);
-                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
+                $pdf->Cell(0, 5, optional($customer->lokasi)->nama_kavling ?? '-');
 
-                $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
+                $hargaJual = optional($customer->kavling)->hrg_jual;
 
                 $hargaFormat = $hargaJual
                     ? number_format($hargaJual, 0, ',', '.')
                     : '-';
 
-                $pdf->SetFont('Arial', '', 9);
-                $pdf->SetXY(144, 48);
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 124);
                 $pdf->Cell(0, 5, $hargaFormat);
 
-
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(103, 123);
-                $pdf->Cell(0, 5, $hargaFormat);
-
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(103, 127);
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 128.5);
                 $pdf->MultiCell(
                     110,
                     10,
                     $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . ' Rupiah)'
+                        ? '(' . ucwords($this->terbilang($hargaJual)) . 'Rupiah)'
                         : '-'
                 );
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(103, 137);
-                $pdf->Cell(0, 5, $totalKategori2Format);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(103, 143);
+                $discount = $customer->diskon ?? 0;
+
+                $discountFormat = $discount
+                    ? number_format($discount, 0, ',', '.')
+                    : '-';
+
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 137.5);
+                $pdf->Cell(0, 5, $discountFormat);
+
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 144);
                 $pdf->MultiCell(
                     110,
                     5,
-                    $totalKategori2
-                        ? '(' . ucwords($this->terbilang($totalKategori2)) . ' Rupiah)'
+                    $discount
+                        ? '(' . ucwords($this->terbilang($discount)) . 'Rupiah)'
                         : '-'
                 );
 
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(103, 150);
-                $pdf->Cell(0, 5, $totalKategori1Format);
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 151);
+                $pdf->Cell(0, 5, $DPFormat);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(103, 155);
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 157.5);
                 $pdf->MultiCell(
                     110,
                     6,
-                    $totalKategori1
-                        ? '(' . ucwords($this->terbilang($totalKategori1)) . ' Rupiah)'
+                    $DP
+                        ? '(' . ucwords($this->terbilang($DP)) . 'Rupiah)'
                         : '-'
                 );
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(105, 253);
-                $pdf->Cell(0, 5, '09/04/2026');
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 165);
+                $pdf->Cell(0, 5, $bookingFeeFormat);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(155, 253);
-                $pdf->Cell(0, 5, '20.000.000');
-            }
-            if($page == 4){
-              $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-            }
-            if($page == 5){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-            }
-            if($page == 6){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 171.5);
+                $pdf->MultiCell(
+                    110,
+                    6,
+                    $bookingFee
+                        ? '(' . ucwords($this->terbilang($bookingFee)) . 'Rupiah)'
+                        : '-'
                 );
 
-                 $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
-
-                $hargaFormat = $hargaJual
-                    ? number_format($hargaJual, 0, ',', '.')
-                    : '-';
-
+            }
+            if ($page == 4) {
 
             }
-            if($page == 7){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 5) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
             }
-            if($page == 8){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+            if ($page == 6) {
             }
-            if($page == 9){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+            if ($page == 7) {
             }
-            if($page == 10){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+            if ($page == 8) {
             }
-            if($page == 11){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 9) {
+            }
+            if ($page == 10) {
+            }
+            if ($page == 11) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(93.5, 74.5);
+                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
             }
         }
+
+        $pdf->SetTitle('PPJB CashB - ' . ($customer->nama_lengkap ?? '-'));
 
         return response($pdf->Output('S'), 200)
             ->header('Content-Type', 'application/pdf')
             ->header(
                 'Content-Disposition',
-                'inline; filename="PPJB-KPR-' . $customer->kode_customer . '.pdf"'
+                'inline; filename="PPJB CashB - ' . ($customer->nama_lengkap ?? '-') . '.pdf"'
             );
     }
 
     // cash keras
-    public function cetakCashKeras($id_customer)
+    public function cetakPembelianCash($id_customer)
     {
-       $customer = Customer::with([
-            'kavlingPeta.lokasi',
-            'lokasiKavling',
+        $customer = Customer::with([
+            'kavling',
+            'lokasi',
             'marketing',
             'ppjb',
             'pemasukans' => function ($q) {
-                $q->whereIn('id_kategori_transaksi', [1 ,2]);
-            }
+                $q->whereIn('id_kategori_transaksi', [1, 2]);
+            },
         ])->findOrFail($id_customer);
 
-       $totalKategori1 = $customer->pemasukans
-            ->where('id_kategori_transaksi', 1)
-            ->sum('nominal');
+        $bookingFee = optional(
+            $customer->pemasukans->where('id_kategori_transaksi', 1)->first()
+        )->nominal ?? 0;
 
-        $totalKategori2 = $customer->pemasukans
-            ->where('id_kategori_transaksi', 2)
-            ->sum('nominal');
+        $DP = optional(
+            $customer->pemasukans->where('id_kategori_transaksi', 2)->first()
+        )->nominal ?? 0;
 
-        $totalKategori1Format = $totalKategori1
-            ? number_format($totalKategori1, 0, ',', '.')
+        $bookingFeeFormat = $bookingFee
+            ? number_format($bookingFee, 0, ',', '.')
             : '-';
 
-        $totalKategori2Format = $totalKategori2
-            ? number_format($totalKategori2, 0, ',', '.')
+        $DPFormat = $DP
+            ? number_format($DP, 0, ',', '.')
             : '-';
 
         $tempatLahir = $customer->tempat_lahir ?? '-';
+        \Carbon\Carbon::setLocale('id');
+
         $tglLahir = $customer->tgl_lahir
-            ? \Carbon\Carbon::parse($customer->tgl_lahir)->format('d-m-Y')
+            ? \Carbon\Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y')
             : '-';
 
         $ttl = $tempatLahir . ', ' . $tglLahir;
@@ -1043,402 +697,214 @@ class PPJBController extends Controller
             $tplId = $pdf->importPage($page);
             $pdf->useTemplate($tplId, 0, 0, 210, 297);
 
-            if($page == 1){
-                $pdf->SetFont('Arial', 'B', 20);
-                $pdf->SetXY(80, 90);
-                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
-
-                $pdf->SetFont('Arial', 'B', 23);
-                $pdf->SetXY(68, 239);
-                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
+            if ($page >= 2) {
+                $this->headerKavling($pdf, $customer);
+                $this->footerKavling($pdf, $customer);
             }
 
+            if ($page == 1) {
+
+                $pdf->SetFont('Times', 'B', 35);
+
+                $text1      = optional($customer->lokasi)->nama_kavling ?? '-';
+                $textWidth1 = $pdf->GetStringWidth($text1);
+                $pageWidth  = $pdf->GetPageWidth();
+
+                $pdf->SetXY(($pageWidth - $textWidth1) / 2, 75);
+                $pdf->Cell(0, 5, $text1);
+
+                $pdf->SetFont('Times', 'B', 20);
+
+                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
+                $textWidth2 = $pdf->GetStringWidth($text2);
+
+                $pdf->SetXY(($pageWidth - $textWidth2) / 2, 232);
+                $pdf->Cell(0, 5, $text2);
+            }
 
             if ($page == 2) {
                 $tanggal = Carbon::now()->translatedFormat('d');
                 $bulan   = Carbon::now()->translatedFormat('F');
                 $tahun   = Carbon::now()->translatedFormat('Y');
 
-                $pdf->SetFont('Arial', 'B', 25);
+                $pdf->SetFont('Times', 'B', 12);
 
-                $xText = 75;
-                $yText = 8;
+                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
 
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
+                $pageWidth = $pdf->GetPageWidth();
+                $textWidth = $pdf->GetStringWidth($text);
 
-                $pdf->SetLineWidth(1.2);
+                $x = ($pageWidth - $textWidth) / 2;
 
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(80, 34);
-                $pdf->Cell(0, 5, optional($customer->ppjb)->no_ppjb ?? '-');
-
-                 $pdf->SetXY(64, 45.5);
+                $pdf->SetXY($x, 28.8);
+                $pdf->Cell(0, 5, $text);
+                $pdf->SetXY(63.5, 40.1);
                 $pdf->Cell(15, 5, $tanggal);
 
-                $pdf->SetXY(83, 45.5);
+                $pdf->SetXY(79.5, 40.1);
                 $pdf->Cell(30, 5, $bulan);
 
-                $pdf->SetXY(111, 45.5);
+                $pdf->SetXY(104, 40.1);
                 $pdf->Cell(20, 5, $tahun);
 
-                $pdf->SetXY(74, 100);
+                $pdf->SetXY(74, 94);
                 $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
 
-                $pdf->SetXY(74, 106);
+                $pdf->SetXY(74, 101);
                 $pdf->Cell(0, 5, $ttl);
 
-                $pdf->SetXY(74, 113);
+                $pdf->SetXY(74, 108);
                 $pdf->MultiCell(140, 5, $customer->alamat_ktp ?? '-');
 
-                $pdf->SetXY(74, 119);
+                $pdf->SetXY(74, 115);
                 $pdf->Cell(0, 5, $customer->nik ?? '-');
 
-                $pdf->SetFont('Arial', 'B', 8);
-                $pdf->SetXY(163, 200);
-                $luasTanah = optional($customer->kavlingPeta)->luas_bangunan ?? '-';
+                $pdf->SetFont('Times', 'B', 8);
+                $pdf->SetXY(162, 196);
+                $luasTanah = optional($customer->kavling)->luas_bangunan ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
 
-                $pdf->SetXY(149, 207);
-                $luasTanah = optional($customer->kavlingPeta)->luas_tanah ?? '-';
+                $pdf->SetXY(149, 203);
+                $luasTanah = optional($customer->kavling)->luas_tanah ?? '-';
                 $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(87, 228);
-                $pdf->Cell(0, 5,  'nama jalan');
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(87, 222.5);
+                $pdf->Cell(0, 5, $customer->lokasi->nama_jalan ?? '-');
 
-                $pdf->SetXY(87, 234);
-                $pdf->Cell(0, 5,  'desa kelurahan');
+                $pdf->SetXY(87, 229.5);
+                $pdf->Cell(0, 5, $customer->lokasi->desa_kelurahan ?? '-');
 
-                $pdf->SetXY(87, 241);
-                $pdf->Cell(0, 5,  'kecamatan');
+                $pdf->SetXY(87, 235.6);
+                $pdf->Cell(0, 5, $customer->lokasi->kecamatan ?? '-');
 
-                $pdf->SetXY(87, 248);
-                $pdf->Cell(0, 5,  'kabupaten kota');
+                $pdf->SetXY(87, 243);
+                $pdf->Cell(0, 5, $customer->lokasi->kabupaten_kota ?? '-');
 
-                $pdf->SetXY(87, 254);
-                $pdf->Cell(0, 5,  'provinsi');
+                $pdf->SetXY(87, 249.3);
+                $pdf->Cell(0, 5, $customer->lokasi->provinsi ?? '-');
             }
 
             if ($page == 3) {
+                $pdf->SetFont('Times', '', 10);
 
-                // $pdf->SetFont('Arial', '', 10);
-                // $pdf->SetXY(77, 21.5);
-                // $pdf->Cell(0, 5, 'ini no/shm/20080');
+                $pdf->SetXY(120, 21.3);
+                $pdf->Cell(0, 5, optional($customer->lokasi)->nama_kavling ?? '-');
 
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
-
-                $pdf->SetXY(120, 30);
-                $pdf->Cell(0, 5, optional($customer->lokasiKavling)->nama_kavling ?? '-');
-
-                $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
+                $hargaJual = optional($customer->kavling)->hrg_jual;
 
                 $hargaFormat = $hargaJual
                     ? number_format($hargaJual, 0, ',', '.')
                     : '-';
 
-                $pdf->SetFont('Arial', '', 9);
-                $pdf->SetXY(144, 57.5);
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 124);
                 $pdf->Cell(0, 5, $hargaFormat);
 
-
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(103, 132);
-                $pdf->Cell(0, 5, $hargaFormat);
-
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(103, 135);
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 128.5);
                 $pdf->MultiCell(
                     110,
                     10,
                     $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . ' Rupiah)'
+                        ? '(' . ucwords($this->terbilang($hargaJual)) . 'Rupiah)'
                         : '-'
                 );
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(103, 146);
-                $pdf->Cell(0, 5, $totalKategori2Format);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(103, 153);
+                $discount = $customer->diskon ?? 0;
+
+                $discountFormat = $discount
+                    ? number_format($discount, 0, ',', '.')
+                    : '-';
+
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 137.5);
+                $pdf->Cell(0, 5, $discountFormat);
+
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 144);
                 $pdf->MultiCell(
                     110,
                     5,
-                    $totalKategori2
-                        ? '(' . ucwords($this->terbilang($totalKategori2)) . ' Rupiah)'
+                    $discount
+                        ? '(' . ucwords($this->terbilang($discount)) . 'Rupiah)'
                         : '-'
                 );
 
-                $pdf->SetFont('Arial', 'B', 10);
-                $pdf->SetXY(103, 160);
-                $pdf->Cell(0, 5, $totalKategori1Format);
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 151);
+                $pdf->Cell(0, 5, $DPFormat);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(103, 165);
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 157.5);
                 $pdf->MultiCell(
                     110,
                     6,
-                    $totalKategori1
-                        ? '(' . ucwords($this->terbilang($totalKategori1)) . ' Rupiah)'
+                    $DP
+                        ? '(' . ucwords($this->terbilang($DP)) . 'Rupiah)'
                         : '-'
                 );
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(105, 262);
-                $pdf->Cell(0, 5, '09/04/2026');
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(100, 165);
+                $pdf->Cell(0, 5, $bookingFeeFormat);
 
-                $pdf->SetFont('Arial', '', 10);
-                $pdf->SetXY(155, 262);
-                $pdf->Cell(0, 5, '20.000.000');
-            }
-            if($page == 4){
-              $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-            }
-            if($page == 5){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-            }
-            if($page == 6){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
+                $pdf->SetFont('Times', '', 11);
+                $pdf->SetXY(93, 171.5);
+                $pdf->MultiCell(
+                    110,
+                    6,
+                    $bookingFee
+                        ? '(' . ucwords($this->terbilang($bookingFee)) . 'Rupiah)'
+                        : '-'
                 );
 
-                 $hargaJual = optional($customer->kavlingPeta)->hrg_jual;
-
-                $hargaFormat = $hargaJual
-                    ? number_format($hargaJual, 0, ',', '.')
-                    : '-';
-
+            }
+            if ($page == 4) {
+            }
+            if ($page == 5) {
+            }
+            if ($page == 6) {
 
             }
-            if($page == 7){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 7) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
-
-                $pdf->SetFont('Arial', '', 10);
+                $pdf->SetFont('Times', '', 10);
                 $pdf->SetXY(110, 149);
                 $pdf->Cell(0, 5, '20.000.000');
             }
-            if($page == 8){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+            if ($page == 8) {
             }
-            if($page == 9){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+            if ($page == 9) {
             }
-            if($page == 10){
-                $pdf->SetFont('Arial', 'B', 25);
-
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+            if ($page == 10) {
             }
-            if($page == 11){
-                $pdf->SetFont('Arial', 'B', 25);
+            if ($page == 11) {
 
-                $xText = 75;
-                $yText = 8;
-
-                $namaKavling = optional($customer->lokasiKavling)->nama_kavling ?? '-';
-
-                $pdf->SetLineWidth(1.2);
-
-                $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
-
-                $pdf->SetXY($xText, $yText);
-                $pdf->Cell(0, 5, $namaKavling);
-
-                $textWidth = $pdf->GetStringWidth($namaKavling);
-                $pdf->Line(
-                    $xText + $textWidth + 3,
-                    $yText + 3,
-                    190,
-                    $yText + 3
-                );
+                $pdf->SetFont('Times', 'B', 11);
+                $pdf->SetXY(93.5, 74.5);
+                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
             }
         }
+
+        $pdf->SetTitle('PPJB CashK - ' . ($customer->nama_lengkap ?? '-'));
 
         return response($pdf->Output('S'), 200)
             ->header('Content-Type', 'application/pdf')
             ->header(
                 'Content-Disposition',
-                'inline; filename="PPJB-KPR-' . $customer->kode_customer . '.pdf"'
+                'inline; filename="PPJB CashK - ' . ($customer->nama_lengkap ?? '-') . '.pdf"'
             );
     }
 
-     private function terbilang($angka)
+    private function terbilang($angka)
     {
         $angka = abs((int) $angka);
 
         $bilangan = [
             '', 'satu', 'dua', 'tiga', 'empat', 'lima',
             'enam', 'tujuh', 'delapan', 'sembilan',
-            'sepuluh', 'sebelas'
+            'sepuluh', 'sebelas',
         ];
 
         if ($angka < 12) {
@@ -1472,5 +938,41 @@ class PPJBController extends Controller
         $data->delete();
 
         return response()->json(['status' => 'success']);
+    }
+
+    private function headerKavling($pdf, $customer)
+    {
+        $pdf->SetFont('Times', 'B', 15);
+
+        $yText = 12;
+
+        $namaKavling = optional($customer->lokasi)->nama_kavling ?? '-';
+
+        $pageWidth = $pdf->GetPageWidth();
+        $textWidth = $pdf->GetStringWidth($namaKavling);
+
+        $xText = ($pageWidth - $textWidth) / 2;
+
+        $pdf->SetLineWidth(1.2);
+
+        $pdf->Line(20, $yText + 3, $xText - 3, $yText + 3);
+
+        $pdf->SetXY($xText, $yText);
+        $pdf->Cell(0, 5, $namaKavling);
+
+        $pdf->Line(
+            $xText + $textWidth + 3,
+            $yText + 3,
+            $pageWidth - 20,
+            $yText + 3
+        );
+    }
+
+    private function footerKavling($pdf, $customer)
+    {
+        $pdf->SetFont('Times', '', 12);
+
+        $pdf->SetXY(23.5, 273);
+        $pdf->Cell(0, 5, optional($customer->lokasi)->nama_kavling ?? '-');
     }
 }

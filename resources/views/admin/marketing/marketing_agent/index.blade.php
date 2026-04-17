@@ -13,7 +13,7 @@
                         <div class="card">
                             <div class="card-header p-3">
                                 <div class="d-flex align-content-center justify-content-between">
-                                    <h3 class="font-weight-bold text-lg">Data Marketing Freelance</h3>
+                                    <h3 class="font-weight-bold text-lg">Data Marketing Agent</h3>
                                     <div class="d-flex align-items-center">
                                         @if ($permissions['tambah'])
                                             <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
@@ -29,8 +29,8 @@
                                     <thead>
                                         <tr>
                                             <th width="5%">No</th>
-                                            <th>Kode Freelance</th>
-                                            <th>Nama Freelance</th>
+                                            <th>Kode Agent</th>
+                                            <th>Nama Agent</th>
                                             <th>Alamat</th>
                                             <th>Rekening</th>
                                             <th>Status</th>
@@ -65,7 +65,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Nama Marketing</label>
                             <div class="col-sm-4">
-                                <input type="text" name="nama_freelance" id="nama_freelance" class="form-control">
+                                <input type="text" name="nama_agent" id="nama_agent" class="form-control">
                             </div>
                             <label class="col-sm-2 col-form-label">Jenis Kelamin</label>
                             <div class="col-sm-3">
@@ -184,7 +184,7 @@
                 serverSide: false,
                 responsive: true,
                 ordering: false,
-                ajax: "{{ route('marketing-agen.index') }}",
+                ajax: "{{ route('marketing-agent.index') }}",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -193,14 +193,14 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'kode_freelance',
-                        name: 'kode_freelance',
+                        data: 'kode_agent',
+                        name: 'kode_agent',
                         orderable: false,
                         searchable: true
                     },
                     {
-                        data: 'nama_freelance',
-                        name: 'nama_freelance',
+                        data: 'nama_agent',
+                        name: 'nama_agent',
                         orderable: false,
                         searchable: true,
                     },
@@ -242,7 +242,7 @@
         });
 
         $(document).on('click', '[data-target="#modalForm"]', function() {
-            $('#modalFormLabel').text('Tambah Marketing Freelance');
+            $('#modalFormLabel').text('Tambah Marketing Agent');
         });
 
         $(document).on('click', '.edit-button', function() {
@@ -250,9 +250,9 @@
 
             $.get(url, function(response) {
                 if (response.status === 'success') {
-                    $('#modalFormLabel').text('Edit Marketing Freelance');
+                    $('#modalFormLabel').text('Edit Marketing Agent');
                     $('#primary_id').val(response.data.id);
-                    $('#nama_freelance').val(response.data.nama_freelance);
+                    $('#nama_agent').val(response.data.nama_agent);
                     $('#jenis_kelamin').val(response.data.jenis_kelamin).trigger('change');
                     $('#status').val(response.data.status).trigger('change');
                     $('#alamat').val(response.data.alamat);
@@ -263,7 +263,7 @@
                     $('#no_rekening').val(response.data.no_rekening);
                     $('#atas_nama').val(response.data.atas_nama);
 
-                    setPreview(response.data.foto, 'assets/marketing/marketing_freelance', 'previewFoto');
+                    setPreview(response.data.foto, 'assets/marketing/marketing_agent', 'previewFoto');
 
                     $('#modalForm').modal('show');
                 }
@@ -301,10 +301,10 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('marketing-agen.update', ['marketing_agen' => ':id']) }}'.replace(
+            let url = id ? '{{ route('marketing-agent.update', ['marketing_agen' => ':id']) }}'.replace(
                     ':id',
                     id) :
-                '{{ route('marketing-agen.store') }}';
+                '{{ route('marketing-agent.store') }}';
             let method = id ? 'PUT' : 'POST';
 
             $('.is-invalid').removeClass('is-invalid');
@@ -322,8 +322,8 @@
                 success: function(response) {
                     $('#modalForm').modal('hide');
                     audio.play();
-                    let msg = id ? "Marketing Freelance berhasil diupdate!" :
-                        "Marketing Freelance berhasil ditambahkan!";
+                    let msg = id ? "Marketing Agent berhasil diupdate!" :
+                        "Marketing Agent berhasil ditambahkan!";
                     toastr.success(msg, "BERHASIL", {
                         progressBar: true,
                         timeOut: 3500,

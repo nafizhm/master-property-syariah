@@ -3,14 +3,14 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
-use App\Models\ArsipCustomer;
 use App\Models\Bank;
 use App\Models\Customer;
 use App\Models\KavlingPeta;
 use App\Models\LokasiKavling;
-use App\Models\MarketingFreelance;
+use App\Models\MarketingAgent;
 use App\Models\MarketingOffline;
 use App\Models\PersyaratanLegal;
+use App\Models\Piutang;
 use App\Models\ProgresListPenjualan;
 use App\Traits\LogAktivitasTrait;
 use Carbon\Carbon;
@@ -32,12 +32,12 @@ class CustomerController extends Controller
         if ($request->ajax()) {
             $data = Customer::with([
                 'marketing',
-                'freelance',
+                'agent',
                 'lokasi',
                 'kavling',
                 'progres',
             ])
-                ->where('stt_arsip', 0);
+                ->where('stt_arsip', 0)->orderByDesc('tanggal_verif');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -58,13 +58,13 @@ class CustomerController extends Controller
                 })
                 ->editColumn('id_marketing', function ($row) {
                     $namaMarketing = $row->marketing->nama_marketing ?? '<span class="badge bg-danger"> ' . 'None Marketing' . '</span>';
-                    $namaFreelance = $row->freelance->nama_freelance ?? null;
+                    $namaAgent     = $row->agent->nama_agent ?? null;
 
-                    $freelanceBadge = $namaFreelance
-                        ? '<span class="badge bg-info"> ' . $namaFreelance . '</span>'
+                    $agentBadge = $namaAgent
+                        ? '<span class="badge bg-info"> ' . $namaAgent . '</span>'
                         : '';
 
-                    return $namaMarketing . ($freelanceBadge ? '<br>' . $freelanceBadge : '');
+                    return $namaMarketing . ($agentBadge ? '<br>' . $agentBadge : '');
                 })
 
                 ->editColumn('id_lokasi', function ($row) {
@@ -135,12 +135,12 @@ class CustomerController extends Controller
         }
 
         $marketing = MarketingOffline::all();
-        $freelance = MarketingFreelance::all();
+        $agent     = MarketingAgent::all();
         $bank      = Bank::all();
         $progres   = ProgresListPenjualan::all();
         $lokasi    = LokasiKavling::all();
 
-        return view('admin.customer.customer.index', compact('permissions', 'marketing', 'freelance', 'lokasi', 'progres', 'bank'));
+        return view('admin.customer.customer.index', compact('permissions', 'marketing', 'agent', 'lokasi', 'progres', 'bank'));
     }
 
     public function getKavling($idLokasi)
@@ -237,7 +237,7 @@ class CustomerController extends Controller
                 'pekerjaan'           => $request->pekerjaan ?? '',
                 'ket_cashback'        => $request->ket_cashback ?? '',
                 'id_marketing'        => $request->id_marketing ?? 0,
-                'id_freelance'        => $request->id_freelance ?? 0,
+                'id_agent'            => $request->id_agent ?? 0,
                 'jenis_pembelian'     => $request->jenis_pembelian,
                 'pembayaran_booking'  => str_replace('.', '', $request->pembayaran_booking ?? 0),
                 'tgl_batas_booking'   => $request->tgl_batas_booking ?? null,
@@ -288,26 +288,45 @@ class CustomerController extends Controller
     {
         $data = Customer::findOrFail($id);
 
+        $request->merge([
+            'diskon'          => $request->diskon ? str_replace('.', '', $request->diskon) : 0,
+            'pajak_bphtb'     => $request->pajak_bphtb ? str_replace('.', '', $request->pajak_bphtb) : 0,
+            'biaya_notaris'   => $request->biaya_notaris ? str_replace('.', '', $request->biaya_notaris) : 0,
+            'biaya_kpr'       => $request->biaya_kpr ? str_replace('.', '', $request->biaya_kpr) : 0,
+            'biaya_custom'    => $request->biaya_custom ? str_replace('.', '', $request->biaya_custom) : 0,
+            'biaya_lain_lain' => $request->biaya_lain_lain ? str_replace('.', '', $request->biaya_lain_lain) : 0,
+            'ppn'             => $request->ppn ? str_replace('.', '', $request->ppn) : 0,
+            'pajak_pph'       => $request->pajak_pph ? str_replace('.', '', $request->pajak_pph) : 0,
+            'bonus_konsumen'  => $request->bonus_konsumen ? str_replace('.', '', $request->bonus_konsumen) : 0,
+        ]);
+
         $rules = [
-            'nama_lengkap'    => 'required',
-            'nik'             => 'required',
-            'tempat_lahir'    => 'required',
-            'tgl_lahir'       => 'required|date',
-            'no_telp'         => 'required',
-            'jenis_kelamin'   => 'required',
-            'alamat_ktp'      => 'required',
-            'alamat_domisili' => 'required',
+            'nama_lengkap'           => 'required',
+            'nik'                    => 'required',
+            'tempat_lahir'           => 'required',
+            'tgl_lahir'              => 'required|date',
+            'no_telp'                => 'required',
+            'jenis_kelamin'          => 'required',
+            'alamat_ktp'             => 'required',
+            'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
+            'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
+            'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
         ];
 
         $messages = [
-            'nama_lengkap.required'    => 'Nama lengkap wajib diisi!',
-            'nik.required'             => 'NIK wajib diisi!',
-            'tempat_lahir.required'    => 'Tempat lahir wajib diisi!',
-            'tgl_lahir.required'       => 'Tanggal lahir wajib diisi!',
-            'no_telp.required'         => 'No. Telp / WA wajib diisi!',
-            'jenis_kelamin.required'   => 'Jenis kelamin wajib diisi!',
-            'alamat_ktp.required'      => 'Alamat KTP wajib diisi!',
-            'alamat_domisili.required' => 'Alamat Domisili wajib diisi!',
+            'nama_lengkap.required'                => 'Nama lengkap wajib diisi!',
+            'nik.required'                         => 'NIK wajib diisi!',
+            'tempat_lahir.required'                => 'Tempat lahir wajib diisi!',
+            'tgl_lahir.required'                   => 'Tanggal lahir wajib diisi!',
+            'no_telp.required'                     => 'No. Telp / WA wajib diisi!',
+            'jenis_kelamin.required'               => 'Jenis kelamin wajib diisi!',
+            'alamat_ktp.required'                  => 'Alamat KTP wajib diisi!',
+            'stt_free_pajak_bphtb.required_with'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
+            'stt_free_biaya_notaris.required_with' => 'Status Notaris wajib dipilih jika biaya diisi!',
+            'stt_free_biaya_kpr.required_with'     => 'Status KPR wajib dipilih jika biaya diisi!',
+            'stt_free_pajak_bphtb.in'              => 'Status BPHTB tidak valid!',
+            'stt_free_biaya_notaris.in'            => 'Status Notaris tidak valid!',
+            'stt_free_biaya_kpr.in'                => 'Status KPR tidak valid!',
         ];
 
         $request->validate($rules, $messages);
@@ -315,30 +334,76 @@ class CustomerController extends Controller
         DB::beginTransaction();
         try {
 
+            $hasil = app(\App\Http\Controllers\PengajuanHoldController::class)
+                ->hitungTotalHarga([
+                    'hrg_jual'               => $data->hrg_jual,
+                    'diskon'                 => $request->diskon,
+                    'pajak_bphtb'            => $request->pajak_bphtb,
+                    'biaya_notaris'          => $request->biaya_notaris,
+                    'biaya_kpr'              => $request->biaya_kpr,
+                    'biaya_custom'           => $request->biaya_custom,
+                    'biaya_lain_lain'        => $request->biaya_lain_lain,
+                    'ppn'                    => $request->ppn,
+                    'pajak_pph'              => $request->pajak_pph,
+                    'bonus_konsumen'         => $request->bonus_konsumen,
+                    'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
+                    'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
+                    'stt_free_biaya_kpr'     => $request->stt_free_biaya_kpr,
+                ]);
+
             $db = [
-                'nama_lengkap'      => $request->nama_lengkap,
-                'nik'               => $request->nik,
-                'tempat_lahir'      => $request->tempat_lahir,
-                'tgl_lahir'         => $request->tgl_lahir,
-                'no_telp'           => $request->no_telp,
-                'jenis_kelamin'     => $request->jenis_kelamin,
-                'alamat_ktp'        => $request->alamat_ktp,
-                'alamat_domisili'   => $request->alamat_domisili,
+                'nama_lengkap'           => $request->nama_lengkap,
+                'nik'                    => $request->nik,
+                'tempat_lahir'           => $request->tempat_lahir,
+                'tgl_lahir'              => $request->tgl_lahir,
+                'no_telp'                => $request->no_telp,
+                'jenis_kelamin'          => $request->jenis_kelamin,
+                'alamat_ktp'             => $request->alamat_ktp,
+                'alamat_domisili'        => $request->alamat_domisili ?? null,
 
-                'email'             => $request->email ?? null,
-                'npwp'              => $request->npwp ?? null,
-                'pekerjaan'         => $request->pekerjaan ?? null,
-                'no_bpjs_kes'       => $request->no_bpjs_kes ?? null,
+                'email'                  => $request->email ?? null,
+                'npwp'                   => $request->npwp ?? null,
+                'pekerjaan'              => $request->pekerjaan ?? null,
+                'no_bpjs_kes'            => $request->no_bpjs_kes ?? null,
 
-                'status_pernikahan' => $request->status_pernikahan ?? null,
-                'nama_p'            => $request->nama_p ?? null,
-                'nik_p'             => $request->nik_p ?? null,
+                'status_pernikahan'      => $request->status_pernikahan ?? null,
+                'nama_p'                 => $request->nama_p ?? null,
+                'nik_p'                  => $request->nik_p ?? null,
 
-                'nama_saudara'      => $request->nama_saudara ?? null,
-                'no_telp_saudara'   => $request->no_telp_saudara ?? null,
+                'nama_saudara'           => $request->nama_saudara ?? null,
+                'no_telp_saudara'        => $request->no_telp_saudara ?? null,
+
+                'an_surat_cash'          => $request->an_surat_cash ?? null,
+                'termin_x_cash_b'        => $request->termin_x_cash_b ?? null,
+
+                'diskon'                 => $request->diskon,
+                'pajak_bphtb'            => $request->pajak_bphtb,
+                'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
+                'biaya_notaris'          => $request->biaya_notaris,
+                'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
+                'biaya_kpr'              => $request->biaya_kpr,
+                'stt_free_biaya_kpr'     => $request->stt_free_biaya_kpr,
+                'biaya_custom'           => $request->biaya_custom,
+                'biaya_lain_lain'        => $request->biaya_lain_lain,
+                'ppn'                    => $request->ppn,
+                'pajak_pph'              => $request->pajak_pph,
+                'bonus_konsumen'         => $request->bonus_konsumen,
+
+                'total_harga_rumah'      => $hasil['total_harga_rumah'],
+                'total_harga_komisi'     => $hasil['total_harga_komisi'],
             ];
 
             $data->update($db);
+
+            $piutang = Piutang::where('id_customer', $data->id)->first();
+
+            if ($piutang) {
+                $piutang->update([
+                    'nominal'    => $hasil['total_harga_rumah'],
+                    'sisa_bayar' => $hasil['total_harga_rumah'] - $piutang->terbayar,
+                ]);
+            }
+
             $this->logEdit('Customer', $data->id);
 
             DB::commit();
@@ -346,73 +411,11 @@ class CustomerController extends Controller
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::info('' . $e->getMessage());
+            Log::error($e->getMessage());
+
             return response()->json([
                 'status' => 'error',
                 'error'  => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function destroy($id)
-    {
-        DB::beginTransaction();
-        try {
-            $data = Customer::findOrFail($id);
-
-            $berkas = PersyaratanLegal::where('id_customer', $id)->get();
-            if ($berkas->count()) {
-                foreach ($berkas as $b) {
-                    if (! empty($b->percakapan_wa) && file_exists(public_path('assets/legal/pengajuan_berkas/percakapan_wa/' . $b->percakapan_wa))) {
-                        unlink(public_path('assets/legal/pengajuan_berkas/percakapan_wa/' . $b->percakapan_wa));
-                    }
-                    $b->delete();
-                }
-            }
-
-            ArsipCustomer::create([
-                'id_customer'       => $data->id,
-                'tanggal'           => Carbon::now('Asia/Jakarta'),
-                'id_lokasi'         => $data->id_lokasi,
-                'id_kavling'        => $data->id_kavling,
-                'id_status_progres' => $data->id_status_progres,
-                'kode_customer'     => $data->kode_customer,
-                'nama_lengkap'      => $data->nama_lengkap,
-                'nik'               => $data->nik,
-                'nik_p'             => $data->nik_p,
-                'jenis_kelamin'     => $data->jenis_kelamin,
-                'tempat_lahir'      => $data->tempat_lahir,
-                'tgl_lahir'         => $data->tgl_lahir,
-                'alamat_ktp'        => $data->alamat_ktp,
-                'alamat_domisili'   => $data->alamat_domisili,
-                'no_telp'           => $data->no_telp,
-                'pekerjaan'         => $data->pekerjaan,
-                'id_marketing'      => $data->id_marketing,
-                'id_freelance'      => $data->id_freelance,
-            ]);
-
-            $kavling = KavlingPeta::find($data->id_kavling);
-            if ($kavling) {
-                $kavling->status      = 0;
-                $kavling->id_customer = 0;
-                $kavling->save();
-            }
-
-            $this->logDelete('Customer', $data->id);
-            $data->delete();
-
-            DB::commit();
-            return response()->json([
-                'success' => true,
-                'message' => 'Data customer berhasil dihapus.',
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error saat menghapus customer: ' . $e->getMessage());
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Terjadi kesalahan saat menghapus data.',
-                'error'   => $e->getMessage(),
             ], 500);
         }
     }

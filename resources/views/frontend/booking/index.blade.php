@@ -24,7 +24,8 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Tanggal</label>
                             <div class="col-sm-2">
-                                <input type="date" class="form-control" id="tanggal" name="tanggal">
+                                <input type="date" class="form-control" id="tanggal" name="tanggal"
+                                    value="{{ date('Y-m-d') }}">
                             </div>
                         </div>
 
@@ -169,50 +170,6 @@
                                         class="form-control format-number">
                                 </div>
                             </div>
-                            <label class="control-label col-sm-2">Peningkatan Mutu</label>
-                            <div class="col-sm-3">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="peningkatan_mutu" id="peningkatan_mutu"
-                                        class="form-control format-number">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="control-label col-sm-3">Biaya Notaris</label>
-                            <div class="col-sm-4">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="biaya_notaris" id="biaya_notaris"
-                                        class="form-control format-number">
-                                </div>
-                            </div>
-                            <label class="control-label col-sm-2">Biaya Lain Lain</label>
-                            <div class="col-sm-3">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="biaya_lain" id="biaya_lain"
-                                        class="form-control format-number">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="control-label col-sm-3">Total Harga</label>
-                            <div class="col-sm-4">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="total_harga" id="total_harga"
-                                        class="form-control format-number" readonly>
-                                </div>
-                            </div>
                         </div>
 
                         <hr>
@@ -229,12 +186,12 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <label class="control-label col-sm-2">Marketing Agen</label>
+                            <label class="control-label col-sm-2">Marketing Agent</label>
                             <div class="col-sm-3">
-                                <select class="form-control select-freelance" name="id_freelance" id="id_freelance">
+                                <select class="form-control select-agent" name="id_agent" id="id_agent">
                                     <option value=""></option>
-                                    @foreach ($freelance as $f)
-                                        <option value="{{ $f->id }}">{{ $f->nama_freelance }}</option>
+                                    @foreach ($agent as $f)
+                                        <option value="{{ $f->id }}">{{ $f->nama_agent }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -503,9 +460,9 @@
                 placeholder: "Pilih Marketing",
             });
 
-            $('.select-freelance').select2({
+            $('.select-agent').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Freelance",
+                placeholder: "Pilih Agent",
             });
 
             $('.select-jp').select2({
@@ -565,24 +522,11 @@
                 if (idKavling) {
                     const urlHarga = routeGetHarga.replace(':id', idKavling);
                     $.get(urlHarga, function(data) {
-                        $('#hrg_jual').val(data.formatted.hrg_jual);
-                        $('#peningkatan_mutu').val(data.formatted.peningkatan_mutu);
-                        $('#total_harga').val(data.formatted.total_harga);
+                        $('#hrg_jual').val(formatRupiah(data.hrg_jual));
                     });
                 } else {
-                    $('#hrg_jual, #peningkatan_mutu, #total_harga').val('');
+                    $('#hrg_jual, #total_harga').val('');
                 }
-            });
-
-            $('#hrg_jual, #peningkatan_mutu, #biaya_notaris, #biaya_lain').on('input', function() {
-                let hrgJual = parseInt($('#hrg_jual').val().replace(/\./g, '')) || 0;
-                let biayaSurat = parseInt($('#peningkatan_mutu').val().replace(/\./g, '')) || 0;
-                let biayaNotaris = parseInt($('#biaya_notaris').val().replace(/\./g, '')) || 0;
-                let biayaLain = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
-
-                let total = hrgJual + biayaSurat + biayaNotaris + biayaLain;
-
-                $('#total_harga').val(total.toLocaleString('id-ID'));
             });
 
         });

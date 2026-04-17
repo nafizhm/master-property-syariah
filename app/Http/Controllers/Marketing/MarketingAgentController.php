@@ -3,14 +3,14 @@ namespace App\Http\Controllers\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
-use App\Models\MarketingFreelance;
+use App\Models\MarketingAgent;
 use App\Traits\LogAktivitasTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
-class MarketingFreelanceController extends Controller
+class MarketingAgentController extends Controller
 {
     use LogAktivitasTrait;
     public function index(Request $request)
@@ -18,18 +18,18 @@ class MarketingFreelanceController extends Controller
         $permissions = HakAksesController::getUserPermissions();
         if ($request->ajax()) {
 
-            $data = MarketingFreelance::orderBy('id', 'desc');
+            $data = MarketingAgent::orderBy('id', 'desc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('kode_freelance', function ($row) {
+                ->addColumn('kode_agent', function ($row) {
                     $iconUrl = ($row->foto != null && $row->foto != '')
-                    ? asset('assets/marketing/marketing_freelance/' . $row->foto)
+                    ? asset('assets/marketing/marketing_agent/' . $row->foto)
                     : ($row->jenis_kelamin == 1
                         ? asset('assets/img/men-icon.png')
                         : asset('assets/img/women-icon.png'));
 
-                    return '<img src="' . $iconUrl . '" alt="icon" style="width:30px; height:30px; border-radius:50%; margin-right:8px;">' . e($row->kode_freelance);
+                    return '<img src="' . $iconUrl . '" alt="icon" style="width:30px; height:30px; border-radius:50%; margin-right:8px;">' . e($row->kode_agent);
                 })
                 ->addColumn('alamat', function ($row) {
                     $alamat = e($row->alamat);
@@ -52,8 +52,8 @@ class MarketingFreelanceController extends Controller
                     return "{$nama_bank}<br>{$no_rekening}" . ($atas_nama ? "<br>{$atas_nama}" : '');
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
-                    $editUrl   = route('marketing-agen.edit', $row->id);
-                    $deleteUrl = route('marketing-agen.destroy', $row->id);
+                    $editUrl   = route('marketing-agent.edit', $row->id);
+                    $deleteUrl = route('marketing-agent.destroy', $row->id);
                     $btn       = '<div class="text-center">';
 
                     if ($permissions['edit']) {
@@ -72,32 +72,32 @@ class MarketingFreelanceController extends Controller
                     $btn .= '</div>';
                     return $btn;
                 })
-                ->rawColumns(['action', 'kode_freelance', 'alamat', 'status', 'rekening'])
+                ->rawColumns(['action', 'kode_agent', 'alamat', 'status', 'rekening'])
                 ->make(true);
         }
 
-        return view('admin.marketing.marketing_freelance.index', compact('permissions'));
+        return view('admin.marketing.marketing_agent.index', compact('permissions'));
     }
 
     public function store(Request $request)
     {
         $rules = [
-            'nama_freelance' => 'required|unique:marketing_freelance,nama_freelance',
+            'nama_agent' => 'required|unique:marketing_agent,nama_agent',
             // 'jenis_kelamin'  => 'required',
             // 'pekerjaan'      => 'required',
-            // 'no_telp'        => 'required|unique:marketing_freelance,no_telp',
+            // 'no_telp'        => 'required|unique:marketing_agent,no_telp',
             // 'alamat'         => 'nullable',
             // 'sosmed'         => 'nullable',
             // 'status'         => 'required',
             // 'nama_bank'      => 'required',
-            // 'no_rekening'    => 'required|unique:marketing_freelance,no_rekening',
+            // 'no_rekening'    => 'required|unique:marketing_agent,no_rekening',
             // 'atas_nama'      => 'required',
             // 'foto'           => 'nullable|mimes:jpg,jpeg,png|max:2048',
         ];
 
         $messages = [
-            'nama_freelance.required' => 'Nama Marketing Freelance wajib diisi.',
-            'nama_freelance.unique'   => 'Nama Marketing Freelance sudah terdaftar.',
+            'nama_agent.required' => 'Nama Marketing Agent wajib diisi.',
+            'nama_agent.unique'   => 'Nama Marketing Agent sudah terdaftar.',
 
             // 'jenis_kelamin.required'  => 'Jenis kelamin wajib diisi.',
 
@@ -124,12 +124,12 @@ class MarketingFreelanceController extends Controller
         DB::beginTransaction();
         try {
 
-            $lastMarketing = DB::table('marketing_freelance')
-                ->where('kode_freelance', 'like', 'M-%')
+            $lastMarketing = DB::table('marketing_agent')
+                ->where('kode_agent', 'like', 'M-%')
                 ->orderByDesc('id')
                 ->first();
 
-            $nextNumber = ($lastMarketing && preg_match('/M-(\d+)/', $lastMarketing->kode_freelance, $matches))
+            $nextNumber = ($lastMarketing && preg_match('/M-(\d+)/', $lastMarketing->kode_agent, $matches))
             ? intval($matches[1]) + 1
             : 1;
 
@@ -140,12 +140,12 @@ class MarketingFreelanceController extends Controller
                 $ext  = $foto->getClientOriginalExtension();
 
                 $filename = Str::random(25) . '.' . $ext;
-                $foto->move(public_path('assets/marketing/marketing_freelance/'), $filename);
+                $foto->move(public_path('assets/marketing/marketing_agent/'), $filename);
             }
 
-            $marketing = MarketingFreelance::create([
-                'kode_freelance' => $kodeMarketing,
-                'nama_freelance' => $request->nama_freelance,
+            $marketing = MarketingAgent::create([
+                'kode_agent' => $kodeMarketing,
+                'nama_agent' => $request->nama_agent,
                 'alamat'         => $request->alamat ?? '',
                 'jenis_kelamin'  => $request->jenis_kelamin ?? 1,
                 'pekerjaan'      => $request->pekerjaan ?? '',
@@ -158,7 +158,7 @@ class MarketingFreelanceController extends Controller
                 'atas_nama'      => $request->atas_nama ?? '',
             ]);
 
-            $this->logCreate('Marketing Freelance', $marketing->id);
+            $this->logCreate('Marketing Agent', $marketing->id);
 
             DB::commit();
 
@@ -174,7 +174,7 @@ class MarketingFreelanceController extends Controller
 
     public function edit($id)
     {
-        $data = MarketingFreelance::findOrFail($id);
+        $data = MarketingAgent::findOrFail($id);
 
         return response()->json([
             'status' => 'success',
@@ -184,25 +184,25 @@ class MarketingFreelanceController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = MarketingFreelance::findOrFail($id);
+        $data = MarketingAgent::findOrFail($id);
 
         $rules = [
-            'nama_freelance' => 'required|unique:marketing_freelance,nama_freelance,' . $data->id . ',id',
+            'nama_agent' => 'required|unique:marketing_agent,nama_agent,' . $data->id . ',id',
             // 'jenis_kelamin'  => 'required',
             // 'pekerjaan'      => 'required',
-            // 'no_telp'        => 'required|unique:marketing_freelance,no_telp,' . $data->id . ',id',
+            // 'no_telp'        => 'required|unique:marketing_agent,no_telp,' . $data->id . ',id',
             // 'alamat'         => 'nullable',
             // 'sosmed'         => 'nullable',
             // 'status'         => 'required',
             // 'nama_bank'      => 'required',
-            // 'no_rekening'    => 'required|unique:marketing_freelance,no_rekening,' . $data->id . ',id',
+            // 'no_rekening'    => 'required|unique:marketing_agent,no_rekening,' . $data->id . ',id',
             // 'atas_nama'      => 'required',
             // 'foto'           => 'nullable|mimes:jpg,jpeg,png|max:2048',
         ];
 
         $messages = [
-            'nama_freelance.required' => 'Nama Marketing Freelance wajib diisi.',
-            'nama_freelance.unique'   => 'Nama Marketing Freelance sudah terdaftar.',
+            'nama_agent.required' => 'Nama Marketing Agent wajib diisi.',
+            'nama_agent.unique'   => 'Nama Marketing Agent sudah terdaftar.',
 
             // 'jenis_kelamin.required'  => 'Jenis kelamin wajib diisi.',
 
@@ -230,18 +230,18 @@ class MarketingFreelanceController extends Controller
         try {
 
             if ($request->hasFile('foto')) {
-                if (! empty($data->foto) && file_exists(public_path('assets/marketing/marketing_freelance/' . $data->foto))) {
-                    unlink(public_path('assets/marketing/marketing_freelance/' . $data->foto));
+                if (! empty($data->foto) && file_exists(public_path('assets/marketing/marketing_agent/' . $data->foto))) {
+                    unlink(public_path('assets/marketing/marketing_agent/' . $data->foto));
                 }
 
                 $foto     = $request->file('foto');
                 $ext      = $foto->getClientOriginalExtension();
                 $filename = Str::random(25) . '.' . $ext;
-                $foto->move(public_path('assets/marketing/marketing_freelance/'), $filename);
+                $foto->move(public_path('assets/marketing/marketing_agent/'), $filename);
             }
 
             $db = [
-                'nama_freelance' => $request->nama_freelance,
+                'nama_agent' => $request->nama_agent,
                 'alamat'         => $request->alamat ?? '',
                 'jenis_kelamin'  => $request->jenis_kelamin ?? 1,
                 'pekerjaan'      => $request->pekerjaan ?? '',
@@ -255,7 +255,7 @@ class MarketingFreelanceController extends Controller
             ];
 
             $data->update($db);
-            $this->logEdit('Marketing Freelance', $data->id);
+            $this->logEdit('Marketing Agent', $data->id);
 
             DB::commit();
 
@@ -273,13 +273,13 @@ class MarketingFreelanceController extends Controller
     {
         DB::beginTransaction();
         try {
-            $data = MarketingFreelance::findOrFail($id);
+            $data = MarketingAgent::findOrFail($id);
 
-            if (! empty($data->foto) && file_exists(public_path('assets/marketing/marketing_freelance/' . $data->foto))) {
-                unlink(public_path('assets/marketing/marketing_freelance/' . $data->foto));
+            if (! empty($data->foto) && file_exists(public_path('assets/marketing/marketing_agent/' . $data->foto))) {
+                unlink(public_path('assets/marketing/marketing_agent/' . $data->foto));
             }
 
-            $this->logDelete('Marketing Freelance', $data->id);
+            $this->logDelete('Marketing Agent', $data->id);
             $data->delete();
 
             DB::commit();

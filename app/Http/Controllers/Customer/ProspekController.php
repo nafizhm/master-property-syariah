@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Customer;
-use App\Models\Freelance;
+use App\Models\Agent;
 use App\Models\KavlingPeta;
 use App\Models\Marketing;
-use App\Models\MarketingFreelance;
+use App\Models\MarketingAgent;
 use App\Models\MarketingOffline;
 use App\Models\ProspekCustomer;
 use App\Traits\LogAktivitasTrait;
@@ -24,7 +24,7 @@ class ProspekController extends Controller
         $permissions = HakAksesController::getUserPermissions();
         if ($request->ajax()) {
 
-            $data = ProspekCustomer::with('marketing', 'freelance')->orderBy('id', 'desc');
+            $data = ProspekCustomer::with('marketing', 'agent')->orderBy('id', 'desc');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -32,7 +32,7 @@ class ProspekController extends Controller
                     return '
                     <div>
                         <p>' . e($row->nama_lengkap) . '</p>
-                        <p class="badge bg-info">' . e($row->marketing->nama_marketing ?? $row->freelance->nama_freelance) . '</p>
+                        <p class="badge bg-info">' . e($row->marketing->nama_marketing ?? $row->agent->nama_agent) . '</p>
                     </div>
                 ';
                 })
@@ -62,9 +62,9 @@ class ProspekController extends Controller
         }
 
         $marketing = MarketingOffline::all();
-        $freelance = MarketingFreelance::all();
+        $agent = MarketingAgent::all();
 
-        return view('admin.customer.prospek.index', compact('permissions', 'marketing', 'freelance'));
+        return view('admin.customer.prospek.index', compact('permissions', 'marketing', 'agent'));
     }
 
     public function store(Request $request)
@@ -111,7 +111,7 @@ class ProspekController extends Controller
                 'sumber_informasi' => $request->sumber_informasi,
                 'rangking'         => $request->rangking,
                 'id_marketing'     => $request->id_marketing,
-                'id_freelance'     => $request->id_freelance ?? 0,
+                'id_agent'     => $request->id_agent ?? 0,
                 'keterangan_belum' => $request->keterangan_belum ?? '',
                 'email'            => $request->email ?? '',
             ]);
@@ -188,7 +188,7 @@ class ProspekController extends Controller
                 'sumber_informasi' => $request->sumber_informasi,
                 'rangking'         => $request->rangking,
                 'id_marketing'     => $request->id_marketing,
-                'id_freelance'     => $request->id_freelance ?? 0,
+                'id_agent'     => $request->id_agent ?? 0,
                 'keterangan_belum' => $request->keterangan_belum,
                 'email'            => $request->email ?? '',
             ]);
@@ -212,13 +212,13 @@ class ProspekController extends Controller
         $data = prospekCustomer::find($id);
 
         $marketing = DB::table('marketing')->get();
-        $freelance = DB::table('freelance')->get();
+        $agent = DB::table('agent')->get();
         $progres   = DB::table('progres_list_penjualan')->get();
         $bank      = DB::table('bank')->get();
         $lokasi    = DB::table('lokasi_kavling')->get();
         $kavling   = DB::table('kavling_peta')->get();
 
-        return view('admin.customer.prospek.prosesUtj', compact('lokasi', 'data', 'kavling', 'marketing', 'freelance', 'progres', 'bank'));
+        return view('admin.customer.prospek.prosesUtj', compact('lokasi', 'data', 'kavling', 'marketing', 'agent', 'progres', 'bank'));
     }
 
     public function createUtj(Request $request)
@@ -229,7 +229,7 @@ class ProspekController extends Controller
             'no_wa'             => 'required',
             'pekerjaan'         => 'required',
             'id_marketing'      => 'required',
-            'id_freelance'      => 'required',
+            'id_agent'      => 'required',
             'no_ktp'            => 'required|numeric',
             'no_ktp_p'          => 'required|numeric',
             'tempat_lahir'      => 'required|string|max:50',
@@ -252,7 +252,7 @@ class ProspekController extends Controller
             'no_wa.required'             => 'Nomor telepon wajib diisi.',
             'pekerjaan.required'         => 'Pekerjaan wajib diisi.',
             'id_marketing.required'      => 'Marketing wajib dipilih.',
-            'id_freelance.required'      => 'Freelance wajib dipilih.',
+            'id_agent.required'      => 'Agent wajib dipilih.',
             'no_ktp.required'            => 'No. KTP wajib diisi.',
             'no_ktp.numeric'             => 'No. KTP harus berupa angka.',
             'no_ktp_p.required'          => 'No. KTP Pasangan wajib diisi.',
@@ -295,7 +295,7 @@ class ProspekController extends Controller
             'no_telp'              => $request->no_wa,
             'pekerjaan'            => $request->pekerjaan,
             'id_marketing'         => $request->id_marketing,
-            'id_freelance'         => $request->id_freelance,
+            'id_agent'         => $request->id_agent,
             'no_ktp'               => $request->no_ktp,
             'no_ktp_p'             => $request->no_ktp_p,
             'tempat_lahir'         => $request->tempat_lahir,

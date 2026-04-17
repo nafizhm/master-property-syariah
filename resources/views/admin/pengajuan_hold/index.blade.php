@@ -63,9 +63,10 @@
                     <input type="hidden" id="primary_id" name="primary_id">
                     <div class="modal-body">
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Tanggal</label>
+                            <label class="col-sm-3 col-form-label">Tanggal Booking <span
+                                    style="color: red;">*</span></label>
                             <div class="col-sm-2">
-                                <input type="text" class="form-control" id="tgl_booking" name="tgl_booking" readonly>
+                                <input type="date" class="form-control" id="tgl_booking" name="tgl_booking">
                             </div>
                         </div>
 
@@ -98,7 +99,7 @@
                             </div>
                             <label class="control-label col-sm-2">Jenis Kelamin <span style="color: red;">*</span></label>
                             <div class="col-sm-3">
-                                <select class="form-control select-jk" name="jenis_kelamin" id="jenis_kelamin">
+                                <select class="form-select select-jk" name="jenis_kelamin" id="jenis_kelamin">
                                     <option value=""></option>
                                     <option value="Laki-laki">Laki-laki</option>
                                     <option value="Perempuan">Perempuan</option>
@@ -145,7 +146,7 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Status Pernikahan</label>
                             <div class="col-sm-4">
-                                <select class="form-control select-status" name="status_pernikahan"
+                                <select class="form-select select-status" name="status_pernikahan"
                                     id="status_pernikahan">
                                     <option value=""></option>
                                     <option value="Belum Menikah">Belum Menikah</option>
@@ -184,7 +185,7 @@
                             <label class="control-label col-sm-3">Lokasi Perumahan <span
                                     style="color: red;">*</span></label>
                             <div class="col-sm-4">
-                                <select class="form-control select-lokasi" name="id_lokasi" id="id_lokasi">
+                                <select class="form-select select-lokasi" name="id_lokasi" id="id_lokasi">
                                     <option value=""></option>
                                     @foreach ($lokasi as $l)
                                         <option value="{{ $l->id }}">{{ $l->nama_kavling }}</option>
@@ -193,7 +194,7 @@
                             </div>
                             <label class="control-label col-sm-2">Blok/Kav <span style="color: red;">*</span></label>
                             <div class="col-sm-3">
-                                <select name="id_kavling" id="id_kavling" class="form-control select-kavling"></select>
+                                <select name="id_kavling" id="id_kavling" class="form-select select-kavling"></select>
                             </div>
                         </div>
 
@@ -208,50 +209,6 @@
                                         class="form-control format-number">
                                 </div>
                             </div>
-                            <label class="control-label col-sm-2">Peningkatan Mutu</label>
-                            <div class="col-sm-3">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="peningkatan_mutu" id="peningkatan_mutu"
-                                        class="form-control format-number">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="control-label col-sm-3">Biaya Notaris</label>
-                            <div class="col-sm-4">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="biaya_notaris" id="biaya_notaris"
-                                        class="form-control format-number">
-                                </div>
-                            </div>
-                            <label class="control-label col-sm-2">Biaya Lain Lain</label>
-                            <div class="col-sm-3">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="biaya_lain" id="biaya_lain"
-                                        class="form-control format-number">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="control-label col-sm-3">Total Harga</label>
-                            <div class="col-sm-4">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
-                                    <input type="text" name="total_harga" id="total_harga"
-                                        class="form-control format-number" readonly>
-                                </div>
-                            </div>
                         </div>
 
                         <hr>
@@ -259,19 +216,19 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Marketing <span style="color: red;">*</span></label>
                             <div class="col-sm-4">
-                                <select class="form-control select-marketing" name="id_marketing" id="id_marketing">
+                                <select class="form-select select-marketing" name="id_marketing" id="id_marketing">
                                     <option value=""></option>
                                     @foreach ($marketing as $m)
                                         <option value="{{ $m->id }}">{{ $m->nama_marketing }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <label class="control-label col-sm-2">Marketing Freelance</label>
+                            <label class="control-label col-sm-2">Marketing Agent</label>
                             <div class="col-sm-3">
-                                <select class="form-control select-freelance" name="id_freelance" id="id_freelance">
+                                <select class="form-select select-agent" name="id_agent" id="id_agent">
                                     <option value=""></option>
-                                    @foreach ($freelance as $f)
-                                        <option value="{{ $f->id }}">{{ $f->nama_freelance }}</option>
+                                    @foreach ($agent as $f)
+                                        <option value="{{ $f->id }}">{{ $f->nama_agent }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -281,7 +238,7 @@
                             <label class="control-label col-sm-3">Jenis Perumahan <span
                                     style="color: red;">*</span></label>
                             <div class="col-sm-4">
-                                <select class="form-control select-jp" name="jenis_perumahan" id="jenis_perumahan">
+                                <select class="form-select select-jp" name="jenis_perumahan" id="jenis_perumahan">
                                     <option value=""></option>
                                     <option value="Subsidi">Subsidi</option>
                                     <option value="Komersil">Komersil</option>
@@ -290,8 +247,7 @@
                             <label class="control-label col-sm-2">Jenis Pembelian <span
                                     style="color: red;">*</span></label>
                             <div class="col-sm-3">
-                                <select class="form-control select-pembelian" name="jenis_pembelian"
-                                    id="jenis_pembelian">
+                                <select class="form-select select-pembelian" name="jenis_pembelian" id="jenis_pembelian">
                                     <option value=""></option>
                                     <option value="Pembelian Cash">Pembelian Cash</option>
                                     <option value="Cash Bertahap">Cash Bertahap</option>
@@ -362,9 +318,9 @@
                 placeholder: "Pilih Marketing",
             });
 
-            $('.select-freelance').select2({
+            $('.select-agent').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Freelance",
+                placeholder: "Pilih Agent",
             });
 
             $('.select-jp').select2({
@@ -458,137 +414,111 @@
             });
         });
 
-        let isEditMode = false;
+        const routeGetKavling = "{{ route('pengajuan-hold.getKavling', ':id') }}";
+        const routeGetHarga = "{{ route('pengajuan-hold.getHargaKavling', ':id') }}";
+
+        const setOptions = (data) => {
+            let options = '<option value=""></option>';
+            data.forEach(i => options += `<option value="${i.id}">${i.kode_kavling}</option>`);
+            return options;
+        };
 
         $(document).on('click', '.edit-button', function() {
-            isEditMode = true;
+            const url = $(this).data('url');
 
-            var url = $(this).data('url');
-            $.get(url, function(response) {
-                if (response.status === 'success') {
-                    const data = response.data;
+            $.get(url, function(res) {
+                if (res.status !== 'success') return;
 
-                    $('#primary_id').val(data.id);
-                    $('#tgl_booking').val(response.data.tgl_booking_formatted);
-                    $('#nama_lengkap').val(data.nama_lengkap);
-                    $('#nik').val(data.nik);
-                    $('#nik_p').val(data.nik_p);
-                    $('#tempat_lahir').val(data.tempat_lahir);
-                    $('#tgl_lahir').val(data.tgl_lahir);
-                    $('#jenis_kelamin').val(data.jenis_kelamin).trigger('change');
-                    $('#no_telp').val(data.no_telp);
-                    $('#email').val(data.email);
-                    $('#npwp').val(data.npwp);
-                    $('#no_bpjs_kes').val(data.no_bpjs_kes);
-                    $('#booking_fee').val(formatNumber(data.booking_fee));
-                    $('#alamat_ktp').val(data.alamat_ktp);
-                    $('#alamat_domisili').val(data.alamat_domisili);
-                    $('#pekerjaan').val(data.pekerjaan);
-                    $('#status_pernikahan').val(data.status_pernikahan).trigger('change');
-                    $('#nama_p').val(data.nama_p);
-                    $('#nama_saudara').val(data.nama_saudara);
-                    $('#no_telp_saudara').val(data.no_telp_saudara);
+                const d = res.data;
 
-                    $('#id_lokasi').val(data.id_lokasi).trigger('change');
-                    setTimeout(function() {
-                        $('#id_kavling').val(data.id_kavling).trigger('change');
-                    }, 500);
+                $('#primary_id').val(d.id);
+                $('#tgl_booking').val(d.tgl_booking);
+                $('#nama_lengkap').val(d.nama_lengkap);
+                $('#nik').val(d.nik);
+                $('#nik_p').val(d.nik_p);
+                $('#tempat_lahir').val(d.tempat_lahir);
+                $('#tgl_lahir').val(d.tgl_lahir);
+                $('#jenis_kelamin').val(d.jenis_kelamin).trigger('change');
+                $('#no_telp').val(d.no_telp);
+                $('#email').val(d.email);
+                $('#npwp').val(d.npwp);
+                $('#no_bpjs_kes').val(d.no_bpjs_kes);
+                $('#booking_fee').val(formatNumber(d.booking_fee));
+                $('#alamat_ktp').val(d.alamat_ktp);
+                $('#alamat_domisili').val(d.alamat_domisili);
+                $('#pekerjaan').val(d.pekerjaan);
+                $('#status_pernikahan').val(d.status_pernikahan).trigger('change');
+                $('#nama_p').val(d.nama_p);
+                $('#nama_saudara').val(d.nama_saudara);
+                $('#no_telp_saudara').val(d.no_telp_saudara);
 
-                    $('#hrg_jual').val(formatNumber(data.hrg_jual));
-                    $('#peningkatan_mutu').val(formatNumber(data.peningkatan_mutu));
-                    $('#biaya_notaris').val(formatNumber(data.biaya_notaris));
-                    $('#biaya_lain').val(formatNumber(data.biaya_lain));
-                    $('#total_harga').val(formatNumber(data.total_harga));
-                    $('#id_marketing').val(data.id_marketing).trigger('change');
-                    $('#id_freelance').val(data.id_freelance).trigger('change');
-                    $('#jenis_pembelian').val(data.jenis_pembelian).trigger('change');
-                    $('#jenis_perumahan').val(data.jenis_perumahan).trigger('change');
+                $('#id_marketing').val(d.id_marketing).trigger('change');
+                $('#id_agent').val(d.id_agent).trigger('change');
+                $('#jenis_pembelian').val(d.jenis_pembelian).trigger('change');
+                $('#jenis_perumahan').val(d.jenis_perumahan).trigger('change');
 
-                    $('#modalForm').modal('show');
+                $('#hrg_jual').val(formatNumber(d.hrg_jual));
+                $('#id_lokasi').val(d.id_lokasi).trigger('change.select2');
 
-                }
+                $.get(routeGetKavling.replace(':id', d.id_lokasi), function(kavlings) {
+                    $('#id_kavling').html(setOptions(kavlings));
+                    $('#id_kavling').val(d.id_kavling).trigger('change.select2');
+                });
+
+                $('#modalForm').modal('show');
             });
         });
 
         $(document).ready(function() {
+
             $('.select-lokasi').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Lokasi",
+                placeholder: "Pilih Lokasi"
             });
-
             $('.select-kavling').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Kavling",
+                placeholder: "Pilih Kavling"
             });
-
-            const routeGetKavling = "{{ route('pengajuan-hold.getKavling', ':id') }}";
-            const routeGetHarga = "{{ route('pengajuan-hold.getHargaKavling', ':id') }}";
 
             $('#id_lokasi').on('change', function() {
-                let idLokasi = $(this).val();
+                const id = $(this).val();
 
-                if (!isEditMode) {
-                    $('#hrg_jual, #peningkatan_mutu, #biaya_lain, #biaya_notaris, #total_harga').val('');
-                }
+                $('#hrg_jual').val('');
+                $('#id_kavling').html('<option value=""></option>');
 
-                if (idLokasi) {
-                    const urlKavling = routeGetKavling.replace(':id', idLokasi);
-                    $.get(urlKavling, function(data) {
-                        let options = '<option value=""></option>';
-                        data.forEach(function(item) {
-                            options +=
-                                `<option value="${item.id}">${item.kode_kavling}</option>`;
-                        });
-                        $('#id_kavling').html(options);
+                if (!id) return;
 
-                        if (isEditMode) {
-                            $('#id_kavling').val($('#id_kavling').data('selected')).trigger(
-                                'change.select2');
-                        }
-                    });
-                }
+                $.get(routeGetKavling.replace(':id', id), function(data) {
+                    $('#id_kavling').html(setOptions(data));
+                });
             });
+
             $('#id_kavling').on('change', function() {
-                let idKavling = $(this).val();
+                const id = $(this).val();
 
-                if (idKavling) {
-                    const urlHarga = routeGetHarga.replace(':id', idKavling);
-                    $.get(urlHarga, function(data) {
-                        $('#hrg_jual').val(data.formatted.hrg_jual);
-                        $('#peningkatan_mutu').val(data.formatted.peningkatan_mutu);
-                        $('#total_harga').val(data.formatted.total_harga);
-                    });
-                } else {
-                    $('#hrg_jual, #peningkatan_mutu, #total_harga').val('');
+                if (!id) {
+                    $('#hrg_jual').val('');
+                    return;
                 }
+
+                $.get(routeGetHarga.replace(':id', id), function(data) {
+                    $('#hrg_jual').val(formatNumber(data.hrg_jual));
+                });
             });
 
-            $('#hrg_jual, #peningkatan_mutu, #biaya_notaris, #biaya_lain').on('input', function() {
-                let hrgJual = parseInt($('#hrg_jual').val().replace(/\./g, '')) || 0;
-                let biayaSurat = parseInt($('#peningkatan_mutu').val().replace(/\./g, '')) || 0;
-                let biayaNotaris = parseInt($('#biaya_notaris').val().replace(/\./g, '')) || 0;
-                let biayaLain = parseInt($('#biaya_lain').val().replace(/\./g, '')) || 0;
-
-                let total = hrgJual + biayaSurat + biayaNotaris + biayaLain;
-
-                $('#total_harga').val(total.toLocaleString('id-ID'));
-            });
         });
 
         $('#modalForm').on('hidden.bs.modal', function() {
             isEditMode = false;
             $('#formData')[0].reset();
             $('#primary_id').val('');
-            $('.jenis_kelamin').val('').trigger('change');
-            $('.status').val('').trigger('change');
-            $('.id_lokasi').val('').trigger('change');
-            $('.id_kavling').val('').trigger('change');
-            $('.id_marketing').val('').trigger('change');
-            $('.id_freelance').val('').trigger('change');
-            $('.jenis_perumahan').val('').trigger('change');
-            $('.jenis_pembelian').val('').trigger('change');
+            $('.form-select').val('').trigger('change');
+
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
+
+            isEditMode = false;
+            selectedKavlingEdit = null;
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');

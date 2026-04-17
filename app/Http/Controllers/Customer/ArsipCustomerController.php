@@ -94,12 +94,14 @@ class ArsipCustomerController extends Controller
 
         return view('admin.customer.arsip_customer.index', compact('permissions'));
     }
-    
+
     public function destroy($id)
     {
-        $data = ArsipCustomer::findOrFail($id);
-        $this->logDelete('Arsip Customer', $data->id);
-        $data->delete();
+        $data = Customer::findOrFail($id);
+
+        $this->logDelete('Kembalikan Arsip Customer', $data->id);
+        
+        $data->update(['stt_arsip' => 0]);
 
         return response()->json(['status' => 'success']);
     }

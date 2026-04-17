@@ -13,14 +13,16 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImageOrFileController;
 use App\Http\Controllers\Keuangan\HutangController;
 use App\Http\Controllers\Keuangan\KategoriTransaksiController;
+use App\Http\Controllers\Keuangan\KomisiController;
 use App\Http\Controllers\Keuangan\LaporanArusKasController;
 use App\Http\Controllers\Keuangan\MutasiSaldoController;
 use App\Http\Controllers\Keuangan\PemasukanController;
+use App\Http\Controllers\Keuangan\PembukuanBiayaController;
 use App\Http\Controllers\Keuangan\PengeluaranController;
 use App\Http\Controllers\Keuangan\PiutangController;
 use App\Http\Controllers\Legal\BerkasPengajuanController;
 use App\Http\Controllers\Legal\ListrikAirController;
-use App\Http\Controllers\Marketing\MarketingFreelanceController;
+use App\Http\Controllers\Marketing\MarketingAgentController;
 use App\Http\Controllers\Marketing\MarketingOfflineController;
 use App\Http\Controllers\Master\BankKPRController;
 use App\Http\Controllers\Master\BankTransaksiController;
@@ -164,7 +166,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/customer-status-progres/{id}', 'showCustomer')->name('dashboard.customer-status-progres-show');
         Route::get('/dashboard/customer-bank/{id}', 'showCustomer')->name('dashboard.customer-bank-show');
         Route::get('/dashboard/customer-marketing/{id}', 'showCustomer')->name('dashboard.customer-marketing-show');
-        Route::get('/dashboard/customer-freelance/{id}', 'showCustomer')->name('dashboard.customer-freelance-show');
+        Route::get('/dashboard/customer-agent/{id}', 'showCustomer')->name('dashboard.customer-agent-show');
         Route::get('/total-unit', 'totalUnit')->name('dashboard.total-unit');
         Route::get('/booking-unit', 'booking')->name('dashboard.booking-unit');
         Route::get('/wawancara-unit', 'wawancara')->name('dashboard.wawancara-unit');
@@ -241,11 +243,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('bast.cetak');
         Route::get('/bast/generate-no', [BASTController::class, 'generateNoBAST'])->name('generateNoBAST');
         Route::resource('bast', BASTController::class);
-        // Route::get('cetak-ppjb/{id_customer}', [PPJBController::class, 'cetakPPJB'])
-        //     ->name('ppjb.cetak');
-        Route::get('/ppjb/kpr/{id_customer}',[PPJBController::class, 'cetakKpr'])->name('ppjb.cetakKpr');
-        Route::get('/ppjb/cash-bertahap/{id_customer}',[PPJBController::class, 'cetakCashBertahap'])->name('ppjb.cetakCashBertahap');
-        Route::get('/ppjb/cash-keras/{id_customer}',[PPJBController::class, 'cetakCashKeras'])->name('ppjb.cetakCashKeras');
+        
+        Route::get('/ppjb/kpr/{id_customer}',[PPJBController::class, 'cetakKpr'])->name('ppjb.cetak-kpr');
+        Route::get('/ppjb/cash-bertahap/{id_customer}',[PPJBController::class, 'cetakCashBertahap'])->name('ppjb.cetak-cash-bertahap');
+        Route::get('/ppjb/pembelian-cash/{id_customer}',[PPJBController::class, 'cetakPembelianCash'])->name('ppjb.cetak-pembelian-cash');
         Route::resource('ppjb', PPJBController::class);
 
         Route::get('pindah-unit/kwitansi/{id}', [PindahUnitController::class, 'cetakKwitansi'])->name('pindah-unit.kwitansi');
@@ -278,7 +279,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('admin/marketing')->group(function () {
         Route::resource('marketing-inhouse', MarketingOfflineController::class);
-        Route::resource('marketing-agen', MarketingFreelanceController::class);
+        Route::resource('marketing-agent', MarketingAgentController::class);
     });
 
     Route::prefix('admin/op-bangunan')->group(function () {
@@ -348,6 +349,8 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('pengeluaran', PengeluaranController::class);
         Route::resource('hutang', HutangController::class);
         Route::resource('piutang', PiutangController::class);
+        Route::resource('komisi', KomisiController::class);
+        Route::resource('pembukuan-biaya', PembukuanBiayaController::class);
         Route::resource('kategori-transaksi', KategoriTransaksiController::class);
         Route::resource('mutasi-saldo', MutasiSaldoController::class);
         Route::resource('laporan-arus-kas', LaporanArusKasController::class);

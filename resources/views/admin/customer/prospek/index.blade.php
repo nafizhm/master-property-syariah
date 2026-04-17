@@ -140,12 +140,12 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <label for="id_freelance" class="col-sm-2 col-form-label">Freelance</label>
+                            <label for="id_agent" class="col-sm-2 col-form-label">Agent</label>
                             <div class="col-sm-3">
-                                <select name="id_freelance" id="id_freelance" class="form-control select-freelance">
+                                <select name="id_agent" id="id_agent" class="form-control select-agent">
                                     <option value=""></option>
-                                    @foreach ($freelance as $f)
-                                        <option value="{{ $f->id }}">{{ $f->nama_freelance }}</option>
+                                    @foreach ($agent as $f)
+                                        <option value="{{ $f->id }}">{{ $f->nama_agent }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -209,9 +209,9 @@
                 theme: "bootstrap4",
                 placeholder: "Pilih Marketing",
             });
-            $('.select-freelance').select2({
+            $('.select-agent').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Freelance",
+                placeholder: "Pilih Agent",
             });
             $('.select-bank').select2({
                 theme: "bootstrap4",
@@ -345,8 +345,8 @@
                     $('#rangking').val(response.data.rangking).trigger('change'); // untuk select-rank
                     $('#id_marketing').val(response.data.id_marketing).trigger(
                         'change'); // untuk select-marketing
-                    $('#id_freelance').val(response.data.id_freelance).trigger(
-                        'change'); // untuk select-freelance
+                    $('#id_agent').val(response.data.id_agent).trigger(
+                        'change'); // untuk select-agent
                     $('#keterangan_belum').val(response.data.keterangan_belum);
 
                     $('#modalForm').modal('show');
@@ -364,7 +364,7 @@
             $('.select2bs4').val('').trigger('change');
             $('.select-rank').val('').trigger('change');
             $('.select-marketing').val('').trigger('change');
-            $('.select-freelance').val('').trigger('change');
+            $('.select-agent').val('').trigger('change');
             $('.select-jk').val('').trigger('change');
             $('.select-lokasi').val('').trigger('change');
             $('.select-kavling').val('').trigger('change');

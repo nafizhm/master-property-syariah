@@ -155,7 +155,7 @@ class GantiNamaController extends Controller
                 'no_telp_saudara'   => null,
                 'jenis_perumahan'   => $customerLama->jenis_perumahan,
                 'id_marketing'      => $customerLama->id_marketing,
-                'id_freelance'      => $customerLama->id_freelance,
+                'id_agent'      => $customerLama->id_agent,
                 'jenis_pembelian'   => $customerLama->jenis_pembelian,
                 'an_surat_cash'     => $customerLama->an_surat_cash,
                 'termin_x_cash_b'   => $customerLama->termin_x_cash_b,

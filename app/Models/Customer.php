@@ -7,18 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory;
-    protected $table = 'customer';
+    protected $table    = 'customer';
     protected $fillable = [
         'kode_customer',
         'tanggal_verif',
         'id_lokasi',
         'id_kavling',
         'hrg_jual',
-        'peningkatan_mutu',
-        'biaya_notaris',
-        'biaya_lain',
-        'total_harga',
+        'diskon',
         'id_status_progres',
+
         'nama_lengkap',
         'nik',
         'jenis_kelamin',
@@ -27,21 +25,42 @@ class Customer extends Model
         'alamat_ktp',
         'alamat_domisili',
         'status_pernikahan',
+
         'nama_p',
         'nik_p',
         'no_bpjs_kes',
         'nama_saudara',
         'no_telp_saudara',
+
         'jenis_perumahan',
         'no_telp',
         'email',
         'npwp',
         'pekerjaan',
+
         'id_marketing',
-        'id_freelance',
+        'id_agent',
+
         'jenis_pembelian',
+        'id_bank',
+        'id_metode_bayar',
         'an_surat_cash',
         'termin_x_cash_b',
+
+        'pajak_bphtb',
+        'stt_free_pajak_bphtb',
+        'biaya_notaris',
+        'stt_free_biaya_notaris',
+        'biaya_kpr',
+        'stt_free_biaya_kpr',
+        'biaya_custom',
+        'biaya_lain_lain',
+        'ppn',
+        'pajak_pph',
+        'bonus_konsumen',
+        'total_harga_rumah',
+        'total_harga_komisi',
+
         'stt_arsip',
     ];
 
@@ -64,9 +83,9 @@ class Customer extends Model
         return $this->belongsTo(Bank::class, 'id_bank');
     }
 
-    public function freelance()
+    public function agent()
     {
-        return $this->belongsTo(MarketingFreelance::class, 'id_freelance');
+        return $this->belongsTo(MarketingAgent::class, 'id_agent');
     }
 
     public function lokasi()

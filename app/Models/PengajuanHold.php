@@ -30,36 +30,40 @@ class PengajuanHold extends Model
         'no_bpjs_kes',
         'nama_saudara',
         'no_telp_saudara',
+        'id_marketing',
+        'id_agent',
+        'id_lokasi',
+        'id_kavling',
+        'hrg_jual',
         'foto_ktp',
         'foto_npwp',
         'foto_kk',
         'foto_bpjs',
         'foto_pemohon',
         'foto_ktp_p',
-        'booking_fee',
-        'tgl_booking_fee',
         'file_bukti',
-        'id_marketing',
-        'id_freelance',
-        'id_lokasi',
-        'id_kavling',
-        'hrg_jual',
+        'tgl_booking_fee',
+        'booking_fee',
+        'diskon',
+        'pajak_bphtb',
+        'stt_free_pajak_bphtb',
         'biaya_notaris',
-        'peningkatan_mutu',
-        'biaya_lain',
-        'total_harga',
+        'stt_free_biaya_notaris',
+        'biaya_kpr',
+        'stt_free_biaya_kpr',
+        'biaya_custom',
+        'biaya_lain_lain',
+        'ppn',
+        'pajak_pph',
+        'bonus_konsumen',
+        'total_harga_rumah',
+        'total_harga_komisi',
         'jenis_perumahan',
         'jenis_pembelian',
-        'pembayaran_cash',
+        'id_bank',
+        'id_metode_bayar',
         'an_surat_cash',
-        'dp_cash_b',
         'termin_x_cash_b',
-        'dp_kpr',
-        'lama_cicilan_kpr',
-        'cicilan_kpr',
-        'tgl_tempo_cicilan_1',
-        'an_surat_kpr',
-        'fee_marketing',
         'stt_reg',
     ];
 
@@ -70,9 +74,9 @@ class PengajuanHold extends Model
         return $this->belongsTo(MarketingOffline::class, 'id_marketing');
     }
 
-    public function freelance()
+    public function agent()
     {
-        return $this->belongsTo(MarketingFreelance::class, 'id_freelance');
+        return $this->belongsTo(MarketingAgent::class, 'id_agent');
     }
 
     public function lokasi()

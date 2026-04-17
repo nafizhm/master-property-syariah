@@ -154,7 +154,7 @@
                         <div class="form-group row mb-3">
                             <label class="col-sm-2 col-form-label">Catatan Proses KPR</label>
                             <div class="col-sm-8">
-                                <textarea id="catatan_wawancara" name="catatan_wawancara" class="form-control summernote"></textarea>
+                                <textarea id="catatan_wawancara" name="catatan_wawancara" class="form-control"></textarea>
                             </div>
                         </div>
 
@@ -266,7 +266,7 @@
                         <div class="form-group row mb-3">
                             <label class="col-sm-2 col-form-label">Catatan ACC</label>
                             <div class="col-sm-8">
-                                <textarea id="catatan_wawancara" name="catatan_wawancara" class="form-control summernote"></textarea>
+                                <textarea id="catatan_wawancara" name="catatan_wawancara" class="form-control"></textarea>
                             </div>
                         </div>
 
@@ -299,20 +299,6 @@
             $('.select-notaris').select2({
                 theme: "bootstrap4",
                 placeholder: "Pilih Notaris",
-            });
-        });
-
-        $(document).ready(function() {
-            $('.summernote').summernote({
-                height: 200,
-                placeholder: 'Tulis catatan di sini...',
-                toolbar: [
-                    ['style', ['bold', 'italic', 'underline', 'clear']],
-                    ['font', ['strikethrough']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['insert', ['link']],
-                    ['view', ['codeview']]
-                ]
             });
         });
 
@@ -411,7 +397,7 @@
                     $('#id_customer').val(response.data.id_customer).trigger('change').prop('disabled',
                         true);
                     $('#id_bank_kpr').val(response.data.id_bank_kpr).trigger('change');
-                    $('#catatan_wawancara').summernote('code', response.data.catatan_wawancara);
+                    $('#catatan_wawancara').val(response.data.catatan_wawancara);
 
                     $('#modalForm').modal('show');
                 }
@@ -440,7 +426,6 @@
             $('#primary_id').val('');
             $('#id_customer').val('').trigger('change').prop('disabled', false);
             $('#id_bank_kpr').val('').trigger('change');
-            $('#catatan_wawancara').summernote('reset');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');
@@ -457,7 +442,6 @@
             $('.invalid-feedback').remove();
 
             $('#id_wawancara').val('');
-            $('#catatan_wawancara').summernote('reset');
 
             let submitBtn = $('#accBtn');
             let spinner = submitBtn.find('.spinner-border');

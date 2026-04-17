@@ -875,9 +875,6 @@ class PPJBController extends Controller
             }
             if ($page == 7) {
 
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(110, 149);
-                $pdf->Cell(0, 5, '20.000.000');
             }
             if ($page == 8) {
             }

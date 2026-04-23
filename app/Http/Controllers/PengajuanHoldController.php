@@ -248,6 +248,7 @@ class PengajuanHoldController extends Controller
             'email'           => 'nullable|email',
             'id_lokasi'       => 'required',
             'id_kavling'      => 'required',
+            'jenis_properti'  => 'required',
             'id_marketing'    => 'required',
             'booking_fee'     => 'required|gt:0',
             'hrg_jual'        => 'required|gt:0',
@@ -268,6 +269,7 @@ class PengajuanHoldController extends Controller
             'email.email'              => 'Format email tidak valid.',
             'id_lokasi.required'       => 'Lokasi wajib dipilih.',
             'id_kavling.required'      => 'Kavling wajib dipilih.',
+            'jenis_properti.required'  => 'Jenis Properti wajib diisi.',
             'id_marketing.required'    => 'Marketing wajib dipilih.',
             'booking_fee.required'     => 'Booking fee wajib diisi.',
             'booking_fee.gt'           => 'Booking fee harus lebih dari 0.',
@@ -309,6 +311,7 @@ class PengajuanHoldController extends Controller
                 'id_marketing'      => $request->id_marketing,
                 'id_agent'          => $request->id_agent,
                 'jenis_perumahan'   => $request->jenis_perumahan,
+                'jenis_properti'    => $request->jenis_properti,
                 'jenis_pembelian'   => $request->jenis_pembelian,
             ];
 
@@ -524,6 +527,7 @@ class PengajuanHoldController extends Controller
             'id_lokasi'       => 'required',
             'id_kavling'      => 'required',
             'hrg_jual'        => 'required',
+            'jenis_properti'  => 'required',
             'id_marketing'    => 'required',
             'booking_fee'     => 'required|gt:0',
             'jenis_perumahan' => 'required',
@@ -549,6 +553,7 @@ class PengajuanHoldController extends Controller
             'id_lokasi.required'        => 'Lokasi wajib dipilih.',
             'id_kavling.required'       => 'Kavling wajib dipilih.',
             'hrg_jual.required'         => 'Harga jual wajib diisi.',
+            'jenis_properti.required'   => 'Jenis Properti wajib diisi.',
             'biaya_surat.required'      => 'Biaya surat wajib diisi.',
             'peningkatan_mutu.required' => 'Peningkatan mutu wajib diisi.',
             'id_marketing.required'     => 'Marketing wajib dipilih.',
@@ -596,13 +601,10 @@ class PengajuanHoldController extends Controller
                     $filename = $this->compressImageNative($uploadedFile, $folder);
 
                     $fileNames[$file] = $filename;
-
                 } else {
 
                     $fileNames[$file] = null;
-
                 }
-
             }
 
             $no_registrasi = $this->generateNoRegistrasi();
@@ -629,6 +631,7 @@ class PengajuanHoldController extends Controller
                 'id_lokasi'         => $request->id_lokasi,
                 'id_kavling'        => $request->id_kavling,
                 'hrg_jual'          => $request->hrg_jual ?? 0,
+                'jenis_properti'    => $request->jenis_properti,
                 'booking_fee'       => $request->booking_fee ?? 0,
                 'id_marketing'      => $request->id_marketing ?? 0,
                 'id_agent'          => $request->id_agent ?? 0,
@@ -753,6 +756,7 @@ class PengajuanHoldController extends Controller
             'nama_saudara'           => $data->nama_saudara,
             'no_telp_saudara'        => $data->no_telp_saudara,
 
+            'jenis_properti'         => $data->jenis_properti,
             'jenis_perumahan'        => $data->jenis_perumahan,
             'jenis_pembelian'        => $data->jenis_pembelian,
 

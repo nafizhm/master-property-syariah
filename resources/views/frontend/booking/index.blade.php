@@ -95,18 +95,17 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">Alamat Domisili <span
-                                    style="color: red;">*</span></label>
+                            <label class="control-label col-sm-3">Alamat Domisili <span style="color: red;">*</span></label>
                             <div class="col-sm-6">
-                                <textarea name="alamat_domisili" id="alamat_domisili" class="form-control" rows="2"></textarea>
+                                <textarea name="alamat_domisili" id="alamat_domisili" class="form-control"
+                                    rows="2"></textarea>
                             </div>
                         </div>
 
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Status Pernikahan</label>
                             <div class="col-sm-4">
-                                <select class="form-control select-status" name="status_pernikahan"
-                                    id="status_pernikahan">
+                                <select class="form-control select-status" name="status_pernikahan" id="status_pernikahan">
                                     <option value=""></option>
                                     <option value="Belum Menikah">Belum Menikah</option>
                                     <option value="Menikah">Menikah</option>
@@ -166,10 +165,22 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
                                     </div>
-                                    <input type="text" name="hrg_jual" id="hrg_jual"
-                                        class="form-control format-number">
+                                    <input type="text" name="hrg_jual" id="hrg_jual" class="form-control format-number">
                                 </div>
                             </div>
+                            <label class="control-label col-sm-2">Jenis Properti <span
+                                    style="color: red;">*</span></label>
+                            <div class="col-sm-3">
+                                <select class="form-control select-jenis-properti" name="jenis_properti" id="jenis_properti">
+                                    <option value=""></option>
+                                    <option value="Ruko">Ruko</option>
+                                    <option value="Kavling">Kavling</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            
                         </div>
 
                         <hr>
@@ -198,8 +209,7 @@
                         </div>
 
                         <div class="form-group row">
-                            <label class="control-label col-sm-3">Jenis Perumahan <span
-                                    style="color: red;">*</span></label>
+                            <label class="control-label col-sm-3">Jenis Perumahan <span style="color: red;">*</span></label>
                             <div class="col-sm-4">
                                 <select class="form-control select-jp" name="jenis_perumahan" id="jenis_perumahan">
                                     <option value=""></option>
@@ -207,11 +217,9 @@
                                     <option value="Komersil">Komersil</option>
                                 </select>
                             </div>
-                            <label class="control-label col-sm-2">Jenis Pembelian <span
-                                    style="color: red;">*</span></label>
+                            <label class="control-label col-sm-2">Jenis Pembelian <span style="color: red;">*</span></label>
                             <div class="col-sm-3">
-                                <select class="form-control select-pembelian" name="jenis_pembelian"
-                                    id="jenis_pembelian">
+                                <select class="form-control select-pembelian" name="jenis_pembelian" id="jenis_pembelian">
                                     <option value=""></option>
                                     <option value="Pembelian Cash">Pembelian Cash</option>
                                     <option value="Cash Bertahap">Cash Bertahap</option>
@@ -238,8 +246,7 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto Pemohon</label>
                             <div class="col-sm-4">
-                                <input name="foto_pemohon" id="foto_pemohon" type="file"
-                                    accept=".jpg,.jpeg,.png,.pdf"
+                                <input name="foto_pemohon" id="foto_pemohon" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                     onchange="handleFileChange(this, 'preview_foto_pemohon')">
                                 <div id="preview_foto_pemohon" class="mt-2 d-none">
                                     <button type="button" class="btn btn-sm btn-primary"
@@ -382,7 +389,7 @@
                 .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
-        $(document).on('input', '#booking_fee', function() {
+        $(document).on('input', '#booking_fee', function () {
             let nilai = $(this).val();
             let terformat = formatAngkaRibuan(nilai);
             $(this).val(terformat);
@@ -394,7 +401,7 @@
 
             const reader = new FileReader();
 
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const previewDiv = document.getElementById(previewId);
                 const viewBtn = previewDiv.querySelector('button.btn-primary');
 
@@ -440,7 +447,7 @@
             document.getElementById('modalPreviewPdf').src = '';
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             $('.select-lokasi').select2({
                 theme: "bootstrap4",
@@ -482,9 +489,14 @@
                 placeholder: "Pilih Status",
                 minimumResultsForSearch: Infinity,
             });
+            $('.select-jenis-properti').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Jenis Properti",
+                minimumResultsForSearch: Infinity,
+            });
         });
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('.select-lokasi').select2({
                 theme: "bootstrap4",
                 placeholder: "Pilih Lokasi",
@@ -498,16 +510,16 @@
             const routeGetKavling = "{{ route('booking.getKavling', ':id') }}";
             const routeGetHarga = "{{ route('booking.getHargaKavling', ':id') }}";
 
-            $('#id_lokasi').on('change', function() {
+            $('#id_lokasi').on('change', function () {
                 let idLokasi = $(this).val();
                 $('#id_kavling').html('<option value="">Loading...</option>').trigger('change');
                 $('#hrg_jual').val('');
 
                 if (idLokasi) {
                     const urlKavling = routeGetKavling.replace(':id', idLokasi);
-                    $.get(urlKavling, function(data) {
+                    $.get(urlKavling, function (data) {
                         let options = '<option value=""></option>';
-                        data.forEach(function(item) {
+                        data.forEach(function (item) {
                             options +=
                                 `<option value="${item.id}">${item.kode_kavling}</option>`;
                         });
@@ -516,12 +528,12 @@
                 }
             });
 
-            $('#id_kavling').on('change', function() {
+            $('#id_kavling').on('change', function () {
                 let idKavling = $(this).val();
 
                 if (idKavling) {
                     const urlHarga = routeGetHarga.replace(':id', idKavling);
-                    $.get(urlHarga, function(data) {
+                    $.get(urlHarga, function (data) {
                         $('#hrg_jual').val(formatRupiah(data.hrg_jual));
                     });
                 } else {
@@ -537,7 +549,7 @@
                 .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
-        $('#status').on('change', function() {
+        $('#status').on('change', function () {
             if ($(this).val() === 'Menikah') {
                 $('#pasangan').show();
                 $('#nama_p, #nik_p').prop('required', true);
@@ -549,7 +561,7 @@
 
         var audio = new Audio('{{ asset('audio/notification.ogg') }}');
 
-        $('#formData').on('submit', function(e) {
+        $('#formData').on('submit', function (e) {
             e.preventDefault();
 
             let submitBtn = $('#submitBtn');
@@ -575,14 +587,14 @@
                 data: formData,
                 contentType: false,
                 processData: false,
-                success: function() {
+                success: function () {
                     sessionStorage.setItem('success', 'Booking berhasil dikirimkan.');
                     spinner.addClass('d-none');
                     btnText.text('Kirim Data');
                     submitBtn.prop('disabled', false);
                     window.location.href = "{{ route('booking.sukses') }}";
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     if (xhr.status === 422) {
                         audio.play();
                         toastr.error("Ada inputan yang salah!", "GAGAL!", {
@@ -592,7 +604,7 @@
                         });
 
                         let errors = xhr.responseJSON.errors;
-                        $.each(errors, function(key, val) {
+                        $.each(errors, function (key, val) {
                             if (key.includes('.')) {
                                 let parts = key.split('.');
                                 let field = parts[0];

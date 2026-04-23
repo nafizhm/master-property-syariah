@@ -2,10 +2,9 @@
 namespace App\Http\Controllers\Transaksi;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\GenerateNumberController;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Customer;
-use App\Models\PPJB;
+use App\Models\SPR;
 use App\Traits\LogAktivitasTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -15,7 +14,7 @@ use setasign\Fpdi\Fpdi;
 use Yajra\DataTables\Facades\DataTables;
 
 Carbon::setLocale('id');
-class PPJBController extends Controller
+class SPRController extends Controller
 {
     use LogAktivitasTrait;
     public function index(Request $request)
@@ -24,7 +23,7 @@ class PPJBController extends Controller
         Carbon::setLocale('id');
 
         if ($request->ajax()) {
-            $data = PPJB::with(
+            $data = SPR::with(
                 'customer',
                 'customer.lokasi',
                 'customer.kavling'
@@ -36,9 +35,6 @@ class PPJBController extends Controller
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->editColumn('tanggal_ppjb', function ($row) {
-                    return Carbon::parse($row->tanggal_ppjb)->translatedFormat('d F Y');
-                })
                 ->addColumn('lokasi_rumah', function ($row) {
                     $lokasi  = $row->customer->lokasi->nama_kavling ?? '-';
                     $kavling = $row->customer->kavling->kode_kavling ?? '-';
@@ -58,7 +54,7 @@ class PPJBController extends Controller
                         $cetakUrl = route('ppjb.cetak-pembelian-cash', $row->id_customer);
                     }
 
-                    $deleteUrl = route('ppjb.destroy', $row->id);
+                    $deleteUrl = route('spr.destroy', $row->id);
 
                     $btn = '<div>';
 
@@ -82,28 +78,22 @@ class PPJBController extends Controller
 
         $customerList = Customer::all();
 
-        return view('admin.transaksi.ppjb.index', compact('permissions', 'customerList'));
+        return view('admin.transaksi.spr.index', compact('permissions', 'customerList'));
     }
 
-    public function detailPpjb($id)
+    public function detailSpr($id)
     {
-        $customer = Customer::with(['lokasi', 'kavling', 'pemasukans' => function ($q) {
+        $customer = Customer::with(['lokasi', 'kavling', 'marketing', 'pemasukans' => function ($q) {
             $q->whereIn('id_kategori_transaksi', [1, 2]);
         }])->findOrFail($id);
 
         Carbon::setLocale('id');
-
-        $ttl = null;
-        if ($customer->tempat_lahir && $customer->tgl_lahir) {
-            $ttl = $customer->tempat_lahir . ', ' . Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y');
-        }
 
         $booking = optional($customer->pemasukans->where('id_kategori_transaksi', 1)->first())->nominal;
         $dp      = optional($customer->pemasukans->where('id_kategori_transaksi', 2)->first())->nominal;
 
         return response()->json([
             'customer'    => $customer,
-            'ttl'         => $ttl,
             'booking_fee' => $booking,
             'dp'          => $dp,
         ]);
@@ -112,103 +102,116 @@ class PPJBController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal_ppjb'  => 'required',
-            'id_customer'   => 'required',
-            'nama_perum'    => 'required',
-            'kode_kavling'  => 'required',
-            'saksi'         => 'required',
-            'nama_customer' => 'required',
-            'ttl'           => 'required',
-            'alamat_ktp'    => 'required',
-            'no_ktp'        => 'required',
-            'luas_tanah'    => 'required',
-            'luas_bangunan' => 'required',
-            'nama_jalan'    => 'required',
-            'desa'          => 'required',
-            'kec'           => 'required',
-            'kota'          => 'required',
-            'prov'          => 'required',
-            'no_shm'        => 'required',
-            'hrg_jual'      => 'required',
-            'diskon'        => 'required',
-            'dp'            => 'required',
-            'booking_fee'   => 'required',
+            'id_customer'        => 'required',
+            'nama_lengkap'       => 'required',
+            'alamat_ktp'         => 'required',
+            'no_telp'            => 'required',
+            'nik'                => 'required',
+            'pekerjaan'          => 'required',
+            'nama_perum'         => 'required',
+            'tipe_bangunan'      => 'required',
+            'kode_kavling'       => 'required',
+            'luas_tanah'         => 'required',
+            'luas_bangunan'      => 'required',
+            'nama_marketing'     => 'required',
+            'pic'                => 'required',
+            'hrg_jual'           => 'required',
+            'total_harga_unit'   => 'required',
+            'sumber_dana'        => 'required',
+            'tujuan_pembelian'   => 'required',
+            'pembelian_rumah_ke' => 'required',
+            'nama_proyek'        => 'required',
+            'hrg_jual_std'       => 'required',
+            'metode_pembayaran'  => 'required',
         ], [
-            'tanggal_ppjb.required'  => 'Tanggal PPJB wajib diisi.',
-            'id_customer.required'   => 'Customer wajib dipilih.',
-            'nama_perum.required'    => 'Nama perumahan wajib diisi.',
-            'kode_kavling.required'  => 'Kode kavling wajib diisi.',
-            'saksi.required'         => 'Nama saksi wajib diisi.',
-            'nama_customer.required' => 'Nama customer wajib diisi.',
-            'ttl.required'           => 'Tempat/Tanggal lahir wajib diisi.',
-            'alamat_ktp.required'    => 'Alamat KTP wajib diisi.',
-            'no_ktp.required'        => 'No. KTP wajib diisi.',
-            'luas_tanah.required'    => 'Luas tanah wajib diisi.',
-            'luas_bangunan.required' => 'Luas bangunan wajib diisi.',
-            'nama_jalan.required'    => 'Nama jalan wajib diisi.',
-            'desa.required'          => 'Desa/Kelurahan wajib diisi.',
-            'kec.required'           => 'Kecamatan wajib diisi.',
-            'kota.required'          => 'Kota wajib diisi.',
-            'prov.required'          => 'Provinsi wajib diisi.',
-            'no_shm.required'        => 'No. SHM wajib diisi.',
-            'hrg_jual.required'      => 'Harga jual wajib diisi.',
-            'diskon.required'        => 'Diskon wajib diisi.',
-            'dp.required'            => 'DP wajib diisi.',
-            'booking_fee.required'   => 'Booking fee wajib diisi.',
+            'id_customer.required'        => 'Customer wajib dipilih.',
+            'nama_lengkap.required'       => 'Nama lengkap wajib diisi.',
+            'alamat_ktp.required'         => 'Alamat KTP wajib diisi.',
+            'no_telp.required'            => 'No. telp wajib diisi.',
+            'nik.required'                => 'NIK wajib diisi.',
+            'pekerjaan.required'          => 'Pekerjaan wajib diisi.',
+            'nama_perum.required'         => 'Nama perumahan wajib diisi.',
+            'tipe_bangunan.required'      => 'Tipe bangunan wajib diisi.',
+            'kode_kavling.required'       => 'Kode kavling wajib diisi.',
+            'luas_tanah.required'         => 'Luas tanah wajib diisi.',
+            'luas_bangunan.required'      => 'Luas bangunan wajib diisi.',
+            'nama_marketing.required'     => 'Nama marketing wajib diisi.',
+            'pic.required'                => 'PIC wajib diisi.',
+            'hrg_jual.required'           => 'Harga jual wajib diisi.',
+            'biaya_kpr.required'          => 'Biaya KPR wajib diisi.',
+            'biaya_custom.required'       => 'Biaya custom wajib diisi.',
+            'diskon.required'             => 'Diskon wajib diisi.',
+            'biaya_lain.required'         => 'Biaya lain wajib diisi.',
+            'total_harga_unit.required'   => 'Total harga unit wajib diisi.',
+            'sumber_dana.required'        => 'Sumber dana wajib diisi.',
+            'tujuan_pembelian.required'   => 'Tujuan pembelian wajib diisi.',
+            'pembelian_rumah_ke.required' => 'Pembelian rumah ke wajib diisi.',
+            'nama_proyek.required'        => 'Nama proyek wajib diisi.',
+            'hrg_jual_std.required'       => 'Harga jual standard wajib diisi.',
+            'metode_pembayaran.required'  => 'Metode pembayaran wajib dipilih.',
+            'booking_fee.required'        => 'Booking fee wajib diisi.',
+            'dp.required'                 => 'DP wajib diisi.',
+            'kewajiban_kredit.required'   => 'Kewajiban kredit wajib diisi.',
         ]);
 
         DB::beginTransaction();
         try {
 
-            $customer = Customer::with('lokasi')
-                ->lockForUpdate()
-                ->findOrFail($request->id_customer);
+            $customer = Customer::lockForUpdate()->findOrFail($request->id_customer);
 
-            $generator = new GenerateNumberController();
+            $hrg_jual         = str_replace('.', '', $request->hrg_jual);
+            $biaya_kpr        = str_replace('.', '', $request->biaya_kpr);
+            $biaya_custom     = str_replace('.', '', $request->biaya_custom);
+            $diskon           = str_replace('.', '', $request->diskon);
+            $biaya_lain       = str_replace('.', '', $request->biaya_lain);
+            $total_harga_unit = str_replace('.', '', $request->total_harga_unit);
+            $hrg_jual_std     = str_replace('.', '', $request->hrg_jual_std);
+            $booking_fee      = str_replace('.', '', $request->booking_fee);
+            $dp               = str_replace('.', '', $request->dp);
+            $kewajiban_kredit = str_replace('.', '', $request->kewajiban_kredit);
 
-            $noPPJB = $generator->generateNomorDokumen(
-                $customer->lokasi,
-                'no_ppjb',
-                PPJB::class
-            );
-
-            $hrg_jual    = str_replace('.', '', $request->hrg_jual);
-            $diskon      = str_replace('.', '', $request->diskon);
-            $dp          = str_replace('.', '', $request->dp);
-            $booking_fee = str_replace('.', '', $request->booking_fee);
-
-            $ppjb = PPJB::create([
-                'tanggal_ppjb'  => $request->tanggal_ppjb,
-                'id_customer'   => $request->id_customer,
-                'no_ppjb'       => $noPPJB,
-                'nama_perum'    => $request->nama_perum,
-                'kode_kavling'  => $request->kode_kavling,
-                'nama_customer' => $request->nama_customer,
-                'ttl'           => $request->ttl,
-                'alamat_ktp'    => $request->alamat_ktp,
-                'no_ktp'        => $request->no_ktp,
-                'luas_bangunan' => $request->luas_bangunan,
-                'luas_tanah'    => $request->luas_tanah,
-                'nama_jalan'    => $request->nama_jalan,
-                'desa'          => $request->desa,
-                'kec'           => $request->kec,
-                'kota'          => $request->kota,
-                'prov'          => $request->prov,
-                'no_shm'        => $request->no_shm,
-                'hrg_jual'      => $hrg_jual ?: null,
-                'diskon'        => $diskon ?: null,
-                'dp'            => $dp ?: null,
-                'booking_fee'   => $booking_fee ?: null,
-                'saksi'         => $request->saksi,
+            $spr = SPR::create([
+                'id_customer'         => $request->id_customer,
+                'nama_lengkap'        => $request->nama_lengkap,
+                'alamat_ktp'          => $request->alamat_ktp,
+                'no_telp'             => $request->no_telp,
+                'nik'                 => $request->nik,
+                'pekerjaan'           => $request->pekerjaan,
+                'nama_perum'          => $request->nama_perum,
+                'tipe_bangunan'       => $request->tipe_bangunan,
+                'kode_kavling'        => $request->kode_kavling,
+                'luas_tanah'          => $request->luas_tanah,
+                'luas_bangunan'       => $request->luas_bangunan,
+                'nama_marketing'      => $request->nama_marketing,
+                'pic'                 => $request->pic,
+                'hrg_jual'            => $hrg_jual ?: null,
+                'biaya_kpr'           => $biaya_kpr ?: null,
+                'biaya_custom'        => $biaya_custom ?: null,
+                'diskon'              => $diskon ?: null,
+                'biaya_lain'          => $biaya_lain ?: null,
+                'total_harga_unit'    => $total_harga_unit ?: null,
+                'estimasi_pendapatan' => $request->estimasi_pendapatan ?: null,
+                'join_income'         => $request->join_income ?: null,
+                'sumber_dana'         => $request->sumber_dana,
+                'tujuan_pembelian'    => $request->tujuan_pembelian,
+                'pembelian_rumah_ke'  => $request->pembelian_rumah_ke,
+                'nama_proyek'         => $request->nama_proyek,
+                'hrg_jual_std'        => $hrg_jual_std ?: null,
+                'metode_pembayaran'   => $request->metode_pembayaran,
+                'termin_soft'         => $request->termin_soft,
+                'termin_kpr'          => $request->termin_kpr,
+                'booking_fee'         => $booking_fee ?: null,
+                'dp'                  => $dp ?: null,
+                'kewajiban_kredit'    => $kewajiban_kredit ?: null,
+                'catatan'             => $request->catatan,
             ]);
 
-            $this->logCreate('PPJB', $ppjb->id);
+            $this->logCreate('SPR', $spr->id);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'no_ppjb' => $noPPJB,
             ], 200);
 
         } catch (\Exception $e) {
@@ -230,7 +233,7 @@ class PPJBController extends Controller
             'kavling',
             'lokasi',
             'marketing',
-            'ppjb',
+            'spr',
             'pemasukans' => function ($q) {
                 $q->whereIn('id_kategori_transaksi', [1, 2]);
             },
@@ -291,7 +294,7 @@ class PPJBController extends Controller
 
                 $pdf->SetFont('Times', 'B', 20);
 
-                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
+                $text2      = optional($customer->spr)->no_spr ?? '-';
                 $textWidth2 = $pdf->GetStringWidth($text2);
 
                 $pdf->SetXY(($pageWidth - $textWidth2) / 2, 235);
@@ -305,7 +308,7 @@ class PPJBController extends Controller
 
                 $pdf->SetFont('Times', 'B', 12);
 
-                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
+                $text = 'No. ' . (optional($customer->spr)->no_spr ?? '-');
 
                 $pageWidth = $pdf->GetPageWidth();
                 $textWidth = $pdf->GetStringWidth($text);
@@ -465,7 +468,7 @@ class PPJBController extends Controller
             if ($page == 10) {
                 $pdf->SetFont('Times', '', 11);
                 $pdf->SetXY(160.5, 69);
-                $pdf->Cell(0, 5, $customer->ppjb->tanggal_ppjb ? Carbon::parse($customer->ppjb->tanggal_ppjb)->translatedFormat('d F Y') : '-');
+                $pdf->Cell(0, 5, $customer->spr->tanggal_spr ? Carbon::parse($customer->spr->tanggal_spr)->translatedFormat('d F Y') : '-');
 
                 $pdf->SetFont('Times', 'B', 11);
                 $pdf->SetXY(80, 111.5);
@@ -493,7 +496,7 @@ class PPJBController extends Controller
             'kavling',
             'lokasi',
             'marketing',
-            'ppjb',
+            'spr',
             'pemasukans' => function ($q) {
                 $q->whereIn('id_kategori_transaksi', [1, 2]);
             },
@@ -554,7 +557,7 @@ class PPJBController extends Controller
 
                 $pdf->SetFont('Times', 'B', 20);
 
-                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
+                $text2      = optional($customer->spr)->no_spr ?? '-';
                 $textWidth2 = $pdf->GetStringWidth($text2);
 
                 $pdf->SetXY(($pageWidth - $textWidth2) / 2, 232);
@@ -568,7 +571,7 @@ class PPJBController extends Controller
 
                 $pdf->SetFont('Times', 'B', 12);
 
-                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
+                $text = 'No. ' . (optional($customer->spr)->no_spr ?? '-');
 
                 $pageWidth = $pdf->GetPageWidth();
                 $textWidth = $pdf->GetStringWidth($text);
@@ -745,7 +748,7 @@ class PPJBController extends Controller
             'kavling',
             'lokasi',
             'marketing',
-            'ppjb',
+            'spr',
             'pemasukans' => function ($q) {
                 $q->whereIn('id_kategori_transaksi', [1, 2]);
             },
@@ -806,7 +809,7 @@ class PPJBController extends Controller
 
                 $pdf->SetFont('Times', 'B', 20);
 
-                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
+                $text2      = optional($customer->spr)->no_spr ?? '-';
                 $textWidth2 = $pdf->GetStringWidth($text2);
 
                 $pdf->SetXY(($pageWidth - $textWidth2) / 2, 232);
@@ -820,7 +823,7 @@ class PPJBController extends Controller
 
                 $pdf->SetFont('Times', 'B', 12);
 
-                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
+                $text = 'No. ' . (optional($customer->spr)->no_spr ?? '-');
 
                 $pageWidth = $pdf->GetPageWidth();
                 $textWidth = $pdf->GetStringWidth($text);
@@ -1025,7 +1028,7 @@ class PPJBController extends Controller
 
     public function destroy($id)
     {
-        $data = PPJB::findOrFail($id);
+        $data = SPR::findOrFail($id);
 
         $this->logDelete('PPJB', $data->id);
         $data->delete();

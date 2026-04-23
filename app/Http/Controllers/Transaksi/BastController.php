@@ -13,11 +13,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use PhpOffice\PhpWord\TemplateProcessor;
-use Yajra\DataTables\Facades\DataTables;
-use App\Models\ListrikAir;
 use setasign\Fpdi\Fpdi;
+use Yajra\DataTables\Facades\DataTables;
 
 class BastController extends Controller
 {
@@ -76,14 +73,43 @@ class BastController extends Controller
         return view('admin.transaksi.bast.index', compact('permissions', 'customerList'));
     }
 
+    public function detailBast($id)
+    {
+        $customer = Customer::with('lokasi', 'kavling')->findOrFail($id);
+
+        return response()->json($customer);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal_bast' => 'required',
-            'id_customer'  => 'required',
+            'tanggal_bast'       => 'required',
+            'id_customer'        => 'required',
+            'nama_perum'         => 'required',
+            'nama_customer'      => 'required',
+            'alamat_ktp'         => 'required',
+            'nama_jalan'         => 'required',
+            'desa'               => 'required',
+            'kec'                => 'required',
+            'kota'               => 'required',
+            'kode_kavling'       => 'required',
+            'luas_tanah'         => 'required',
+            'luas_bangunan'      => 'required',
+            'petugas_pendamping' => 'required',
         ], [
-            'tanggal_bast.required' => 'Tanggal BAST wajib diisi.',
-            'id_customer.required'  => 'Customer wajib dipilih.',
+            'tanggal_bast.required'       => 'Tanggal BAST wajib diisi.',
+            'id_customer.required'        => 'Customer wajib dipilih.',
+            'nama_perum.required'         => 'Nama perumahan wajib diisi.',
+            'nama_customer.required'      => 'Nama customer wajib diisi.',
+            'alamat_ktp.required'         => 'Alamat KTP wajib diisi.',
+            'nama_jalan.required'         => 'Alamat perumahan wajib diisi.',
+            'desa.required'               => 'Desa wajib diisi.',
+            'kec.required'                => 'Kecamatan wajib diisi.',
+            'kota.required'               => 'Kota wajib diisi.',
+            'kode_kavling.required'       => 'Kode kavling wajib diisi.',
+            'luas_tanah.required'         => 'Luas tanah wajib diisi.',
+            'luas_bangunan.required'      => 'Luas bangunan wajib diisi.',
+            'petugas_pendamping.required' => 'Petugas pendamping wajib diisi.',
         ]);
 
         DB::beginTransaction();
@@ -102,9 +128,20 @@ class BastController extends Controller
             );
 
             $bast = BAST::create([
-                'tanggal_bast' => $request->tanggal_bast,
-                'id_customer'  => $request->id_customer,
-                'no_bast'      => $noBast,
+                'tanggal_bast'       => $request->tanggal_bast,
+                'id_customer'        => $request->id_customer,
+                'no_bast'            => $noBast,
+                'nama_perum'         => $request->nama_perum,
+                'nama_customer'      => $request->nama_customer,
+                'alamat_ktp'         => $request->alamat_ktp,
+                'nama_jalan'         => $request->nama_jalan,
+                'desa'               => $request->desa,
+                'kec'                => $request->kec,
+                'kota'               => $request->kota,
+                'kode_kavling'       => $request->kode_kavling,
+                'luas_tanah'         => $request->luas_tanah,
+                'luas_bangunan'      => $request->luas_bangunan,
+                'petugas_pendamping' => $request->petugas_pendamping,
             ]);
 
             $this->logCreate('BAST', $bast->id);
@@ -132,30 +169,29 @@ class BastController extends Controller
     {
         $customer = Customer::with(['lokasiKavling', 'kavlingPeta'])
             ->findOrFail($id_customer);
-        $bast = BAST::where('id_customer', $id_customer)->firstOrFail();
-        $lokasi  = $customer->lokasiKavling;
-        $kavling = $customer->kavlingPeta;
-        $no_bast        = $bast->no_bast ?? '-';
-        $nama_kavling   = $lokasi->nama_kavling ?? '-';
-        $alamat_lokasi  = $lokasi->alamat ?? '-';
-        $nama_lengkap   = $customer->nama_lengkap ?? '-';
-        $alamat_ktp     = $customer->alamat_ktp ?? '-';
-        $kode_kavling   = $kavling->kode_kavling ?? '-';
-        $luas_tanah     = $kavling->luas_tanah ?? '-';
-        $luas_bangunan  = $kavling->luas_bangunan ?? '-';
-        $tipe_bangunan  = $kavling->tipe_bangunan ?? '-';
+        $bast          = BAST::where('id_customer', $id_customer)->firstOrFail();
+        $lokasi        = $customer->lokasiKavling;
+        $kavling       = $customer->kavlingPeta;
+        $no_bast       = $bast->no_bast ?? '-';
+        $nama_kavling  = $lokasi->nama_kavling ?? '-';
+        $alamat_lokasi = $lokasi->alamat ?? '-';
+        $nama_lengkap  = $customer->nama_lengkap ?? '-';
+        $alamat_ktp    = $customer->alamat_ktp ?? '-';
+        $kode_kavling  = $kavling->kode_kavling ?? '-';
+        $luas_tanah    = $kavling->luas_tanah ?? '-';
+        $luas_bangunan = $kavling->luas_bangunan ?? '-';
+        $tipe_bangunan = $kavling->tipe_bangunan ?? '-';
 
         $bulan_id = [
-            1  => 'Januari',   2  => 'Februari', 3  => 'Maret',
-            4  => 'April',     5  => 'Mei',       6  => 'Juni',
-            7  => 'Juli',      8  => 'Agustus',   9  => 'September',
-            10 => 'Oktober',   11 => 'November',  12 => 'Desember',
+            1  => 'Januari', 2  => 'Februari', 3  => 'Maret',
+            4  => 'April', 5    => 'Mei', 6       => 'Juni',
+            7  => 'Juli', 8     => 'Agustus', 9   => 'September',
+            10 => 'Oktober', 11 => 'November', 12 => 'Desember',
         ];
-        $tgl_hari_ini   = (int) date('d');
-        $bln_hari_ini   = $bulan_id[(int) date('m')];
-        $thn_hari_ini   = date('Y');
+        $tgl_hari_ini    = (int) date('d');
+        $bln_hari_ini    = $bulan_id[(int) date('m')];
+        $thn_hari_ini    = date('Y');
         $tanggal_lengkap = $tgl_hari_ini . ' ' . $bln_hari_ini . ' ' . $thn_hari_ini;
-
 
         $pdf = new Fpdi();
         $pdf->SetAutoPageBreak(false);
@@ -252,7 +288,6 @@ class BastController extends Controller
             }
 
         }
-
 
         $filename = 'BAST_' . $customer->kode_customer . '_' . date('Ymd') . '.pdf';
 

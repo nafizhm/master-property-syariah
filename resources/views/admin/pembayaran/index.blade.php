@@ -41,7 +41,7 @@
                             <tr>
                                 <th width="5%">No</th>
                                 <th width="15%">Customer</th>
-                                <th width="40%">Rincian Tagihan</th>
+                                <th width="15%">Lokasi Rumah</th>
                                 <th width="10%">Status</th>
                                 <th width="18%">Jumlah Tagihan</th>
                                 <th width="10%" class="text-center">Action</th>
@@ -94,8 +94,8 @@
                         name: 'customer'
                     },
                     {
-                        data: 'rincian_tagihan',
-                        name: 'rincian_tagihan',
+                        data: 'lokasi_rumah',
+                        name: 'lokasi_rumah',
                         orderable: false,
                         searchable: false
                     },

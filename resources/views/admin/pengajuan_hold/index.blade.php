@@ -209,6 +209,16 @@
                                         class="form-control format-number">
                                 </div>
                             </div>
+                            <label class="control-label col-sm-2">Jenis Properti <span
+                                    style="color: red;">*</span></label>
+                            <div class="col-sm-3">
+                                <select class="form-select select-jenis-properti" name="jenis_properti"
+                                    id="jenis_properti">
+                                    <option value=""></option>
+                                    <option value="Ruko">Ruko</option>
+                                    <option value="Kavling">Kavling</option>
+                                </select>
+                            </div>
                         </div>
 
                         <hr>
@@ -340,6 +350,12 @@
                 placeholder: "Pilih Status",
                 minimumResultsForSearch: Infinity,
             });
+
+            $('.select-jenis-properti').select2({
+                theme: "bootstrap4",
+                minimumResultsForSearch: Infinity,
+                placeholder: "Pilih Jenis Properti",
+            });
         });
 
         function formatRupiah(angka) {
@@ -455,6 +471,7 @@
                 $('#id_marketing').val(d.id_marketing).trigger('change');
                 $('#id_agent').val(d.id_agent).trigger('change');
                 $('#jenis_pembelian').val(d.jenis_pembelian).trigger('change');
+                $('#jenis_properti').val(d.jenis_properti).trigger('change');
                 $('#jenis_perumahan').val(d.jenis_perumahan).trigger('change');
 
                 $('#hrg_jual').val(formatNumber(d.hrg_jual));

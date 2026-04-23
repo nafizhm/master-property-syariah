@@ -57,7 +57,7 @@
     <!-- Modal -->
     <div class="modal fade" id="modalForm" tabindex="-1" role="dialog" data-focus="false" aria-labelledby="modalFormLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false" data-modal-type="">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-indigo">
                     <h5 class="modal-title text-white font-weight-bold" id="modalFormLabel">Form BAST</h5>
@@ -71,16 +71,16 @@
                     <div class="modal-body">
 
                         <div class="form-group row mb-3">
-                            <label for="tanggal_bast" class="col-sm-3 col-form-label">Tanggal</label>
+                            <label for="tanggal_bast" class="col-sm-2 col-form-label">Tanggal</label>
                             <div class="col-sm-3">
                                 <input type="date" id="tanggal_bast" class="form-control" name="tanggal_bast"
                                     value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="form-group row mb-3">
-                            <label class="col-sm-3 col-form-label">Customer</label>
+                            <label class="col-sm-2 col-form-label">Customer</label>
                             <div class="col-sm-8">
-                                <select name="id_customer" id="id_customer" class="form-control select-customer">
+                                <select name="id_customer" id="id_customer" class="form-select select-customer">
                                     <option value=""></option>
                                     @foreach ($customerList as $m)
                                         <option value="{{ $m->id }}">{{ $m->nama_lengkap }} ({{ $m->kode_customer }})
@@ -91,38 +91,74 @@
                         </div>
 
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">NIK</label>
-                            <div class="col-sm-8">
-                                <input type="text" name="nik" id="nik" class="form-control" disabled>
+                            <label class="col-sm-2 col-form-label">Perumahan</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="nama_perum" id="nama_perum" class="form-control">
+                            </div>
+                            <label class="col-sm-2 col-form-label">Kode Kavling</label>
+                            <div class="col-sm-3">
+                                <input type="text" name="kode_kavling" id="kode_kavling" class="form-control">
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Alamat KTP</label>
-                            <div class="col-sm-8">
-                                <textarea id="alamat_ktp" name="alamat_ktp" class="form-control" disabled rows="3"></textarea>
+                            <label class="col-sm-2 col-form-label">Nama Customer</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="nama_customer" id="nama_customer" class="form-control">
+                            </div>
+                            <label class="col-sm-2 col-form-label">Petugas Pendamping</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="petugas_pendamping" id="petugas_pendamping"
+                                    class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Alamat KTP</label>
+                            <div class="col-sm-4">
+                                <textarea id="alamat_ktp" name="alamat_ktp" class="form-control" rows="3"></textarea>
                             </div>
                         </div>
 
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Lokasi Rumah</label>
-                            <div class="col-sm-3">
-                                <input type="text" name="lokasi_rumah" id="lokasi_rumah" class="form-control" disabled>
+                            <label class="col-sm-2 col-form-label">Luas Tanah</label>
+                            <div class="col-sm-2">
+                                <div class="input-group">
+                                    <input type="text" name="luas_tanah" id="luas_tanah"
+                                        class="form-control format-decimal">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">m²</span>
+                                    </div>
+                                </div>
                             </div>
-                            <label class="col-sm-3 col-form-label">Tipe Bangunan</label>
-                            <div class="col-sm-3">
-                                <input type="text" name="tipe_bangunan" id="tipe_bangunan" class="form-control" disabled>
+                            <label class="col-sm-2 col-form-label">Luas Bangunan</label>
+                            <div class="col-sm-2">
+                                <div class="input-group">
+                                    <input type="text" name="luas_bangunan" id="luas_bangunan"
+                                        class="form-control format-decimal">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">m²</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Luas Tanah</label>
-                            <div class="col-sm-3">
-                                <input type="text" name="luas_tanah" id="luas_tanah" class="form-control" disabled>
+                            <label class="col-sm-2 col-form-label">Nama Jalan</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="nama_jalan" id="nama_jalan" class="form-control">
                             </div>
-                            <label class="col-sm-3 col-form-label">Luas Bangunan</label>
+                            <label class="col-sm-2 col-form-label">Desa/Kelurahan</label>
                             <div class="col-sm-3">
-                                <input type="text" name="luas_bangunan" id="luas_bangunan" class="form-control"
-                                    disabled>
+                                <input type="text" name="desa" id="desa" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Kecamatan</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="kec" id="kec" class="form-control">
+                            </div>
+                            <label class="col-sm-2 col-form-label">Kota</label>
+                            <div class="col-sm-3">
+                                <input type="text" name="kota" id="kota" class="form-control">
                             </div>
                         </div>
 
@@ -150,29 +186,35 @@
             });
         });
 
-        $(document).on('change', '#id_customer', function() {
-            let id = $(this).val()
+        const detailUrl = "{{ route('bast.detail', ':id') }}";
 
-            if (!id) {
-                $('#nik, #alamat_ktp, #lokasi_rumah, #tipe_bangunan, #luas_tanah, #luas_bangunan, #nama_marketing')
-                    .val('')
-                return
-            }
+        $('#id_customer').on('change', function() {
+            let id = $(this).val();
+            if (!id) return;
 
-            const detailCustomerUrl = "{{ route('wawancara.detail-customer', ':id') }}"
-
-            let url = detailCustomerUrl.replace(':id', id)
+            let url = detailUrl.replace(':id', id);
 
             $.get(url, function(res) {
-                $('#nik').val(res.nik)
-                $('#alamat_ktp').val(res.alamat_ktp)
-                $('#lokasi_rumah').val(res.lokasi_rumah)
-                $('#tipe_bangunan').val(res.tipe_bangunan)
-                $('#luas_tanah').val(res.luas_tanah)
-                $('#luas_bangunan').val(res.luas_bangunan)
-                $('#nama_marketing').val(res.nama_marketing)
-            })
-        })
+
+                $('#nama_customer').val(res.nama_lengkap);
+                $('#alamat_ktp').val(res.alamat_ktp);
+
+                if (res.kavling) {
+                    $('#kode_kavling').val(res.kavling.kode_kavling);
+                    $('#luas_tanah').val(res.kavling.luas_tanah);
+                    $('#luas_bangunan').val(res.kavling.luas_bangunan);
+                }
+
+                if (res.lokasi) {
+                    $('#nama_perum').val(res.lokasi.nama_kavling);
+                    $('#nama_jalan').val(res.lokasi.nama_jalan);
+                    $('#desa').val(res.lokasi.desa_kelurahan);
+                    $('#kec').val(res.lokasi.kecamatan);
+                    $('#kota').val(res.lokasi.kabupaten_kota);
+                }
+
+            });
+        });
 
         $(function() {
             var permissions = @json($permissions);
@@ -233,45 +275,13 @@
             });
         });
 
-        $(document).on('click', '.edit-button', function() {
-            var url = $(this).data('url');
-
-            $.get(url, function(response) {
-                if (response.status === 'success') {
-                    $('#primary_id').val(response.data.id);
-                    $('#tgl_wawancara').val(response.data.tgl_wawancara);
-                    $('#hari_wawancara').val(response.data.hari_wawancara);
-                    $('#id_customer').val(response.data.id_customer).trigger('change').prop('disabled',
-                        true);
-                    $('#id_bank_kpr').val(response.data.id_bank_kpr).trigger('change');
-                    $('#catatan_wawancara').val(response.data.catatan_wawancara);
-
-                    $('#modalForm').modal('show');
-                }
-            });
-        });
-
-        $(document).on('click', '.acc-bank-button', function() {
-            var url = $(this).data('url');
-
-            $.get(url, function(response) {
-                if (response.status === 'success') {
-                    $('#id_wawancara').val(response.data.id);
-                    $('#id_customer_acc').val(response.data.id_customer).trigger('change');
-                    $('#id_bank_kpr_acc').val(response.data.id_bank_kpr).trigger('change');
-
-                    $('#modalAcc').modal('show');
-                }
-            });
-        });
-
         $('#modalForm').on('hidden.bs.modal', function() {
             $('#formData')[0].reset();
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
 
             $('#primary_id').val('');
-            $('#id_customer').val('').trigger('change');
+            $('#.form-select').val('').trigger('change');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');

@@ -13,6 +13,7 @@ class Customer extends Model
         'tanggal_verif',
         'id_lokasi',
         'id_kavling',
+        'jenis_properti',
         'hrg_jual',
         'diskon',
         'id_status_progres',

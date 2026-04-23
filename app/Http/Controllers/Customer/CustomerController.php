@@ -308,6 +308,7 @@ class CustomerController extends Controller
             'no_telp'                => 'required',
             'jenis_kelamin'          => 'required',
             'alamat_ktp'             => 'required',
+            'jenis_properti'=> 'required',
             'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
             'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
             'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
@@ -321,6 +322,7 @@ class CustomerController extends Controller
             'no_telp.required'                     => 'No. Telp / WA wajib diisi!',
             'jenis_kelamin.required'               => 'Jenis kelamin wajib diisi!',
             'alamat_ktp.required'                  => 'Alamat KTP wajib diisi!',
+            'jenis_properti.required'             => 'Jenis properti wajib dipilih!',
             'stt_free_pajak_bphtb.required_with'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
             'stt_free_biaya_notaris.required_with' => 'Status Notaris wajib dipilih jika biaya diisi!',
             'stt_free_biaya_kpr.required_with'     => 'Status KPR wajib dipilih jika biaya diisi!',
@@ -360,6 +362,7 @@ class CustomerController extends Controller
                 'jenis_kelamin'          => $request->jenis_kelamin,
                 'alamat_ktp'             => $request->alamat_ktp,
                 'alamat_domisili'        => $request->alamat_domisili ?? null,
+                'jenis_properti'         => $request->jenis_properti,
 
                 'email'                  => $request->email ?? null,
                 'npwp'                   => $request->npwp ?? null,

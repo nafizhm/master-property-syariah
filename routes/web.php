@@ -46,8 +46,6 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\Pembelian\BarangMasukController;
 use App\Http\Controllers\Pembelian\InputPOController;
 use App\Http\Controllers\PengajuanHoldController;
-use App\Http\Controllers\PengaturanWa\PengaturanKoneksiController;
-use App\Http\Controllers\PengaturanWa\TemplatePesanController;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Http\Controllers\Pengaturan\KontenController;
 use App\Http\Controllers\Pengaturan\ListPenjualanController;
@@ -66,6 +64,7 @@ use App\Http\Controllers\Transaksi\GantiNamaController;
 use App\Http\Controllers\Transaksi\PembelianCancelController;
 use App\Http\Controllers\Transaksi\PindahUnitController;
 use App\Http\Controllers\Transaksi\PPJBController;
+use App\Http\Controllers\Transaksi\SPRController;
 use App\Http\Controllers\Transaksi\WawancaraController;
 use App\Http\Controllers\UnitReadyController;
 use Illuminate\Support\Facades\Auth;
@@ -243,11 +242,16 @@ Route::middleware(['auth'])->group(function () {
             ->name('bast.cetak');
         Route::get('/bast/generate-no', [BASTController::class, 'generateNoBAST'])->name('generateNoBAST');
         Route::resource('bast', BASTController::class);
-        
-        Route::get('/ppjb/kpr/{id_customer}',[PPJBController::class, 'cetakKpr'])->name('ppjb.cetak-kpr');
-        Route::get('/ppjb/cash-bertahap/{id_customer}',[PPJBController::class, 'cetakCashBertahap'])->name('ppjb.cetak-cash-bertahap');
-        Route::get('/ppjb/pembelian-cash/{id_customer}',[PPJBController::class, 'cetakPembelianCash'])->name('ppjb.cetak-pembelian-cash');
+        Route::get('/bast/detail-customer/{id}', [BastController::class, 'detailBast'])->name('bast.detail');
+
+        Route::get('/ppjb/kpr/{id_customer}', [PPJBController::class, 'cetakKpr'])->name('ppjb.cetak-kpr');
+        Route::get('/ppjb/cash-bertahap/{id_customer}', [PPJBController::class, 'cetakCashBertahap'])->name('ppjb.cetak-cash-bertahap');
+        Route::get('/ppjb/pembelian-cash/{id_customer}', [PPJBController::class, 'cetakPembelianCash'])->name('ppjb.cetak-pembelian-cash');
         Route::resource('ppjb', PPJBController::class);
+        Route::get('/ppjb/detail-customer/{id}', [PpjbController::class, 'detailPpjb'])->name('ppjb.detail');
+
+        Route::resource('spr', SPRController::class);
+        Route::get('/spr/detail-customer/{id}', [SPRController::class, 'detailSpr'])->name('spr.detail');
 
         Route::get('pindah-unit/kwitansi/{id}', [PindahUnitController::class, 'cetakKwitansi'])->name('pindah-unit.kwitansi');
         Route::get('pindah-unit/cetak-word/{id}', [PindahUnitController::class, 'cetakWord'])->name('pindah-unit.cetak-word');

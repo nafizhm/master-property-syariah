@@ -38,7 +38,7 @@ class PembayaranController extends Controller
         $permissions = HakAksesController::getUserPermissions();
 
         if ($request->ajax()) {
-            $data = Customer::with(['piutangs.kategori', 'pemasukans.kategori', 'progres', 'marketing', 'lokasiKavling'])
+            $data = Customer::with(['piutangs.kategori', 'pemasukans.kategori', 'progres', 'marketing', 'lokasiKavling', 'kavling'])
                 ->with(['pemasukans' => function ($q) {
                     $q->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');
                 }])
@@ -85,17 +85,10 @@ class PembayaranController extends Controller
                             ->orWhere('no_telp', 'like', "%{$keyword}%");
                     });
                 })
-                ->addColumn('rincian_tagihan', function ($row) {
-                    $html = '';
-                    foreach ($row->piutangs as $i => $p) {
-                        $icon  = $i == 0 ? '<i class="fa fa-home text-danger"></i> ' : '<i class="fa fa-plus-square text-danger"></i> ';
-                        $html .= $icon . e($p->deskripsi) . ' # <strong>Rp. ' . number_format($p->nominal, 0, ',', '.') . '</strong><br>';
-                    }
-                    $html .= '<hr>';
-                    foreach ($row->pemasukans as $m) {
-                        $html .= '<i class="fa fa-plus-circle text-success"></i> ' . e($m->kategori->kategori) . ' # <strong>Rp. ' . number_format($m->nominal, 0, ',', '.') . '</strong><br>';
-                    }
-                    return $html;
+               ->addColumn('lokasi_rumah', function ($row) {
+                    $lokasi  = $row->lokasiKavling->nama_kavling ?? '-';
+                    $kavling = $row->kavling->kode_kavling ?? '-';
+                    return '<strong>' . $lokasi . '</strong><br>' . $kavling;
                 })
                 ->addColumn('status', function ($row) {
                     $status = $row->progres ? $row->progres->status_progres : '';
@@ -131,7 +124,7 @@ class PembayaranController extends Controller
                     $btn     .= '</div>';
                     return $btn;
                 })
-                ->rawColumns(['customer', 'rincian_tagihan', 'status', 'jumlah_tagihan', 'action'])
+                ->rawColumns(['customer', 'lokasi_rumah', 'status', 'jumlah_tagihan', 'action'])
                 ->make(true);
         }
 

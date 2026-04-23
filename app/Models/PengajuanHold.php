@@ -59,6 +59,7 @@ class PengajuanHold extends Model
         'total_harga_rumah',
         'total_harga_komisi',
         'jenis_perumahan',
+        'jenis_properti',
         'jenis_pembelian',
         'id_bank',
         'id_metode_bayar',

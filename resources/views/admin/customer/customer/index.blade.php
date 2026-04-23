@@ -257,6 +257,15 @@
                                             class="form-control format-number" readonly>
                                     </div>
                                 </div>
+                                 <label class="control-label col-sm-2">Jenis Properti <span
+                                        style="color: red;">*</span></label>
+                                <div class="col-sm-4">
+                                    <select class="form-select select-jenis-properti" name="jenis_properti" id="jenis_properti">
+                                        <option value=""></option>
+                                        <option value="Ruko">Ruko</option>
+                                        <option value="Kavling">Kavling</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <hr>
@@ -565,6 +574,12 @@
                 minimumResultsForSearch: Infinity,
             });
 
+            $('.select-jenis-properti').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Jenis Properti",
+                minimumResultsForSearch: Infinity,
+            });
+
             function hitungTotal() {
 
                 let hrg_jual = unformatNumber($('#hrg_jual').val());
@@ -702,6 +717,7 @@
                     $('#id_agent').val(data.id_agent).trigger('change');
                     $('#jenis_pembelian').val(data.jenis_pembelian).trigger('change');
                     $('#jenis_perumahan').val(data.jenis_perumahan).trigger('change');
+                    $('#jenis_properti').val(data.jenis_properti).trigger('change');
 
                     $('#modalForm').modal('show');
 

@@ -15,12 +15,12 @@
                         <div class="card">
                             <div class="card-header p-3">
                                 <div class="d-flex align-content-center justify-content-between">
-                                    <h3 class="font-weight-bold text-lg">Perjanjian Pengikatan Jual Beli (PPJB)</h3>
+                                    <h3 class="font-weight-bold text-lg">Surat Pemesanan Rumah (SPR)</h3>
                                     <div class="d-flex align-items-center">
                                         @if ($permissions['tambah'])
                                             <button class="btn btn-primary btn-sm" data-toggle="modal"
                                                 data-target="#modalForm"><i class="fas fa-plus"></i>
-                                                Tambah PPJB</button>
+                                                Tambah SPR</button>
                                         @endif
                                     </div>
                                 </div>
@@ -30,8 +30,6 @@
                                     <thead>
                                         <tr>
                                             <th width="5%">No</th>
-                                            <th>Tanggal PPJB</th>
-                                            <th>No. PPJB</th>
                                             <th>Customer</th>
                                             <th>Lokasi Rumah</th>
                                             <th class="text-center" width="15%">Action</th>
@@ -60,7 +58,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-indigo">
-                    <h5 class="modal-title text-white font-weight-bold" id="modalFormLabel">Form PPJB</h5>
+                    <h5 class="modal-title text-white font-weight-bold" id="modalFormLabel">Form SPR</h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -69,15 +67,7 @@
                     @csrf
                     <input type="hidden" id="primary_id" name="primary_id">
                     <div class="modal-body">
-
-                        <div class="form-group row mb-3">
-                            <label for="tanggal_ppjb" class="col-sm-2 col-form-label">Tanggal PPJB</label>
-                            <div class="col-sm-3">
-                                <input type="date" id="tanggal_ppjb" class="form-control" name="tanggal_ppjb"
-                                    value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
-                            </div>
-                        </div>
-                        <div class="form-group row mb-3">
+                        <div class="form-group row">
                             <label class="col-sm-2 col-form-label">Customer</label>
                             <div class="col-sm-8">
                                 <select name="id_customer" id="id_customer" class="form-select select-customer">
@@ -100,20 +90,15 @@
                                 <input type="text" name="kode_kavling" id="kode_kavling" class="form-control">
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Nama Saksi</label>
-                            <div class="col-sm-4">
-                                <input type="text" name="saksi" id="saksi" class="form-control">
-                            </div>
-                        </div>
+
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">Nama Customer</label>
                             <div class="col-sm-4">
-                                <input type="text" name="nama_customer" id="nama_customer" class="form-control">
+                                <input type="text" name="nama_lengkap" id="nama_lengkap" class="form-control">
                             </div>
-                            <label class="col-sm-2 col-form-label">Tempat/Tanggal Lahir</label>
+                            <label class="col-sm-2 col-form-label">No. Telp</label>
                             <div class="col-sm-3">
-                                <input type="text" name="ttl" id="ttl" class="form-control">
+                                <input type="text" name="no_telp" id="no_telp" class="form-control">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -123,7 +108,84 @@
                             </div>
                             <label class="col-sm-2 col-form-label">No. KTP</label>
                             <div class="col-sm-3">
-                                <input type="text" name="no_ktp" id="no_ktp" class="form-control">
+                                <input type="text" name="nik" id="nik" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Pekerjaan</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="pekerjaan" id="pekerjaan" class="form-control">
+                            </div>
+                            <label class="col-sm-2 col-form-label">Estimasi Pendapatan</label>
+                            <div class="col-sm-4">
+                                <select name="estimasi_pendapatan" id="estimasi_pendapatan"
+                                    class="form-select select-estimasi-pendapatan">
+                                    <option value=""></option>
+                                    <option value="< Rp10.000.000">
+                                        < Rp10.000.000</option>
+                                    <option value="Rp10.000.001 - Rp15.000.000">Rp10.000.001 - Rp15.000.000</option>
+                                    <option value="Rp15.000.001 - Rp20.000.000">Rp15.000.001 - Rp20.000.000</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Join Income</label>
+                            <div class="col-sm-4">
+                                <select name="join_income" id="join_income" class="form-select select-join-income">
+                                    <option value=""></option>
+                                    <option value="Rp20.000.001 - Rp25.000.000">Rp20.000.001 - Rp25.000.000</option>
+                                    <option value=">Rp25.000.000">>Rp25.000.000</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-2 col-form-label">Sumber Dana</label>
+                            <div class="col-sm-4">
+                                <select name="sumber_dana" id="sumber_dana" class="form-select select-sumber-dana">
+                                    <option value=""></option>
+                                    <option value="Gaji">Gaji</option>
+                                    <option value="Usaha">Usaha</option>
+                                    <option value="Tabungan">Tabungan</option>
+                                    <option value="Warisan">Warisan</option>
+                                    <option value="Investasi">Investasi</option>
+                                    <option value="Lain-lain">Lain-lain</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Tujuan Pembelian</label>
+                            <div class="col-sm-4">
+                                <select name="tujuan_pembelian" id="tujuan_pembelian"
+                                    class="form-select select-tujuan-pembelian">
+                                    <option value=""></option>
+                                    <option value="Tempat Tinggal/Pribadi">Tempat Tinggal/Pribadi</option>
+                                    <option value="Investasi">Investasi</option>
+                                    <option value="Sewa">Sewa</option>
+                                    <option value="Lain - lain">Lain - lain</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-2 col-form-label">Pembelian Rumah ke</label>
+                            <div class="col-sm-4">
+                                <select name="pembelian_rumah_ke" id="pembelian_rumah_ke"
+                                    class="form-select select-pembelian-rumah-ke">
+                                    <option value=""></option>
+                                    <option value="1">1</option>
+                                    <option value="2, dst">2, dst</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Nama Proyek</label>
+                            <div class="col-sm-4">
+                                <input type="text" name="nama_proyek" id="nama_proyek" class="form-control">
+                            </div>
+                            <label class="col-sm-2 col-form-label">Tipe Bangunan</label>
+                            <div class="col-sm-2">
+                                <input type="text" name="tipe_bangunan" id="tipe_bangunan"
+                                    class="form-control format-number">
+
                             </div>
                         </div>
 
@@ -151,43 +213,24 @@
                         </div>
 
                         <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Nama Jalan</label>
+                            <label class="col-sm-2 col-form-label">Nama Marketing</label>
                             <div class="col-sm-4">
-                                <input type="text" name="nama_jalan" id="nama_jalan" class="form-control">
+                                <input type="text" name="nama_marketing" id="nama_marketing" class="form-control">
                             </div>
-                            <label class="col-sm-2 col-form-label">Desa/Kelurahan</label>
+                            <label class="col-sm-2 col-form-label">PIC</label>
                             <div class="col-sm-3">
-                                <input type="text" name="desa" id="desa" class="form-control">
+                                <input type="text" name="pic" id="pic" class="form-control">
                             </div>
                         </div>
+
                         <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Kecamatan</label>
-                            <div class="col-sm-4">
-                                <input type="text" name="kec" id="kec" class="form-control">
-                            </div>
-                            <label class="col-sm-2 col-form-label">Kota</label>
-                            <div class="col-sm-3">
-                                <input type="text" name="kota" id="kota" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Provinsi</label>
-                            <div class="col-sm-4">
-                                <input type="text" name="prov" id="prov" class="form-control">
-                            </div>
-                            <label class="col-sm-2 col-form-label">No. SHM</label>
-                            <div class="col-sm-3">
-                                <input type="text" name="no_shm" id="no_shm" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">Harga Jual</label>
+                            <label class="col-sm-2 col-form-label">Harga Jual Standard</label>
                             <div class="col-sm-4">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
                                     </div>
-                                    <input type="text" name="hrg_jual" id="hrg_jual"
+                                    <input type="text" name="hrg_jual_std" id="hrg_jual_std"
                                         class="form-control format-number">
                                 </div>
                             </div>
@@ -203,13 +246,88 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-2 col-form-label">DP</label>
+                            <label class="col-sm-2 col-form-label">Biaya KPR</label>
                             <div class="col-sm-4">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp.</span>
                                     </div>
-                                    <input type="text" name="dp" id="dp"
+                                    <input type="text" name="biaya_kpr" id="biaya_kpr"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                            <label class="col-sm-2 col-form-label">Biaya Custom</label>
+                            <div class="col-sm-3">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="biaya_custom" id="biaya_custom"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Biaya Lain</label>
+                            <div class="col-sm-4">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="biaya_lain" id="biaya_lain"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                            <label class="col-sm-2 col-form-label">Total Harga</label>
+                            <div class="col-sm-3">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="total_harga_unit" id="total_harga_unit"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row align-items-center">
+                            <label class="col-sm-2 col-form-label">Metode Pembayaran</label>
+
+                            <div class="col-sm-4">
+                                <select name="metode_pembayaran" id="metode_pembayaran"
+                                    class="form-select select-metode-pembayaran">
+                                    <option value=""></option>
+                                    <option value="HARD CASH">HARD CASH</option>
+                                    <option value="SOFT CASH">SOFT CASH</option>
+                                    <option value="KPR">KPR</option>
+                                </select>
+                            </div>
+
+                            <div class="col-sm-3 d-none" id="group_soft">
+                                <div class="input-group">
+                                    <input type="text" name="termin_soft" id="termin_soft"
+                                        class="form-control format-number">
+                                    <span class="input-group-text">Bulan</span>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-3 d-none" id="group_kpr">
+                                <div class="input-group">
+                                    <input type="text" name="termin_kpr" id="termin_kpr"
+                                        class="form-control format-number">
+                                    <span class="input-group-text">Tahun</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Harga Jual</label>
+                            <div class="col-sm-4">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="hrg_jual" id="hrg_jual"
                                         class="form-control format-number">
                                 </div>
                             </div>
@@ -222,6 +340,34 @@
                                     <input type="text" name="booking_fee" id="booking_fee"
                                         class="form-control format-number">
                                 </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">DP</label>
+                            <div class="col-sm-4">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="dp" id="dp"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                            <label class="col-sm-2 col-form-label">Kewajiban Kredit</label>
+                            <div class="col-sm-3">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input type="text" name="kewajiban_kredit" id="kewajiban_kredit"
+                                        class="form-control format-number">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Catatan Keterangan</label>
+                            <div class="col-sm-4">
+                                <textarea id="catatan" name="catatan" class="form-control" rows="3"></textarea>
                             </div>
                         </div>
 
@@ -247,9 +393,45 @@
                 theme: "bootstrap4",
                 placeholder: "Pilih Customer",
             });
+
+            $('.select-estimasi-pendapatan').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Estimasi Pendapatan",
+                minimumResultsForSearch: Infinity,
+            });
+
+            $('.select-join-income').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Join Income",
+                minimumResultsForSearch: Infinity,
+            });
+
+            $('.select-sumber-dana').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Sumber Dana",
+                minimumResultsForSearch: Infinity,
+            });
+
+            $('.select-tujuan-pembelian').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Tujuan Pembelian",
+                minimumResultsForSearch: Infinity,
+            });
+
+            $('.select-pembelian-rumah-ke').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Pembelian Rumah ke",
+                minimumResultsForSearch: Infinity,
+            });
+
+            $('.select-metode-pembayaran').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Metode Pembayaran",
+                minimumResultsForSearch: Infinity,
+            });
         });
 
-        const detailUrl = "{{ route('ppjb.detail', ':id') }}";
+        const detailUrl = "{{ route('spr.detail', ':id') }}";
 
         $('#id_customer').on('change', function() {
             let id = $(this).val();
@@ -261,11 +443,14 @@
 
                 let c = res.customer;
 
-                $('#nama_customer').val(c.nama_lengkap);
-                $('#ttl').val(res.ttl);
+                $('#nama_lengkap').val(c.nama_lengkap);
+                $('#nama_lengkap').val(c.nama_lengkap);
                 $('#alamat_ktp').val(c.alamat_ktp);
-                $('#no_ktp').val(c.nik);
+                $('#nik').val(c.nik);
+                $('#no_telp').val(c.no_telp);
+                $('#pekerjaan').val(c.pekerjaan);
 
+                $('#hrg_jual_std').val(formatNumber(c.hrg_jual));
                 $('#hrg_jual').val(formatNumber(c.hrg_jual));
                 $('#diskon').val(formatNumber(c.diskon));
 
@@ -273,22 +458,41 @@
                     $('#kode_kavling').val(c.kavling.kode_kavling);
                     $('#luas_tanah').val(c.kavling.luas_tanah);
                     $('#luas_bangunan').val(c.kavling.luas_bangunan);
-                    $('#no_shm').val(c.kavling.no_sertifikat);
+                    $('#tipe_bangunan').val(c.kavling.tipe_bangunan);
                 }
 
                 if (c.lokasi) {
                     $('#nama_perum').val(c.lokasi.nama_kavling);
-                    $('#nama_jalan').val(c.lokasi.nama_jalan);
-                    $('#desa').val(c.lokasi.desa_kelurahan);
-                    $('#kec').val(c.lokasi.kecamatan);
-                    $('#kota').val(c.lokasi.kabupaten_kota);
-                    $('#prov').val(c.lokasi.provinsi);
+                    $('#nama_proyek').val(c.lokasi.nama_kavling);
                 }
+
+                if (c.marketing) {
+                    $('#nama_marketing').val(c.marketing.nama_marketing);
+                }
+
+                $('#biaya_kpr').val(formatNumber(c.biaya_kpr));
+                $('#biaya_custom').val(formatNumber(c.biaya_custom));
+                $('#biaya_lain').val(formatNumber(c.biaya_lain_lain));
+
+                $('#total_harga_unit').val(formatNumber(c.total_harga_rumah));
 
                 $('#booking_fee').val(formatNumber(res.booking_fee));
                 $('#dp').val(formatNumber(res.dp));
 
             });
+        });
+
+        $('#metode_pembayaran').on('change', function() {
+            let val = $(this).val();
+
+            $('#group_soft').addClass('d-none');
+            $('#group_kpr').addClass('d-none');
+
+            if (val === 'SOFT CASH') {
+                $('#group_soft').removeClass('d-none');
+            } else if (val === 'KPR') {
+                $('#group_kpr').removeClass('d-none');
+            }
         });
 
         $(function() {
@@ -299,25 +503,13 @@
                 serverSide: false,
                 ordering: false,
                 responsive: true,
-                ajax: "{{ route('ppjb.index') }}",
+                ajax: "{{ route('spr.index') }}",
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
                         orderable: false,
                         searchable: false,
                         className: 'text-center'
-                    },
-                    {
-                        data: 'tanggal_ppjb',
-                        name: 'tanggal_ppjb',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'no_ppjb',
-                        name: 'no_ppjb',
-                        orderable: false,
-                        searchable: true
                     },
                     {
                         data: 'customer.nama_lengkap',
@@ -379,8 +571,8 @@
             submitBtn.prop('disabled', true);
 
             let id = $('#primary_id').val();
-            let url = id ? '{{ route('ppjb.update', ['ppjb' => ':id']) }}'.replace(':id', id) :
-                '{{ route('ppjb.store') }}';
+            let url = id ? '{{ route('spr.update', ['spr' => ':id']) }}'.replace(':id', id) :
+                '{{ route('spr.store') }}';
             let method = id ? 'PUT' : 'POST';
 
             $('.is-invalid').removeClass('is-invalid');
@@ -398,7 +590,7 @@
                 success: function(response) {
                     $('#modalForm').modal('hide');
                     audio.play();
-                    let msg = id ? "PPJB berhasil diupdate!" : "PPJB berhasil ditambahkan!";
+                    let msg = id ? "SPR berhasil diupdate!" : "SPR berhasil ditambahkan!";
                     toastr.success(msg, "BERHASIL", {
                         progressBar: true,
                         timeOut: 3500,
@@ -441,7 +633,7 @@
 
             Swal.fire({
                 title: 'Apakah Anda yakin?',
-                text: 'PPJB ini akan dihapus secara permanen!',
+                text: 'SPR ini akan dihapus secara permanen!',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '<span class="swal-btn-text">Ya, Hapus</span>',
@@ -467,7 +659,7 @@
                             data: form.serialize(),
                             success: function() {
                                 audio.play();
-                                toastr.success("PPJB telah dihapus!", "BERHASIL", {
+                                toastr.success("SPR telah dihapus!", "BERHASIL", {
                                     progressBar: true,
                                     timeOut: 3500,
                                     positionClass: "toast-bottom-right"

@@ -71,11 +71,12 @@
                         </div>
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Rekening</label>
-                            <div class="col-sm-5">
+                            <div class="col-sm-6">
                                 <select name="id_bank" id="id_bank" class="form-select select-rekening">
                                     <option value=""></option>
                                     @foreach ($rekenings as $rekening)
-                                        <option value="{{ $rekening->id }}">{{ $rekening->nama }}</option>
+                                        <option value="{{ $rekening->id }}">{{ $rekening->nama }} - {{ $rekening->no_rek }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -86,9 +87,19 @@
                             <div class="col-sm-5">
                                 <select name="id_customer" id="id_customer" class="form-select select-customer">
                                     <option value=""></option>
-                                    @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}"
-                                            data-komisi="{{ $customer->total_harga_komisi }}">{{ $customer->nama_lengkap }}
+                                    @foreach ($customers as $c)
+                                        <option value="{{ $c->id }}" data-hrg_jual="{{ $c->hrg_jual }}"
+                                            data-diskon="{{ $c->diskon }}" data-pajak_pph="{{ $c->pajak_pph }}"
+                                            data-pajak_bphtb="{{ $c->pajak_bphtb }}"
+                                            data-stt_bphtb="{{ $c->stt_free_pajak_bphtb }}"
+                                            data-biaya_notaris="{{ $c->biaya_notaris }}"
+                                            data-stt_notaris="{{ $c->stt_free_biaya_notaris }}"
+                                            data-biaya_kpr="{{ $c->biaya_kpr }}"
+                                            data-stt_kpr="{{ $c->stt_free_biaya_kpr }}"
+                                            data-bonus="{{ $c->bonus_konsumen }}" data-ppn="{{ $c->ppn }}"
+                                            data-biaya_lain="{{ $c->biaya_lain_lain }}"
+                                            data-komisi="{{ $c->total_harga_komisi }}">
+                                            {{ $c->nama_lengkap }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -96,14 +107,111 @@
                         </div>
 
                         <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Harga Jual</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-primary rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="hrg_jual" id="hrg_jual"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Pajak PPH</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="pajak_pph" id="pajak_pph"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Pajak BPHTB</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="pajak_bphtb" id="pajak_bphtb"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Biaya Notaris</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="biaya_notaris" id="biaya_notaris"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Biaya KPR</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="biaya_kpr" id="biaya_kpr"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Bonus Konsumen</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="bonus_konsumen" id="bonus_konsumen"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Diskon</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="diskon" id="diskon"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">PPN</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="ppn" id="ppn"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Biaya lain-lain</label>
+                            <div class="col-sm-5">
+                                <div class="input-group border border-danger rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
+                                    <input type="text" name="biaya_lain_lain" id="biaya_lain_lain"
+                                        class="form-control border-0 format-numer" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Harga Bersih Komisi</label>
                             <div class="col-sm-5">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp.</span>
-                                    </div>
+                                <div class="input-group border border-success rounded shadow-sm">
+                                    <span class="input-group-text">Rp.</span>
                                     <input type="text" name="total_harga_komisi" id="total_harga_komisi"
-                                        class="form-control format-numer" readonly>
+                                        class="form-control border-0 format-numer" readonly>
                                 </div>
                             </div>
                         </div>
@@ -112,7 +220,8 @@
                             <label class="col-sm-3 col-form-label">Persen Inhouse</label>
                             <div class="col-sm-2">
                                 <div class="input-group">
-                                    <input type="text" name="persen_inhouse" id="persen_inhouse" class="form-control persentase">
+                                    <input type="text" name="persen_inhouse" id="persen_inhouse"
+                                        class="form-control persentase">
                                     <div class="input-group-append">
                                         <span class="input-group-text">%</span>
                                     </div>
@@ -134,7 +243,8 @@
                             <label class="col-sm-3 col-form-label">Persen Agent</label>
                             <div class="col-sm-2">
                                 <div class="input-group">
-                                    <input type="text" name="persen_agent" id="persen_agent" class="form-control persentase">
+                                    <input type="text" name="persen_agent" id="persen_agent"
+                                        class="form-control persentase">
                                     <div class="input-group-append">
                                         <span class="input-group-text">%</span>
                                     </div>
@@ -251,7 +361,29 @@
         });
 
         $(document).on('change', '#id_customer', function() {
-            let komisi = $(this).find(':selected').data('komisi') || 0;
+            let opt = $(this).find(':selected');
+
+            let hrg_jual = opt.data('hrg_jual') || 0;
+            let komisi = opt.data('komisi') || 0;
+            let diskon = opt.data('diskon') || 0;
+            let pajak_pph = opt.data('pajak_pph') || 0;
+            let pajak_bphtb = opt.data('stt_bphtb') == 1 ? (opt.data('pajak_bphtb') || 0) : 0;
+            let biaya_notaris = opt.data('stt_notaris') == 1 ? (opt.data('biaya_notaris') || 0) : 0;
+            let biaya_kpr = opt.data('stt_kpr') == 1 ? (opt.data('biaya_kpr') || 0) : 0;
+            let bonus = opt.data('bonus') || 0;
+            let ppn = opt.data('ppn') || 0;
+            let biaya_lain = opt.data('biaya_lain') || 0;
+
+            $('#hrg_jual').val(formatNumber(hrg_jual));
+            $('#diskon').val(formatNumber(diskon));
+            $('#pajak_pph').val(formatNumber(pajak_pph));
+            $('#pajak_bphtb').val(formatNumber(pajak_bphtb));
+            $('#biaya_notaris').val(formatNumber(biaya_notaris));
+            $('#biaya_kpr').val(formatNumber(biaya_kpr));
+            $('#bonus_konsumen').val(formatNumber(bonus));
+            $('#ppn').val(formatNumber(ppn));
+            $('#biaya_lain_lain').val(formatNumber(biaya_lain));
+
             $('#total_harga_komisi').val(formatNumber(komisi));
             recalcInhouse();
             recalcAgent();

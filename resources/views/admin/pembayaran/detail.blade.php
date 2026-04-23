@@ -304,15 +304,17 @@
 
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Rekening</label>
-                            <div class="col-sm-4">
+                            <div class="col-sm-6">
                                 <select name="id_bank" id="id_bank" class="form-control select-rekening">
                                     <option value=""></option>
                                     @foreach ($bankList as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->nama }}</option>
+                                        <option value="{{ $bank->id }}">{{ $bank->nama }} - {{ $bank->no_rek }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <label class="col-sm-2 col-form-label">Metode Bayar</label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Metode Bayar</label>
                             <div class="col-sm-3">
                                 <select name="id_metode_bayar" id="id_metode_bayar"
                                     class="form-control select-metode-bayar">

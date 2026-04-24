@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use setasign\Fpdi\Fpdi;
 use Yajra\DataTables\Facades\DataTables;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 class BastController extends Controller
 {
@@ -167,132 +168,39 @@ class BastController extends Controller
 
     public function cetakBast($id_customer)
     {
-        $customer = Customer::with(['lokasiKavling', 'kavlingPeta'])
-            ->findOrFail($id_customer);
-        $bast          = BAST::where('id_customer', $id_customer)->firstOrFail();
-        $lokasi        = $customer->lokasiKavling;
-        $kavling       = $customer->kavlingPeta;
-        $no_bast       = $bast->no_bast ?? '-';
-        $nama_kavling  = $lokasi->nama_kavling ?? '-';
-        $alamat_lokasi = $lokasi->alamat ?? '-';
-        $nama_lengkap  = $customer->nama_lengkap ?? '-';
-        $alamat_ktp    = $customer->alamat_ktp ?? '-';
-        $kode_kavling  = $kavling->kode_kavling ?? '-';
-        $luas_tanah    = $kavling->luas_tanah ?? '-';
-        $luas_bangunan = $kavling->luas_bangunan ?? '-';
-        $tipe_bangunan = $kavling->tipe_bangunan ?? '-';
+        $bast = BAST::where('id_customer', $id_customer)->firstOrFail();
 
-        $bulan_id = [
-            1  => 'Januari', 2  => 'Februari', 3  => 'Maret',
-            4  => 'April', 5    => 'Mei', 6       => 'Juni',
-            7  => 'Juli', 8     => 'Agustus', 9   => 'September',
-            10 => 'Oktober', 11 => 'November', 12 => 'Desember',
-        ];
-        $tgl_hari_ini    = (int) date('d');
-        $bln_hari_ini    = $bulan_id[(int) date('m')];
-        $thn_hari_ini    = date('Y');
-        $tanggal_lengkap = $tgl_hari_ini . ' ' . $bln_hari_ini . ' ' . $thn_hari_ini;
+        $tanggalBast = Carbon::parse($bast->tanggal_bast);
 
-        $pdf = new Fpdi();
-        $pdf->SetAutoPageBreak(false);
+        $tanggal = $tanggalBast->day;
+        $bulan   = $tanggalBast->translatedFormat('F');
+        $tahun   = $tanggalBast->year;
 
-        $templatePath = public_path('templates/BAST.pdf');
+        $template = new TemplateProcessor(public_path('templates/BAST.docx'));
 
-        $totalPages = $pdf->setSourceFile($templatePath);
+        $template->setValue('nama_kavling', $bast->nama_perum ?? '-');
+        $template->setValue('no_bast', $bast->no_bast ?? '-');
+        $template->setValue('tanggal', $tanggal);
+        $template->setValue('bulan', $bulan);
+        $template->setValue('tahun', $tahun);
+        $template->setValue('nama_customer', $bast->nama_customer ?? '-');
+        $template->setValue('alamat', $bast->alamat_ktp ?? '-');
+        $template->setValue('desa', $bast->desa ?? '-');
+        $template->setValue('kecamatan', $bast->kec ?? '-');
+        $template->setValue('kota', $bast->kota ?? '-');
+        $template->setValue('kode_kav', $bast->kode_kavling ?? '-');
+        $template->setValue('luas_tanah', $bast->luas_tanah ?? '-');
+        $template->setValue('luas_bangunan', $bast->luas_bangunan ?? '-');
+        $template->setValue('tanggal_bast', $tanggalBast->format('d-m-Y'));
+        $template->setValue('tanggal_pemeriksaan', $tanggalBast->format('d-m-Y'));
+        $template->setValue('petugas', $bast->petugas_pendamping ?? '-');
 
-        for ($pageNo = 1; $pageNo <= $totalPages; $pageNo++) {
+        $filename = 'BAST_' . $bast->id_customer . '_' . date('Ymd') . '.docx';
 
-            $tplIdx = $pdf->importPage($pageNo);
-            $size   = $pdf->getTemplateSize($tplIdx);
+        $tempFile = storage_path($filename);
+        $template->saveAs($tempFile);
 
-            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-
-            $pdf->useTemplate($tplIdx, 0, 0, $size['width'], $size['height']);
-
-            $pdf->SetTextColor(0, 0, 0);
-            if ($pageNo === 1) {
-
-                $pdf->SetFont('Times', 'B', 40);
-                $pdf->SetXY(65, 100);
-                $pdf->Write(0, $nama_kavling);
-
-                $pdf->SetFont('Times', 'B', 20);
-                $pdf->SetXY(80, 236);
-                $pdf->Write(0, $no_bast);
-
-            }
-
-            if ($pageNo === 2) {
-                $pdf->SetFont('Times', '', 12);
-
-                $pdf->SetXY(72, 44);
-                $pdf->Write(0, $tgl_hari_ini);
-
-                $pdf->SetXY(100, 44);
-                $pdf->Write(0, $bln_hari_ini);
-
-                $pdf->SetXY(134, 44);
-                $pdf->Write(0, $thn_hari_ini);
-
-                $pdf->SetXY(61, 134);
-                $pdf->Write(0, $nama_lengkap);
-
-                $pdf->SetXY(61, 141);
-                $pdf->Write(0, $alamat_ktp);
-
-                $pdf->SetXY(96, 174);
-                $pdf->Write(0, $nama_kavling);
-
-                $pdf->SetXY(96, 182);
-                $pdf->Write(0, $alamat_lokasi);
-
-                $pdf->SetXY(96, 212);
-                $pdf->Write(0, $kode_kavling);
-
-                $pdf->SetXY(96, 219);
-                $pdf->Write(0, $luas_tanah . ' m²');
-
-                $pdf->SetXY(96, 228);
-                $pdf->Write(0, $tipe_bangunan);
-            }
-
-            if ($pageNo === 4) {
-                $pdf->SetXY(158, 183);
-                $pdf->Write(0, $tgl_hari_ini);
-
-                $pdf->SetXY(163, 183);
-                $pdf->Write(0, $bln_hari_ini);
-
-                $pdf->SetXY(174, 183);
-                $pdf->Write(0, $thn_hari_ini);
-
-                $pdf->SetXY(137, 242);
-                $pdf->Write(0, $nama_lengkap);
-            }
-
-            if ($pageNo === 5) {
-                $pdf->SetXY(72, 42);
-                $pdf->Write(0, $nama_kavling);
-
-                $pdf->SetXY(72, 50);
-                $pdf->Write(0, $kode_kavling);
-
-                $pdf->SetXY(72, 58);
-                $pdf->Write(0, $luas_tanah . ' m²');
-
-                $pdf->SetXY(86, 58);
-                $pdf->Write(0, '/');
-
-                $pdf->SetXY(88, 58);
-                $pdf->Write(0, $luas_bangunan . ' m²');
-            }
-
-        }
-
-        $filename = 'BAST_' . $customer->kode_customer . '_' . date('Ymd') . '.pdf';
-
-        $pdf->Output('I', $filename);
-        exit;
+        return response()->download($tempFile)->deleteFileAfterSend(true);
     }
 
     private function numberToWords($number)

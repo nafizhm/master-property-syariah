@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use setasign\Fpdi\Fpdi;
 use Yajra\DataTables\Facades\DataTables;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 Carbon::setLocale('id');
 class PPJBController extends Controller
@@ -29,6 +30,7 @@ class PPJBController extends Controller
                 'customer.lokasi',
                 'customer.kavling'
             )
+                ->select('ppjb.*')
                 ->whereHas('customer', function ($q) {
                     $q->where('stt_arsip', 0);
                 })
@@ -51,11 +53,11 @@ class PPJBController extends Controller
                     $cetakUrl = '#';
 
                     if ($jenis === 'KPR') {
-                        $cetakUrl = route('ppjb.cetak-kpr', $row->id_customer);
+                        $cetakUrl = route('ppjb.cetak-kpr', $row->id);
                     } elseif ($jenis === 'Cash Bertahap') {
-                        $cetakUrl = route('ppjb.cetak-cash-bertahap', $row->id_customer);
+                        $cetakUrl = route('ppjb.cetak-cash-bertahap', $row->id);
                     } elseif ($jenis === 'Pembelian Cash') {
-                        $cetakUrl = route('ppjb.cetak-pembelian-cash', $row->id_customer);
+                        $cetakUrl = route('ppjb.cetak-pembelian-cash', $row->id);
                     }
 
                     $deleteUrl = route('ppjb.destroy', $row->id);
@@ -224,770 +226,222 @@ class PPJBController extends Controller
     }
 
     // kpr
-    public function cetakKpr($id_customer)
+    public function cetakKpr($id)
     {
-        $customer = Customer::with([
-            'kavling',
-            'lokasi',
-            'marketing',
-            'ppjb',
-            'pemasukans' => function ($q) {
-                $q->whereIn('id_kategori_transaksi', [1, 2]);
-            },
-        ])->findOrFail($id_customer);
-
-        $bookingFee = optional(
-            $customer->pemasukans->where('id_kategori_transaksi', 1)->first()
-        )->nominal ?? 0;
-
-        $DP = optional(
-            $customer->pemasukans->where('id_kategori_transaksi', 2)->first()
-        )->nominal ?? 0;
-
-        $bookingFeeFormat = $bookingFee
-            ? number_format($bookingFee, 0, ',', '.')
-            : '-';
-
-        $DPFormat = $DP
-            ? number_format($DP, 0, ',', '.')
-            : '-';
-
-        $tempatLahir = $customer->tempat_lahir ?? '-';
-        \Carbon\Carbon::setLocale('id');
-
-        $tglLahir = $customer->tgl_lahir
-            ? \Carbon\Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y')
-            : '-';
-
-        $ttl = $tempatLahir . ', ' . $tglLahir;
-
-        $templatePath = public_path('templates/PPJB.pdf');
-
-        $pdf = new Fpdi();
-        $pdf->SetAutoPageBreak(false);
-
-        $pageCount = $pdf->setSourceFile($templatePath);
-
-        for ($page = 1; $page <= $pageCount; $page++) {
-            $pdf->AddPage();
-            $tplId = $pdf->importPage($page);
-            $pdf->useTemplate($tplId, 0, 0, 210, 297);
-
-            if ($page >= 2) {
-                $this->headerKavling($pdf, $customer);
-                $this->footerKavling($pdf, $customer);
-            }
-
-            if ($page == 1) {
-
-                $pdf->SetFont('Times', 'B', 35);
-
-                $text1      = optional($customer->lokasi)->nama_kavling ?? '-';
-                $textWidth1 = $pdf->GetStringWidth($text1);
-                $pageWidth  = $pdf->GetPageWidth();
-
-                $pdf->SetXY(($pageWidth - $textWidth1) / 2, 75);
-                $pdf->Cell(0, 5, $text1);
-
-                $pdf->SetFont('Times', 'B', 20);
-
-                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
-                $textWidth2 = $pdf->GetStringWidth($text2);
-
-                $pdf->SetXY(($pageWidth - $textWidth2) / 2, 235);
-                $pdf->Cell(0, 5, $text2);
-            }
-
-            if ($page == 2) {
-                $tanggal = Carbon::now()->translatedFormat('d');
-                $bulan   = Carbon::now()->translatedFormat('F');
-                $tahun   = Carbon::now()->translatedFormat('Y');
-
-                $pdf->SetFont('Times', 'B', 12);
-
-                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
-
-                $pageWidth = $pdf->GetPageWidth();
-                $textWidth = $pdf->GetStringWidth($text);
-
-                $x = ($pageWidth - $textWidth) / 2;
-
-                $pdf->SetXY($x, 28.8);
-                $pdf->Cell(0, 5, $text);
-
-                $pdf->SetXY(53.4, 39.6);
-                $pdf->Cell(15, 5, $tanggal);
-
-                $pdf->SetXY(68.8, 39.6);
-                $pdf->Cell(30, 5, $bulan);
-
-                $pdf->SetXY(97, 39.6);
-                $pdf->Cell(20, 5, $tahun);
-
-                $pdf->SetXY(66, 95);
-                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
-
-                $pdf->SetXY(66, 102);
-                $pdf->Cell(0, 5, $ttl);
-
-                $pdf->SetXY(66, 109);
-                $alamat = $customer->alamat_ktp ?? '-';
-                $alamat = mb_substr($alamat, 0, 50);
-
-                $pdf->MultiCell(140, 5, $alamat);
-
-                $pdf->SetXY(66, 116);
-                $pdf->Cell(0, 5, $customer->nik ?? '-');
-
-                $pdf->SetFont('Times', 'B', 10);
-                $pdf->SetXY(130, 198);
-                $luasTanah = optional($customer->kavling)->luas_bangunan ?? '-';
-                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-
-                $pdf->SetXY(115, 204);
-                $luasTanah = optional($customer->kavling)->luas_tanah ?? '-';
-                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-
-                $pdf->SetFont('Times', 'B', 12);
-
-                $lokasi = optional($customer->lokasi);
-
-                $pdf->SetXY(80, 224);
-                $pdf->Cell(0, 5, $lokasi->nama_jalan ?? '-');
-
-                $pdf->SetXY(80, 231);
-                $pdf->Cell(0, 5, $lokasi->desa_kelurahan ?? '-');
-
-                $pdf->SetXY(80, 238);
-                $pdf->Cell(0, 5, $lokasi->kecamatan ?? '-');
-
-                $pdf->SetXY(80, 245);
-                $pdf->Cell(0, 5, $lokasi->kabupaten_kota ?? '-');
-
-                $pdf->SetXY(80, 256);
-                $pdf->Cell(0, 5, $lokasi->provinsi ?? '-');
-            }
-
-            if ($page == 3) {
-                $pdf->SetFont('Times', 'B', 12);
-
-                $text = (optional($customer->lokasi)->nama_kavling ?? '-') . ', KAVLING ' . strtoupper(optional($customer->kavling)->kode_kavling ?? '-');
-
-                $pdf->SetXY(108.5, 32.3);
-                $pdf->Cell(0, 5, $text);
-
-                $hargaJual = optional($customer->kavling)->hrg_jual;
-
-                $hargaFormat = $hargaJual
-                    ? number_format($hargaJual, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Times', 'B', 12);
-                $pdf->SetXY(94, 133.8);
-                $pdf->Cell(0, 5, $hargaFormat);
-
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(85, 138);
-                $pdf->MultiCell(
-                    110,
-                    10,
-                    $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $pdf->SetFont('Times', 'B', 12);
-                $pdf->SetXY(94, 147.1);
-                $pdf->Cell(0, 5, $DPFormat);
-
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(85, 154);
-                $pdf->MultiCell(
-                    110,
-                    5,
-                    $DP
-                        ? '(' . ucwords($this->terbilang($DP)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $diskon = $customer->diskon ?? 0;
-
-                $diskonFormat = $diskon
-                    ? number_format($diskon, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Times', 'B', 12);
-                $pdf->SetXY(94, 160.5);
-                $pdf->Cell(0, 5, $diskonFormat);
-
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(85, 166);
-                $pdf->MultiCell(
-                    110,
-                    5,
-                    $diskon
-                        ? '(' . ucwords($this->terbilang($diskon)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $pdf->SetFont('Times', 'B', 12);
-                $pdf->SetXY(94, 173.8);
-                $pdf->Cell(0, 5, $bookingFeeFormat);
-
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(85, 179);
-                $pdf->MultiCell(
-                    110,
-                    6,
-                    $bookingFee
-                        ? '(' . ucwords($this->terbilang($bookingFee)) . 'Rupiah)'
-                        : '-'
-                );
-            }
-            if ($page == 4) {
-
-            }
-            if ($page == 5) {
-
-            }
-            if ($page == 6) {
-
-            }
-            if ($page == 7) {
-
-            }
-            if ($page == 8) {
-
-            }
-            if ($page == 9) {
-
-            }
-            if ($page == 10) {
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(160.5, 69);
-                $pdf->Cell(0, 5, $customer->ppjb->tanggal_ppjb ? Carbon::parse($customer->ppjb->tanggal_ppjb)->translatedFormat('d F Y') : '-');
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(80, 111.5);
-                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
-            }
-            if ($page == 11) {
-
-            }
+        $data = PPJB::findOrFail($id);
+
+        $template = new TemplateProcessor(
+            public_path('templates/PPJB_KPR.docx')
+        );
+
+        $rupiah = fn($angka) => number_format($angka, 0, ',', '.');
+
+        $terbilang = fn($angka) => ucwords($this->terbilang($angka)) . ' Rupiah';
+
+        $template->setValue('nama_kavling',   $data->nama_perum   ?? '-');
+        $template->setValue('no_ppjb',        $data->no_ppjb      ?? '-');
+        $template->setValue('nama_customer',  $data->nama_customer ?? '-');
+        $template->setValue('ttl',            $data->ttl          ?? '-');
+        $template->setValue('alamat_ktp',     $data->alamat_ktp   ?? '-');
+        $template->setValue('no_ktp',         $data->no_ktp       ?? '-');
+        $template->setValue('nama_jalan',     $data->nama_jalan   ?? '-');
+        $template->setValue('nama_desa',      $data->desa         ?? '-');
+        $template->setValue('kecamatan',      $data->kec          ?? '-');
+        $template->setValue('kota',           $data->kota         ?? '-');
+        $template->setValue('provinsi',       $data->prov         ?? '-');
+        $template->setValue('no_shm',         $data->no_shm       ?? '-');
+
+        $template->setValue('harga_jual',          isset($data->hrg_jual)    ? $rupiah($data->hrg_jual)    : '-');
+        $template->setValue('terbilang_harga_jual', isset($data->hrg_jual)   ? $terbilang($data->hrg_jual) : '-');
+
+        $template->setValue('dp',             isset($data->dp)       ? $rupiah($data->dp)       : '-');
+        $template->setValue('terbilang_dp',   isset($data->dp)       ? $terbilang($data->dp)    : '-');
+
+        $template->setValue('diskon',         isset($data->diskon)   ? $rupiah($data->diskon)   : '-');
+        $template->setValue('terbilang_diskon', isset($data->diskon) ? $terbilang($data->diskon): '-');
+
+        $template->setValue('booking_fee',          isset($data->booking_fee) ? $rupiah($data->booking_fee)    : '-');
+        $template->setValue('terbilang_booking_fee', isset($data->booking_fee)? $terbilang($data->booking_fee) : '-');
+
+        if ($data->tanggal_ppjb) {
+            $tgl = Carbon::parse($data->tanggal_ppjb);
+            $template->setValue('tanggal_ppjb', $tgl->format('d-m-Y'));
+            $template->setValue('tanggal',      $tgl->format('d'));
+            $template->setValue('bulan',        $tgl->translatedFormat('F')); 
+            $template->setValue('tahun',        $tgl->format('Y'));
+        } else {
+            $template->setValue('tanggal_ppjb', '-');
+            $template->setValue('tanggal', '-');
+            $template->setValue('bulan', '-');
+            $template->setValue('tahun', '-');
         }
 
-        $pdf->SetTitle('PPJB KPR - ' . ($customer->nama_lengkap ?? '-'));
+        $fileName = 'PPJB-KPR-' . $data->id . '.docx';
+        $path     = storage_path('app/' . $fileName);
 
-        return response($pdf->Output('S'), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header(
-                'Content-Disposition',
-                'inline; filename="PPJB KPR - ' . ($customer->nama_lengkap ?? '-') . '.pdf"'
-            );
+        $template->saveAs($path);
+
+        return response()->download($path, 'PPJB-KPR-' . ($data->nama_customer ?? $data->id) . '.docx')
+                        ->deleteFileAfterSend(true);
     }
 
     // cash bertahap
-    public function cetakCashBertahap($id_customer)
+    public function cetakCashBertahap($id)
     {
-        $customer = Customer::with([
-            'kavling',
-            'lokasi',
-            'marketing',
-            'ppjb',
-            'pemasukans' => function ($q) {
-                $q->whereIn('id_kategori_transaksi', [1, 2]);
-            },
-        ])->findOrFail($id_customer);
+        $data = PPJB::findOrFail($id);
 
-        $bookingFee = optional(
-            $customer->pemasukans->where('id_kategori_transaksi', 1)->first()
-        )->nominal ?? 0;
+        $customer = Customer::findOrFail($data->id_customer);
 
-        $DP = optional(
-            $customer->pemasukans->where('id_kategori_transaksi', 2)->first()
-        )->nominal ?? 0;
+        $template = new TemplateProcessor(
+            public_path('templates/PPJB-CASH-BERTAHAP.docx')
+        );
 
-        $bookingFeeFormat = $bookingFee
-            ? number_format($bookingFee, 0, ',', '.')
-            : '-';
+        $rupiah    = fn($angka) => number_format($angka, 0, ',', '.');
+        $terbilang = fn($angka) => ucwords($this->terbilang($angka)) . ' Rupiah';
 
-        $DPFormat = $DP
-            ? number_format($DP, 0, ',', '.')
-            : '-';
+        $template->setValue('nama_kavling',  $data->nama_perum    ?? '-');
+        $template->setValue('no_ppjb',       $data->no_ppjb       ?? '-');
+        $template->setValue('kode_kavling',  $data->kode_kavling  ?? '-');
+        $template->setValue('saksi',         $data->saksi         ?? '-');
 
-        $tempatLahir = $customer->tempat_lahir ?? '-';
-        \Carbon\Carbon::setLocale('id');
+        $template->setValue('nama_customer', $data->nama_customer ?? '-');
+        $template->setValue('ttl',           $data->ttl           ?? '-');
+        $template->setValue('alamat_ktp',    $data->alamat_ktp    ?? '-');
+        $template->setValue('no_ktp',        $data->no_ktp        ?? '-');
 
-        $tglLahir = $customer->tgl_lahir
-            ? \Carbon\Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y')
-            : '-';
+        $template->setValue('luas_tanah',    $data->luas_tanah    ?? '-');
+        $template->setValue('luas_bangunan', $data->luas_bangunan ?? '-');
+        $template->setValue('nama_jalan',    $data->nama_jalan    ?? '-');
+        $template->setValue('nama_desa',     $data->desa          ?? '-');
+        $template->setValue('kecamatan',     $data->kec           ?? '-');
+        $template->setValue('kota',          $data->kota          ?? '-');
+        $template->setValue('provinsi',      $data->prov          ?? '-');
+        $template->setValue('no_shm',        $data->no_shm        ?? '-');
 
-        $ttl = $tempatLahir . ', ' . $tglLahir;
+        $template->setValue('harga_jual',           isset($data->hrg_jual)    ? $rupiah($data->hrg_jual)    : '-');
+        $template->setValue('terbilang_harga_jual',  isset($data->hrg_jual)   ? $terbilang($data->hrg_jual) : '-');
+        $template->setValue('diskon',               isset($data->diskon)      ? $rupiah($data->diskon)      : '-');
+        $template->setValue('terbilang_diskon',      isset($data->diskon)     ? $terbilang($data->diskon)   : '-');
+        $template->setValue('dp',                   isset($data->dp)          ? $rupiah($data->dp)          : '-');
+        $template->setValue('terbilang_dp',          isset($data->dp)         ? $terbilang($data->dp)       : '-');
+        $template->setValue('booking_fee',          isset($data->booking_fee) ? $rupiah($data->booking_fee)    : '-');
+        $template->setValue('terbilang_booking_fee', isset($data->booking_fee)? $terbilang($data->booking_fee) : '-');
 
-        $templatePath = public_path('templates/PPJB-CASHBERTAHAP.pdf');
-
-        $pdf = new Fpdi();
-        $pdf->SetAutoPageBreak(false);
-
-        $pageCount = $pdf->setSourceFile($templatePath);
-
-        for ($page = 1; $page <= $pageCount; $page++) {
-            $pdf->AddPage();
-            $tplId = $pdf->importPage($page);
-            $pdf->useTemplate($tplId, 0, 0, 210, 297);
-
-            if ($page >= 2) {
-                $this->headerKavling($pdf, $customer);
-                $this->footerKavling($pdf, $customer);
-            }
-
-            if ($page == 1) {
-
-                $pdf->SetFont('Times', 'B', 35);
-
-                $text1      = optional($customer->lokasi)->nama_kavling ?? '-';
-                $textWidth1 = $pdf->GetStringWidth($text1);
-                $pageWidth  = $pdf->GetPageWidth();
-
-                $pdf->SetXY(($pageWidth - $textWidth1) / 2, 75);
-                $pdf->Cell(0, 5, $text1);
-
-                $pdf->SetFont('Times', 'B', 20);
-
-                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
-                $textWidth2 = $pdf->GetStringWidth($text2);
-
-                $pdf->SetXY(($pageWidth - $textWidth2) / 2, 232);
-                $pdf->Cell(0, 5, $text2);
-            }
-
-            if ($page == 2) {
-                $tanggal = Carbon::now()->translatedFormat('d');
-                $bulan   = Carbon::now()->translatedFormat('F');
-                $tahun   = Carbon::now()->translatedFormat('Y');
-
-                $pdf->SetFont('Times', 'B', 12);
-
-                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
-
-                $pageWidth = $pdf->GetPageWidth();
-                $textWidth = $pdf->GetStringWidth($text);
-
-                $x = ($pageWidth - $textWidth) / 2;
-
-                $pdf->SetXY($x, 28.8);
-                $pdf->Cell(0, 5, $text);
-                $pdf->SetXY(63.5, 40.1);
-                $pdf->Cell(15, 5, $tanggal);
-
-                $pdf->SetXY(79.5, 40.1);
-                $pdf->Cell(30, 5, $bulan);
-
-                $pdf->SetXY(104, 40.1);
-                $pdf->Cell(20, 5, $tahun);
-
-                $pdf->SetXY(74, 94);
-                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
-
-                $pdf->SetXY(74, 101);
-                $pdf->Cell(0, 5, $ttl);
-
-                $alamat = $customer->alamat_ktp ?? '-';
-                $alamat = mb_substr($alamat, 0, 50);
-
-                $pdf->SetXY(74, 108);
-                $pdf->MultiCell(140, 5, $alamat ?? '-');
-
-                $pdf->SetXY(74, 115);
-                $pdf->Cell(0, 5, $customer->nik ?? '-');
-
-                $pdf->SetFont('Times', 'B', 8);
-                $pdf->SetXY(162, 196);
-                $luasTanah = optional($customer->kavling)->luas_bangunan ?? '-';
-                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-
-                $pdf->SetXY(149, 203);
-                $luasTanah = optional($customer->kavling)->luas_tanah ?? '-';
-                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(87, 222.5);
-                $pdf->Cell(0, 5, $customer->lokasi->nama_jalan ?? '-');
-
-                $pdf->SetXY(87, 229.5);
-                $pdf->Cell(0, 5, $customer->lokasi->desa_kelurahan ?? '-');
-
-                $pdf->SetXY(87, 235.6);
-                $pdf->Cell(0, 5, $customer->lokasi->kecamatan ?? '-');
-
-                $pdf->SetXY(87, 243);
-                $pdf->Cell(0, 5, $customer->lokasi->kabupaten_kota ?? '-');
-
-                $pdf->SetXY(87, 249.3);
-                $pdf->Cell(0, 5, $customer->lokasi->provinsi ?? '-');
-            }
-
-            if ($page == 3) {
-                $pdf->SetFont('Times', 'B', 11);
-
-                $text = (optional($customer->lokasi)->nama_kavling ?? '-') . ', Kavling ' . strtoupper(optional($customer->kavling)->kode_kavling ?? '-');
-
-                $pdf->SetXY(118.5, 21.1);
-                $pdf->Cell(0, 5, $text);
-
-                $hargaJual = optional($customer->kavling)->hrg_jual;
-
-                $hargaFormat = $hargaJual
-                    ? number_format($hargaJual, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 124);
-                $pdf->Cell(0, 5, $hargaFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 128.5);
-                $pdf->MultiCell(
-                    110,
-                    10,
-                    $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $discount = $customer->diskon ?? 0;
-
-                $discountFormat = $discount
-                    ? number_format($discount, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 137.5);
-                $pdf->Cell(0, 5, $discountFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 144);
-                $pdf->MultiCell(
-                    110,
-                    5,
-                    $discount
-                        ? '(' . ucwords($this->terbilang($discount)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 151);
-                $pdf->Cell(0, 5, $DPFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 157.5);
-                $pdf->MultiCell(
-                    110,
-                    6,
-                    $DP
-                        ? '(' . ucwords($this->terbilang($DP)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 165);
-                $pdf->Cell(0, 5, $bookingFeeFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 171.5);
-                $pdf->MultiCell(
-                    110,
-                    6,
-                    $bookingFee
-                        ? '(' . ucwords($this->terbilang($bookingFee)) . 'Rupiah)'
-                        : '-'
-                );
-
-            }
-            if ($page == 4) {
-
-            }
-            if ($page == 5) {
-
-            }
-            if ($page == 6) {
-            }
-            if ($page == 7) {
-            }
-            if ($page == 8) {
-            }
-            if ($page == 9) {
-            }
-            if ($page == 10) {
-            }
-            if ($page == 11) {
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(93.5, 74.5);
-                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
+        if ($data->tanggal_ppjb) {
+            $tgl = Carbon::parse($data->tanggal_ppjb);
+            $template->setValue('tanggal_ppjb', $tgl->format('d-m-Y'));
+            $template->setValue('tanggal',      $tgl->format('d'));
+            $template->setValue('bulan',        $tgl->translatedFormat('F'));
+            $template->setValue('tahun',        $tgl->format('Y'));
+        } else {
+            foreach (['tanggal_ppjb', 'tanggal', 'bulan', 'tahun'] as $key) {
+                $template->setValue($key, '-');
             }
         }
 
-        $pdf->SetTitle('PPJB CashB - ' . ($customer->nama_lengkap ?? '-'));
+        $totalHarga = (float) ($customer->total_harga_rumah ?? 0);
+        $terminXB   = (int)   ($customer->termin_x_cash_b        ?? 1);
 
-        return response($pdf->Output('S'), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header(
-                'Content-Disposition',
-                'inline; filename="PPJB CashB - ' . ($customer->nama_lengkap ?? '-') . '.pdf"'
-            );
+        $jumlahPerTahap  = $terminXB > 0 ? floor($totalHarga / $terminXB) : 0;
+        $sisaPembulatan  = $totalHarga - ($jumlahPerTahap * $terminXB);
+
+        $template->cloneRow('tahap', $terminXB);
+
+        $totalPembayaran = 0;
+
+        for ($i = 1; $i <= $terminXB; $i++) {
+            $jumlah = ($i === $terminXB)
+                ? $jumlahPerTahap + $sisaPembulatan
+                : $jumlahPerTahap;
+
+            $totalPembayaran += $jumlah;
+
+            $template->setValue("tahap#{$i}",  'Tahap ' . $i);
+            $template->setValue("jumlah#{$i}", $rupiah($jumlah));
+        }
+
+        $template->setValue('total_pembayaran', $rupiah($totalPembayaran));
+
+        $fileName = 'PPJB-CashB-' . $data->id . '.docx';
+        $path     = storage_path('app/' . $fileName);
+
+        $template->saveAs($path);
+
+        return response()->download(
+            $path,
+            'PPJB Cash Bertahap - ' . ($data->nama_customer ?? $data->id) . '.docx'
+        )->deleteFileAfterSend(true);
     }
 
     // cash keras
-    public function cetakPembelianCash($id_customer)
+    public function cetakPembelianCash($id)
     {
-        $customer = Customer::with([
-            'kavling',
-            'lokasi',
-            'marketing',
-            'ppjb',
-            'pemasukans' => function ($q) {
-                $q->whereIn('id_kategori_transaksi', [1, 2]);
-            },
-        ])->findOrFail($id_customer);
+        $data = PPJB::findOrFail($id);
 
-        $bookingFee = optional(
-            $customer->pemasukans->where('id_kategori_transaksi', 1)->first()
-        )->nominal ?? 0;
+        $customer = Customer::findOrFail($data->id_customer);
 
-        $DP = optional(
-            $customer->pemasukans->where('id_kategori_transaksi', 2)->first()
-        )->nominal ?? 0;
+        $template = new TemplateProcessor(
+            public_path('templates/PPJB-CASH-KERAS.docx')
+        );
 
-        $bookingFeeFormat = $bookingFee
-            ? number_format($bookingFee, 0, ',', '.')
-            : '-';
+        $rupiah    = fn($angka) => number_format($angka, 0, ',', '.');
+        $terbilang = fn($angka) => ucwords($this->terbilang($angka)) . ' Rupiah';
 
-        $DPFormat = $DP
-            ? number_format($DP, 0, ',', '.')
-            : '-';
+        $template->setValue('nama_kavling',  $data->nama_perum    ?? '-');
+        $template->setValue('lokasi_kavling',  $data->nama_perum    ?? '-');
+        $template->setValue('no_ppjb',       $data->no_ppjb       ?? '-');
+        $template->setValue('kode_kavling',  $data->kode_kavling  ?? '-');
+        $template->setValue('saksi',         $data->saksi         ?? '-');
 
-        $tempatLahir = $customer->tempat_lahir ?? '-';
-        \Carbon\Carbon::setLocale('id');
+        $template->setValue('nama_customer', $data->nama_customer ?? '-');
+        $template->setValue('ttl',           $data->ttl           ?? '-');
+        $template->setValue('alamat_ktp',    $data->alamat_ktp    ?? '-');
+        $template->setValue('no_ktp',        $data->no_ktp        ?? '-');
 
-        $tglLahir = $customer->tgl_lahir
-            ? \Carbon\Carbon::parse($customer->tgl_lahir)->translatedFormat('j F Y')
-            : '-';
+        $template->setValue('luas_tanah',    $data->luas_tanah    ?? '-');
+        $template->setValue('luas_bangunan', $data->luas_bangunan ?? '-');
+        $template->setValue('nama_jalan',    $data->nama_jalan    ?? '-');
+        $template->setValue('desa',          $data->desa          ?? '-');
+        $template->setValue('kecamatan',     $data->kec           ?? '-');
+        $template->setValue('kota',          $data->kota          ?? '-');
+        $template->setValue('provinsi',      $data->prov          ?? '-');
+        $template->setValue('no_shm',        $data->no_shm        ?? '-');
 
-        $ttl = $tempatLahir . ', ' . $tglLahir;
+        $template->setValue('harga_jual',           isset($data->hrg_jual)    ? $rupiah($data->hrg_jual)    : '-');
+        $template->setValue('terbilang_harga_jual',  isset($data->hrg_jual)   ? $terbilang($data->hrg_jual) : '-');
+        $template->setValue('diskon',               isset($data->diskon)      ? $rupiah($data->diskon)      : '-');
+        $template->setValue('terbilang_diskon',      isset($data->diskon)     ? $terbilang($data->diskon)   : '-');
+        $template->setValue('dp',                   isset($data->dp)          ? $rupiah($data->dp)          : '-');
+        $template->setValue('terbilang_dp',          isset($data->dp)         ? $terbilang($data->dp)       : '-');
+        $template->setValue('booking_fee',          isset($data->booking_fee) ? $rupiah($data->booking_fee)    : '-');
+        $template->setValue('terbilang_booking_fee', isset($data->booking_fee)? $terbilang($data->booking_fee) : '-');
 
-        $templatePath = public_path('templates/PPJB-CASHKERAS.pdf');
-
-        $pdf = new Fpdi();
-        $pdf->SetAutoPageBreak(false);
-
-        $pageCount = $pdf->setSourceFile($templatePath);
-
-        for ($page = 1; $page <= $pageCount; $page++) {
-            $pdf->AddPage();
-            $tplId = $pdf->importPage($page);
-            $pdf->useTemplate($tplId, 0, 0, 210, 297);
-
-            if ($page >= 2) {
-                $this->headerKavling($pdf, $customer);
-                $this->footerKavling($pdf, $customer);
-            }
-
-            if ($page == 1) {
-
-                $pdf->SetFont('Times', 'B', 35);
-
-                $text1      = optional($customer->lokasi)->nama_kavling ?? '-';
-                $textWidth1 = $pdf->GetStringWidth($text1);
-                $pageWidth  = $pdf->GetPageWidth();
-
-                $pdf->SetXY(($pageWidth - $textWidth1) / 2, 75);
-                $pdf->Cell(0, 5, $text1);
-
-                $pdf->SetFont('Times', 'B', 20);
-
-                $text2      = optional($customer->ppjb)->no_ppjb ?? '-';
-                $textWidth2 = $pdf->GetStringWidth($text2);
-
-                $pdf->SetXY(($pageWidth - $textWidth2) / 2, 232);
-                $pdf->Cell(0, 5, $text2);
-            }
-
-            if ($page == 2) {
-                $tanggal = Carbon::now()->translatedFormat('d');
-                $bulan   = Carbon::now()->translatedFormat('F');
-                $tahun   = Carbon::now()->translatedFormat('Y');
-
-                $pdf->SetFont('Times', 'B', 12);
-
-                $text = 'No. ' . (optional($customer->ppjb)->no_ppjb ?? '-');
-
-                $pageWidth = $pdf->GetPageWidth();
-                $textWidth = $pdf->GetStringWidth($text);
-
-                $x = ($pageWidth - $textWidth) / 2;
-
-                $pdf->SetXY($x, 28.8);
-                $pdf->Cell(0, 5, $text);
-                $pdf->SetXY(63.5, 40.1);
-                $pdf->Cell(15, 5, $tanggal);
-
-                $pdf->SetXY(79.5, 40.1);
-                $pdf->Cell(30, 5, $bulan);
-
-                $pdf->SetXY(104, 40.1);
-                $pdf->Cell(20, 5, $tahun);
-
-                $pdf->SetXY(74, 94);
-                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
-
-                $pdf->SetXY(74, 101);
-                $pdf->Cell(0, 5, $ttl);
-
-                $alamat = $customer->alamat_ktp ?? '-';
-                $alamat = mb_substr($alamat, 0, 50);
-
-                $pdf->SetXY(74, 108);
-                $pdf->MultiCell(140, 5, $alamat ?? '-');
-
-                $pdf->SetXY(74, 115);
-                $pdf->Cell(0, 5, $customer->nik ?? '-');
-
-                $pdf->SetFont('Times', 'B', 8);
-                $pdf->SetXY(162, 196);
-                $luasTanah = optional($customer->kavling)->luas_bangunan ?? '-';
-                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-
-                $pdf->SetXY(149, 203);
-                $luasTanah = optional($customer->kavling)->luas_tanah ?? '-';
-                $pdf->Cell(0, 5, $luasTanah !== '-' ? $luasTanah . ' m²' : '-');
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(87, 222.5);
-                $pdf->Cell(0, 5, $customer->lokasi->nama_jalan ?? '-');
-
-                $pdf->SetXY(87, 229.5);
-                $pdf->Cell(0, 5, $customer->lokasi->desa_kelurahan ?? '-');
-
-                $pdf->SetXY(87, 235.6);
-                $pdf->Cell(0, 5, $customer->lokasi->kecamatan ?? '-');
-
-                $pdf->SetXY(87, 243);
-                $pdf->Cell(0, 5, $customer->lokasi->kabupaten_kota ?? '-');
-
-                $pdf->SetXY(87, 249.3);
-                $pdf->Cell(0, 5, $customer->lokasi->provinsi ?? '-');
-            }
-
-            if ($page == 3) {
-                $pdf->SetFont('Times', 'B', 11);
-
-                $text = (optional($customer->lokasi)->nama_kavling ?? '-') . ', Kavling ' . strtoupper(optional($customer->kavling)->kode_kavling ?? '-');
-
-                $pdf->SetXY(118.5, 21.1);
-                $pdf->Cell(0, 5, $text);
-
-                $hargaJual = optional($customer->kavling)->hrg_jual;
-
-                $hargaFormat = $hargaJual
-                    ? number_format($hargaJual, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 124);
-                $pdf->Cell(0, 5, $hargaFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 128.5);
-                $pdf->MultiCell(
-                    110,
-                    10,
-                    $hargaJual
-                        ? '(' . ucwords($this->terbilang($hargaJual)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $discount = $customer->diskon ?? 0;
-
-                $discountFormat = $discount
-                    ? number_format($discount, 0, ',', '.')
-                    : '-';
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 137.5);
-                $pdf->Cell(0, 5, $discountFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 144);
-                $pdf->MultiCell(
-                    110,
-                    5,
-                    $discount
-                        ? '(' . ucwords($this->terbilang($discount)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 151);
-                $pdf->Cell(0, 5, $DPFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 157.5);
-                $pdf->MultiCell(
-                    110,
-                    6,
-                    $DP
-                        ? '(' . ucwords($this->terbilang($DP)) . 'Rupiah)'
-                        : '-'
-                );
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(100, 165);
-                $pdf->Cell(0, 5, $bookingFeeFormat);
-
-                $pdf->SetFont('Times', '', 11);
-                $pdf->SetXY(93, 171.5);
-                $pdf->MultiCell(
-                    110,
-                    6,
-                    $bookingFee
-                        ? '(' . ucwords($this->terbilang($bookingFee)) . 'Rupiah)'
-                        : '-'
-                );
-
-            }
-            if ($page == 4) {
-            }
-            if ($page == 5) {
-            }
-            if ($page == 6) {
-
-            }
-            if ($page == 7) {
-
-            }
-            if ($page == 8) {
-            }
-            if ($page == 9) {
-            }
-            if ($page == 10) {
-            }
-            if ($page == 11) {
-
-                $pdf->SetFont('Times', 'B', 11);
-                $pdf->SetXY(93.5, 74.5);
-                $pdf->Cell(0, 5, $customer->nama_lengkap ?? '-');
+        if ($data->tanggal_ppjb) {
+            $tgl = Carbon::parse($data->tanggal_ppjb);
+            $template->setValue('tanggal_ppjb', $tgl->format('d-m-Y'));
+            $template->setValue('tanggal',      $tgl->format('d'));
+            $template->setValue('bulan',        $tgl->translatedFormat('F'));
+            $template->setValue('tahun',        $tgl->format('Y'));
+        } else {
+            foreach (['tanggal_ppjb', 'tanggal', 'bulan', 'tahun'] as $key) {
+                $template->setValue($key, '-');
             }
         }
 
-        $pdf->SetTitle('PPJB CashK - ' . ($customer->nama_lengkap ?? '-'));
+        $totalHarga = (float) ($customer->total_harga_rumah ?? 0);
 
-        return response($pdf->Output('S'), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header(
-                'Content-Disposition',
-                'inline; filename="PPJB CashK - ' . ($customer->nama_lengkap ?? '-') . '.pdf"'
-            );
+        $template->setValue('jumlah',           $totalHarga ? $rupiah($totalHarga) : '-');
+        $template->setValue('total_pembayaran', $totalHarga ? $rupiah($totalHarga) : '-');
+
+        $fileName = 'PPJB-CashK-' . $data->id . '.docx';
+        $path     = storage_path('app/' . $fileName);
+
+        $template->saveAs($path);
+
+        return response()->download(
+            $path,
+            'PPJB Pembelian Cash - ' . ($data->nama_customer ?? $data->id) . '.docx'
+        )->deleteFileAfterSend(true);
     }
 
     private function terbilang($angka)

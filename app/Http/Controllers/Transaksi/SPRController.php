@@ -224,6 +224,7 @@ class SPRController extends Controller
 
         $template->setValue('nama_kavling', $spr->nama_perum ?? '-');
         $template->setValue('nama_customer', $spr->nama_lengkap ?? '-');
+        $template->setValue('alamat_ktp', $spr->alamat_ktp ?? '-');
         $template->setValue('no_telp', $spr->no_telp ?? '-');
         $template->setValue('no_ktp', $spr->nik ?? '-');
         $template->setValue('pekerjaan', $spr->pekerjaan ?? '-');
@@ -242,6 +243,57 @@ class SPRController extends Controller
         $template->setValue('total_harga', number_format($spr->total_harga_unit, 0, ',', '.'));
         $template->setValue('booking_fee', number_format($spr->booking_fee, 0, ',', '.'));
         $template->setValue('dp', number_format($spr->dp, 0, ',', '.'));
+
+        $checked   = '☑';
+        $unchecked = '☐';
+
+        $income = (int) ($spr->estimasi_pendapatan ?? 0);
+
+        $a  = $income < 10_000_000;
+        $b = $income >= 10_000_001 && $income <= 15_000_000;
+        $c = $income >= 15_000_001 && $income <= 20_000_000;
+        $d = $income >= 20_000_001 && $income <= 25_000_000;
+        $e  = $income > 25_000_000;
+
+        $template->setValue('a', $a  ? $checked : $unchecked);
+        $template->setValue('b', $b  ? $checked : $unchecked);
+        $template->setValue('c',  $c ? $checked : $unchecked);
+        $template->setValue('d',  $d ? $checked : $unchecked);
+        $template->setValue('e',  $e  ? $checked : $unchecked);
+
+        $sumber = strtolower(trim($spr->sumber_dana ?? ''));
+
+        $isGaji      = str_contains($sumber, 'Gaji');
+        $isUsaha     = str_contains($sumber, 'Usaha');
+        $isTabungan  = str_contains($sumber, 'Tabungan');
+        $isWarisan   = str_contains($sumber, 'Warisan');
+        $isInvestasi = str_contains($sumber, 'Investasi');
+        $isLainlain  = str_contains($sumber, 'Lain-lain');
+
+        $template->setValue('f',     $isGaji      ? $checked : $unchecked);
+        $template->setValue('g',      $isUsaha     ? $checked : $unchecked);
+        $template->setValue('h',   $isTabungan  ? $checked : $unchecked);
+        $template->setValue('i',    $isWarisan   ? $checked : $unchecked);
+        $template->setValue('j',  $isInvestasi ? $checked : $unchecked);
+        $template->setValue('k', $isLainlain  ? $checked : $unchecked);
+
+
+        $tujuan = strtolower(trim($spr->tujuan_pembelian ?? ''));
+
+        $isTempatTinggal = str_contains($tujuan, 'Tempat Tinggal/Pribadi');
+        $isInvestasi     = str_contains($tujuan, 'Investasi');
+        $isSewa          = str_contains($tujuan, 'Sewa');
+        $isLainlain      = str_contains($tujuan, 'Lain-lain');
+
+        $template->setValue('l', $isTempatTinggal ? $checked : $unchecked);
+        $template->setValue('m',   $isInvestasi     ? $checked : $unchecked);
+        $template->setValue('n',   $isSewa          ? $checked : $unchecked);
+        $template->setValue('o',   $isLainlain      ? $checked : $unchecked);
+
+        $rumahKe = (int) ($spr->pembelian_rumah_ke ?? 0);
+
+        $template->setValue('p', $rumahKe === 1 ? $checked : $unchecked);
+        $template->setValue('q',   $rumahKe >= 2  ? $checked : $unchecked);
 
         $template->setValue(
             'tanggal_spr',

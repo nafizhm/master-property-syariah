@@ -252,6 +252,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('spr', SPRController::class);
         Route::get('/spr/detail-customer/{id}', [SPRController::class, 'detailSpr'])->name('spr.detail');
+        Route::get('/spr/cetak-word/{id}', [SPRController::class, 'cetakWord'])->name('spr.cetak-word');
 
         Route::get('pindah-unit/kwitansi/{id}', [PindahUnitController::class, 'cetakKwitansi'])->name('pindah-unit.kwitansi');
         Route::get('pindah-unit/cetak-word/{id}', [PindahUnitController::class, 'cetakWord'])->name('pindah-unit.cetak-word');

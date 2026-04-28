@@ -241,6 +241,7 @@ class PPJBController extends Controller
         $template->setValue('nama_kavling',   $data->nama_perum   ?? '-');
         $template->setValue('no_ppjb',        $data->no_ppjb      ?? '-');
         $template->setValue('nama_customer',  $data->nama_customer ?? '-');
+        $template->setValue('nama_saksi', $data->saksi ?? '-');
         $template->setValue('ttl',            $data->ttl          ?? '-');
         $template->setValue('alamat_ktp',     $data->alamat_ktp   ?? '-');
         $template->setValue('no_ktp',         $data->no_ktp       ?? '-');
@@ -267,7 +268,7 @@ class PPJBController extends Controller
             $tgl = Carbon::parse($data->tanggal_ppjb);
             $template->setValue('tanggal_ppjb', $tgl->format('d-m-Y'));
             $template->setValue('tanggal',      $tgl->format('d'));
-            $template->setValue('bulan',        $tgl->translatedFormat('F')); 
+            $template->setValue('bulan',        $tgl->translatedFormat('F'));
             $template->setValue('tahun',        $tgl->format('Y'));
         } else {
             $template->setValue('tanggal_ppjb', '-');
@@ -305,6 +306,7 @@ class PPJBController extends Controller
         $template->setValue('saksi',         $data->saksi         ?? '-');
 
         $template->setValue('nama_customer', $data->nama_customer ?? '-');
+        $template->setValue('nama_saksi', $data->saksi ?? '-');
         $template->setValue('ttl',           $data->ttl           ?? '-');
         $template->setValue('alamat_ktp',    $data->alamat_ktp    ?? '-');
         $template->setValue('no_ktp',        $data->no_ktp        ?? '-');
@@ -394,6 +396,7 @@ class PPJBController extends Controller
         $template->setValue('saksi',         $data->saksi         ?? '-');
 
         $template->setValue('nama_customer', $data->nama_customer ?? '-');
+        $template->setValue('nama_saksi', $data->saksi ?? '-');
         $template->setValue('ttl',           $data->ttl           ?? '-');
         $template->setValue('alamat_ktp',    $data->alamat_ktp    ?? '-');
         $template->setValue('no_ktp',        $data->no_ktp        ?? '-');

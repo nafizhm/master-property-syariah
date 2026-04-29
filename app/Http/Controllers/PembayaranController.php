@@ -19,7 +19,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use TCPDF;
+use setasign\Fpdi\Tcpdf\Fpdi;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 
 Carbon::setLocale('id');
 class PembayaranController extends Controller
@@ -319,492 +321,120 @@ class PembayaranController extends Controller
             'customer.lokasi.perusahaan.perusahaan',
             'metode',
             'kategori',
+            'bank'
         ])
             ->where('id', $id)
-            ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
             ->firstOrFail();
 
         $nasabah = $pembayaran->customer;
 
-        $alamatNasabah =
-        $nasabah->alamat ??
-        $nasabah->alamat_ktp ??
-        $nasabah->alamat_domisili ??
-            '-';
+        $user = Auth::user();
+        $nama = $user->surname;
+        $role = optional($user->role)->role;
+
+        $bank = $pembayaran->bank;
+        $namaBank     = $bank->nama ?? '-';
+        $noRek        = $bank->no_rek ?? '-';
+        $pemilikRek   = $bank->pemilik_rek ?? '-';
 
         $lokasi = $nasabah->lokasi;
-
-        $kavling = KavlingPeta::where('id', $nasabah->id_kavling)->first();
-
-        $dataPerusahaan = null;
-
-        if ($lokasi && $lokasi->perusahaan->count() > 0) {
-            $dataPerusahaan = $lokasi->perusahaan->sortBy('id')->first();
-        }
-
-        $namaPerusahaan =
-        $dataPerusahaan->perusahaan->nama_perusahaan ??
-            'PT. ALAM INDAH SELALU';
-
-        $alamatPerusahaan =
-        $dataPerusahaan->perusahaan->alamat_perusahaan ??
-            '-';
-
-        $telpPerusahaan =
-        $dataPerusahaan->perusahaan->telp_perusahaan ??
-            '-';
-
-        $blokNomor = '-';
-
-        if ($lokasi && $kavling) {
-            if ($lokasi->is_cluster) {
-                $blokNomor =
-                    ($kavling->cluster ?? '-') .
-                    '-' .
-                    ($kavling->no ?? '-');
-            } else {
-                $blokNomor =
-                $kavling->kode_kavling ??
-                    '-';
-            }
-        }
-
-        $mediaRekap = PengaturanMedia::where('jenis_data', 'Logo Rekap')->first();
-
-        $pathRekap = null;
-
-        if ($mediaRekap && $mediaRekap->nama_file) {
-            $pathRekap = public_path('config_media/' . $mediaRekap->nama_file);
-        }
-
-        $fpdf = new TCPDF('L', 'mm', 'A4');
-
-        $fpdf->SetTitle('Kwitansi - ' . ($pembayaran->no_kwitansi ?? '-'));
-
-        $fpdf->SetPrintHeader(false);
-        $fpdf->SetPrintFooter(false);
-        $fpdf->SetMargins(10, 10, 10);
-        $fpdf->SetAutoPageBreak(false, 0);
-
-        $fpdf->AddPage();
-
-        if ($pathRekap && file_exists($pathRekap)) {
-
-            $logoWidth = 50;
-            $xLogo     = 15;
-            $yLogo     = 12;
-
-            $fpdf->Image(
-                $pathRekap,
-                $xLogo,
-                $yLogo,
-                $logoWidth,
-                0,
-                '',
-                '',
-                '',
-                false,
-                300,
-                '',
-                false,
-                false,
-                0,
-                false,
-                false,
-                false
-            );
-        }
-
-        $fpdf->SetFont('helvetica', 'B', 24);
-        $fpdf->SetTextColor(0, 51, 153);
-        $fpdf->SetXY(0, 12);
-        $fpdf->Cell(297, 10, strtoupper($namaPerusahaan), 0, 1, 'C');
-
-        $fpdf->SetX(0);
-        $fpdf->SetFont('helvetica', 'B', 13);
-        $fpdf->SetTextColor(220, 53, 69);
-        $fpdf->Cell(297, 6, 'DEVELOPER & CONTRACTOR', 0, 1, 'C');
-
-        $fpdf->SetX(0);
-        $fpdf->SetFont('helvetica', '', 9);
-        $fpdf->SetTextColor(0, 51, 153);
-        $fpdf->Cell(
-            297,
-            5,
-            $alamatPerusahaan . ', Telp. ' . $telpPerusahaan,
-            0,
-            1,
-            'C'
-        );
-
-        $fpdf->Ln(6);
-
-        $fpdf->SetFont('times', 'I', 22);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->Cell(267, 10, 'Tanda Terima', 0, 1, 'C');
-
-        $fpdf->SetFont('times', 'BI', 12);
-        $fpdf->SetTextColor(220, 53, 69);
-        $fpdf->SetXY(200, 42);
-        $fpdf->Cell(
-            80,
-            6,
-            'No. ' . ($pembayaran->no_kwitansi ?? '-'),
-            0,
-            1,
-            'R'
-        );
-
-        $fpdf->SetLineWidth(0.5);
-        $fpdf->SetDrawColor(0, 102, 204);
-        $fpdf->Line(15, 55, 282, 55);
-
-        $fpdf->SetFont('times', 'I', 16);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetXY(15, 57);
-        $fpdf->Cell(
-            0,
-            6,
-            'Telah diterima uang sebanyak :',
-            0,
-            1,
-            'L'
-        );
-
-        $fpdf->SetFont('times', 'BI', 12);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->SetX(15);
-        $fpdf->Cell(10, 6, 'Rp.', 0, 0, 'L');
-
-        $fpdf->SetFont('times', 'BI', 11);
-        $fpdf->Cell(
-            0,
-            6,
-            number_format($pembayaran->nominal, 0, ',', '.') .
-            ' ( ' .
-            $this->terbilang($pembayaran->nominal) .
-            ' Rupiah )',
-            0,
-            1,
-            'L'
-        );
-
-        $fpdf->SetFont('times', 'I', 11);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetX(15);
-        $fpdf->Cell(
-            0,
-            6,
-            'Untuk Pembayaran',
-            0,
-            1,
-            'L'
-        );
-
-        $yCheckbox = $fpdf->GetY() + 8;
-        $boxSize   = 5;
-
-        $fpdf->SetFont('times', 'I', 13);
-        $fpdf->SetTextColor(0, 102, 204);
-
-        $fpdf->SetXY(18, $yCheckbox);
-        $fpdf->Rect(18, $yCheckbox, $boxSize, $boxSize);
-        $fpdf->Cell($boxSize + 2);
-        $fpdf->Cell(60, $boxSize, 'Booking Fee', 0, 1, 'L');
-
-        $fpdf->SetXY(18, $yCheckbox + 8);
-        $fpdf->Rect(18, $yCheckbox + 8, $boxSize, $boxSize);
-        $fpdf->Cell($boxSize + 2);
-        $fpdf->Cell(60, $boxSize, 'Uang Muka', 0, 1, 'L');
-
-        $fpdf->SetXY(150, $yCheckbox);
-        $fpdf->Rect(150, $yCheckbox, $boxSize, $boxSize);
-        $fpdf->Cell($boxSize + 2);
-        $fpdf->Cell(60, $boxSize, 'Biaya Sertifikat', 0, 1, 'L');
-
-        $fpdf->SetXY(150, $yCheckbox + 8);
-        $fpdf->Rect(150, $yCheckbox + 8, $boxSize, $boxSize);
-        $fpdf->Cell($boxSize + 2);
-        $fpdf->Cell(
-            80,
-            $boxSize,
-            'Lain-lain : ...............................................',
-            0,
-            1,
-            'L'
-        );
-
-        $namaKategori =
-            strtoupper($pembayaran->kategori->kategori ?? '-');
-
-        $checkIcon = public_path('check-solid.png');
-        $checkSize = 4;
-
-        $xCheck = null;
-        $yCheck = null;
-
-        if (str_contains($namaKategori, 'BOOKING FEE')) {
-            $xCheck = 18.5;
-            $yCheck = $yCheckbox + 0.5;
-        } elseif (
-            str_contains($namaKategori, 'DP') ||
-            str_contains($namaKategori, 'UANG MUKA')
-        ) {
-            $xCheck = 18.5;
-            $yCheck = $yCheckbox + 8.5;
-        } elseif (str_contains($namaKategori, 'SERTIFIKAT')) {
-            $xCheck = 150.5;
-            $yCheck = $yCheckbox + 0.5;
-        } else {
-            $xCheck = 150.5;
-            $yCheck = $yCheckbox + 8.5;
-
-            $fpdf->SetXY(185, $yCheckbox + 8);
-            $fpdf->SetFont('times', 'BI', 10);
-            $fpdf->SetTextColor(0, 0, 0);
-            $fpdf->Cell(
-                50,
-                5,
-                $pembayaran->kategori->kategori ?? '-',
-                0,
-                0,
-                'L'
-            );
-        }
-
-        if ($xCheck && $yCheck && file_exists($checkIcon)) {
-            $fpdf->Image($checkIcon, $xCheck, $yCheck, $checkSize);
-        }
-
-        $fpdf->Ln(3);
-
-        $fpdf->SetFont('times', 'I', 16);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetXY(15, 113);
-
-        $kota =
-        $dataPerusahaan->perusahaan->kota_penandatangan;
-
-        $fpdf->Cell(
-            0,
-            6,
-            'Atas pembelian rumah di ' .
-            $alamatPerusahaan .
-            ', ' .
-            $kota,
-            0,
-            1,
-            'L'
-        );
-
-        $yDetail = $fpdf->GetY() + 2;
-
-        $fpdf->SetFont('times', 'I', 14);
-        $fpdf->SetTextColor(0, 102, 204);
-
-        $fpdf->SetXY(15, $yDetail);
-        $fpdf->Cell(40, 6, 'Nama', 0, 0, 'L');
-        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
-
-        $fpdf->SetFont('times', 'BI', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(
-            0,
-            6,
-            $nasabah->nama_lengkap ?? '-',
-            0,
-            1,
-            'L'
-        );
-
-        $fpdf->SetFont('times', 'I', 11);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetX(15);
-        $fpdf->Cell(40, 6, 'Alamat / Telp.', 0, 0, 'L');
-        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
-
-        $fpdf->SetFont('times', 'BI', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(
-            0,
-            6,
-            $alamatNasabah .
-            ' / ' .
-            ($nasabah->no_telp ?? '-'),
-            0,
-            1,
-            'L'
-        );
-
-        $fpdf->SetFont('times', 'I', 11);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetX(15);
-        $fpdf->Cell(40, 6, 'Harga Jual', 0, 0, 'L');
-        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
-
-        $fpdf->SetFont('times', 'BI', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(
-            0,
-            6,
-            'Rp. ' .
-            number_format(
-                $nasabah->hrg_jual ?? 0,
-                0,
-                ',',
-                '.'
-            ),
-            0,
-            1,
-            'L'
-        );
-
-        $fpdf->SetFont('times', 'I', 11);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetX(15);
-        $fpdf->Cell(40, 6, 'Type Rumah', 0, 0, 'L');
-        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
-
-        $fpdf->SetFont('helvetica', '', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(
-            0,
-            6,
-            $kavling->tipe_bangunan ?? '-',
-            0,
-            1,
-            'L'
-        );
-
-        $fpdf->SetFont('times', 'I', 11);
-        $fpdf->SetTextColor(0, 102, 204);
-        $fpdf->SetX(15);
-        $fpdf->Cell(40, 6, 'Blok / No. Rumah', 0, 0, 'L');
-        $fpdf->Cell(5, 6, ':', 0, 0, 'C');
-
-        $fpdf->SetFont('helvetica', '', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->Cell(
-            0,
-            6,
-            $blokNomor,
-            0,
-            1,
-            'L'
-        );
-
-        $ySign = 165;
-
-        $fpdf->SetFont('times', 'I', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-
-        $fpdf->SetXY(30, $ySign + 30);
-        $fpdf->Cell(
-            60,
-            5,
-            '( ______________________ )',
-            0,
-            1,
-            'C'
-        );
-
-        $fpdf->SetX(30);
-        $fpdf->Cell(60, 5, 'Kasir', 0, 1, 'C');
-
-        $fpdf->SetXY(115, $ySign + 30);
-        $fpdf->Cell(
-            60,
-            5,
-            '( ______________________ )',
-            0,
-            1,
-            'C'
-        );
-
-        $fpdf->SetX(115);
-        $fpdf->Cell(60, 5, 'Penyetor', 0, 1, 'C');
-
-        $xCs = 200;
-
-        $fpdf->SetFont('helvetica', '', 10);
-        $fpdf->SetXY($xCs, $ySign);
-
-        $fpdf->Cell(
-            60,
-            5,
-            $kota .
-            ', ' .
-            Carbon::parse($pembayaran->tanggal)
+        $kavling = KavlingPeta::find($nasabah->id_kavling);
+
+        $pdf = new Fpdi();
+        $pdf->AddPage();
+
+        $templatePath = public_path('templates/template_kwitansi.pdf');
+        $pageCount = $pdf->setSourceFile($templatePath);
+        $tplIdx = $pdf->importPage(1);
+
+        $pdf->useTemplate($tplIdx, 0, 0, 210);
+
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetXY(5.5, 47);
+        $pdf->Cell(100, 5, $nasabah->nama_lengkap, 0, 1);
+        $pdf->SetXY(5.5, 51.5);
+        $pdf->MultiCell(60, 5, $nasabah->alamat_ktp, 0, 1);
+
+        $pdf->SetXY(153, 47);
+        $pdf->Cell(50, 5,
+            \Carbon\Carbon::parse($pembayaran->tanggal)
+                ->locale('id')
                 ->translatedFormat('d F Y'),
-            0,
-            1,
-            'C'
+            0, 1
         );
 
-        $fpdf->SetFont('helvetica', 'B', 11);
-        $fpdf->SetTextColor(220, 53, 69);
-        $fpdf->SetXY($xCs, $fpdf->GetY());
+        $pdf->SetXY(153, 57);
+        $pdf->Cell(50, 5, $pembayaran->no_kwitansi, 0, 1);
 
-        $fpdf->Cell(
-            60,
-            6,
-            strtoupper($namaPerusahaan),
-            0,
-            1,
-            'C'
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(66, 75);
+        $pdf->Cell(100, 5,
+            'Rp ' . number_format($pembayaran->nominal, 0, ',', '.'),
+            0, 1
         );
-
-        $fpdf->SetFont('times', 'I', 10);
-        $fpdf->SetTextColor(0, 0, 0);
-        $fpdf->SetXY($xCs, $ySign + 30);
-
-        $fpdf->Cell(
-            60,
+        $pdf->SetXY(66, 87);
+        $pdf->MultiCell(
+            100,
             5,
-            '( ______________________ )',
-            0,
+            ucfirst(trim($this->terbilang($pembayaran->nominal))) . ' Rupiah',
             1,
-            'C'
+            'L'
         );
 
-        $fpdf->SetX($xCs);
-        $fpdf->Cell(60, 5, 'Customer Service', 0, 1, 'C');
+        $pdf->SetXY(66, 98);
+        $pdf->Cell(100, 5, $pembayaran->kategori->kategori ?? '-', 0, 1);
 
-        $fpdf->Output(
-            'Kwitansi-' .
-            ($pembayaran->no_kwitansi ?? 'draft') .
-            '.pdf',
+        $pdf->SetXY(66, 110.5);
+        $pdf->MultiCell(130, 5, $pembayaran->keterangan ?? '-', 0);
+
+        $pdf->SetFont('helvetica', 'B', 9);
+
+        $pdf->SetXY(55, 163);
+        $pdf->Cell(80, 5, $namaBank, 0, 1);
+
+        $pdf->SetXY(55, 169);
+        $pdf->Cell(80, 5, $pemilikRek, 0, 1);
+
+        $pdf->SetXY(55, 175);
+        $pdf->Cell(80, 5, $noRek, 0, 1);
+
+         $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetXY(55, 248);
+        $pdf->Cell(100, 5, $nama, 0, 1, 'C');
+         $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetXY(55, 253);
+        $pdf->Cell(100, 5, $role, 0, 1, 'C');
+
+        $pdf->Output(
+            'Kwitansi-' . ($pembayaran->no_kwitansi ?? 'draft') . '.pdf',
             'I'
         );
-
-        exit;
     }
 
     private function terbilang($angka)
     {
         $angka = abs($angka);
         $baca  = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
-        $hasil = "";
 
         if ($angka < 12) {
-            $hasil = " " . $baca[$angka];
+            return $baca[$angka];
         } elseif ($angka < 20) {
-            $hasil = $this->terbilang($angka - 10) . " Belas";
+            return $this->terbilang($angka - 10) . " Belas";
         } elseif ($angka < 100) {
-            $hasil = $this->terbilang($angka / 10) . " Puluh" . $this->terbilang($angka % 10);
+            return $this->terbilang(intval($angka / 10)) . " Puluh " . $this->terbilang($angka % 10);
         } elseif ($angka < 200) {
-            $hasil = " Seratus" . $this->terbilang($angka - 100);
+            return "Seratus " . $this->terbilang($angka - 100);
         } elseif ($angka < 1000) {
-            $hasil = $this->terbilang($angka / 100) . " Ratus" . $this->terbilang($angka % 100);
+            return $this->terbilang(intval($angka / 100)) . " Ratus " . $this->terbilang($angka % 100);
         } elseif ($angka < 2000) {
-            $hasil = " Seribu" . $this->terbilang($angka - 1000);
+            return "Seribu " . $this->terbilang($angka - 1000);
         } elseif ($angka < 1000000) {
-            $hasil = $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
+            return $this->terbilang(intval($angka / 1000)) . " Ribu " . $this->terbilang($angka % 1000);
         } elseif ($angka < 1000000000) {
-            $hasil = $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+            return $this->terbilang(intval($angka / 1000000)) . " Juta " . $this->terbilang($angka % 1000000);
         }
 
-        return trim($hasil);
+        return "";
     }
 
     public function show($id)

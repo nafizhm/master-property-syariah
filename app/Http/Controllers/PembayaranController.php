@@ -387,7 +387,7 @@ class PembayaranController extends Controller
         $pdf->SetXY(66, 110.5);
         $pdf->MultiCell(130, 5, $pembayaran->keterangan ?? '-', 0);
 
-        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetFont('helvetica', 'B', 9);
 
         $pdf->SetXY(55, 163);
         $pdf->Cell(80, 5, $namaBank, 0, 1);

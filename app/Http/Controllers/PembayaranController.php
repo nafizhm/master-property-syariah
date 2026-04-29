@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
 use TCPDF;
 use setasign\Fpdi\Tcpdf\Fpdi;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 
 Carbon::setLocale('id');
 class PembayaranController extends Controller
@@ -327,6 +328,10 @@ class PembayaranController extends Controller
 
         $nasabah = $pembayaran->customer;
 
+        $user = Auth::user();
+        $nama = $user->surname;
+        $role = optional($user->role)->role;
+
         $bank = $pembayaran->bank;
         $namaBank     = $bank->nama ?? '-';
         $noRek        = $bank->no_rek ?? '-';
@@ -344,48 +349,59 @@ class PembayaranController extends Controller
 
         $pdf->useTemplate($tplIdx, 0, 0, 210);
 
-        $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->SetXY(43, 35.5);
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetXY(5.5, 47);
         $pdf->Cell(100, 5, $nasabah->nama_lengkap, 0, 1);
-        $pdf->SetXY(178, 35.5);
+        $pdf->SetXY(5.5, 51.5);
+        $pdf->MultiCell(60, 5, $nasabah->alamat_ktp, 0, 1);
+
+        $pdf->SetXY(153, 47);
         $pdf->Cell(50, 5,
-            \Carbon\Carbon::parse($pembayaran->tanggal)->format('d-m-Y'),
+            \Carbon\Carbon::parse($pembayaran->tanggal)
+                ->locale('id')
+                ->translatedFormat('d F Y'),
             0, 1
         );
 
-        $pdf->SetFont('helvetica', 'B', 8);
-        $pdf->SetXY(164, 47.5);
+        $pdf->SetXY(153, 57);
         $pdf->Cell(50, 5, $pembayaran->no_kwitansi, 0, 1);
 
-        $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->SetXY(75, 71);
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(66, 75);
         $pdf->Cell(100, 5,
             'Rp ' . number_format($pembayaran->nominal, 0, ',', '.'),
             0, 1
         );
-        $pdf->SetXY(75, 83);
+        $pdf->SetXY(66, 87);
         $pdf->MultiCell(
             100,
             5,
-            ucfirst($this->terbilang($pembayaran->nominal)) . ' rupiah',
-            1
+            ucfirst(trim($this->terbilang($pembayaran->nominal))) . ' Rupiah',
+            1,
+            'L'
         );
-        $pdf->SetXY(75, 95);
+
+        $pdf->SetXY(66, 98);
         $pdf->Cell(100, 5, $pembayaran->kategori->kategori ?? '-', 0, 1);
 
-        $pdf->SetXY(50, 109);
-        $pdf->MultiCell(130, 5, '-', 0);
+        $pdf->SetXY(66, 110.5);
+        $pdf->MultiCell(130, 5, $pembayaran->keterangan ?? '-', 0);
 
-        $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetFont('helvetica', '', 9);
 
-        $pdf->SetXY(73, 170);
+        $pdf->SetXY(55, 163);
         $pdf->Cell(80, 5, $namaBank, 0, 1);
 
-        $pdf->SetXY(73, 174);
+        $pdf->SetXY(55, 169);
         $pdf->Cell(80, 5, $pemilikRek, 0, 1);
 
-        $pdf->SetXY(73, 179);
+        $pdf->SetXY(55, 175);
         $pdf->Cell(80, 5, $noRek, 0, 1);
+
+        $pdf->SetXY(55, 248);
+        $pdf->Cell(100, 5, $nama, 0, 1, 'C');
+        $pdf->SetXY(55, 253);
+        $pdf->Cell(100, 5, $role, 0, 1, 'C');
 
         $pdf->Output(
             'Kwitansi-' . ($pembayaran->no_kwitansi ?? 'draft') . '.pdf',
@@ -397,27 +413,26 @@ class PembayaranController extends Controller
     {
         $angka = abs($angka);
         $baca  = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
-        $hasil = "";
 
         if ($angka < 12) {
-            $hasil = " " . $baca[$angka];
+            return $baca[$angka];
         } elseif ($angka < 20) {
-            $hasil = $this->terbilang($angka - 10) . " Belas";
+            return $this->terbilang($angka - 10) . " Belas";
         } elseif ($angka < 100) {
-            $hasil = $this->terbilang($angka / 10) . " Puluh" . $this->terbilang($angka % 10);
+            return $this->terbilang(intval($angka / 10)) . " Puluh " . $this->terbilang($angka % 10);
         } elseif ($angka < 200) {
-            $hasil = " Seratus" . $this->terbilang($angka - 100);
+            return "Seratus " . $this->terbilang($angka - 100);
         } elseif ($angka < 1000) {
-            $hasil = $this->terbilang($angka / 100) . " Ratus" . $this->terbilang($angka % 100);
+            return $this->terbilang(intval($angka / 100)) . " Ratus " . $this->terbilang($angka % 100);
         } elseif ($angka < 2000) {
-            $hasil = " Seribu" . $this->terbilang($angka - 1000);
+            return "Seribu " . $this->terbilang($angka - 1000);
         } elseif ($angka < 1000000) {
-            $hasil = $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
+            return $this->terbilang(intval($angka / 1000)) . " Ribu " . $this->terbilang($angka % 1000);
         } elseif ($angka < 1000000000) {
-            $hasil = $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+            return $this->terbilang(intval($angka / 1000000)) . " Juta " . $this->terbilang($angka % 1000000);
         }
 
-        return trim($hasil);
+        return "";
     }
 
     public function show($id)

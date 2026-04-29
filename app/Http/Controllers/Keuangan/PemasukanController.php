@@ -118,7 +118,7 @@ class PemasukanController extends Controller
         }
 
         $kategoriTransaksi = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')
-            ->whereNotIn('id', [1, 2, 3, 4, 5, 6, 7, 17, 19, 20])
+            ->whereNotIn('id', [1, 2, 3, 4, 5, 6, 7, 17, 19, 20, 23])
             ->get();
 
         $kategoriTransaksiDetail = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')

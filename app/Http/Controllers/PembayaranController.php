@@ -815,7 +815,7 @@ class PembayaranController extends Controller
         $metodeBayar                = MetodeBayar::all();
         $bankList                   = Bank::all();
         $kategoriTransaksiPemasukan = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')
-            ->whereIn('id', [2, 3, 4, 5, 17])
+            ->whereIn('id', [2, 3, 4, 5, 17, 23])
             ->get();
 
         $kategoriTransaksiTagihan = KategoriTransaksi::where('jenis_kategori', 'PENGELUARAN')

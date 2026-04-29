@@ -398,8 +398,10 @@ class PembayaranController extends Controller
         $pdf->SetXY(55, 175);
         $pdf->Cell(80, 5, $noRek, 0, 1);
 
+         $pdf->SetFont('helvetica', 'B', 9);
         $pdf->SetXY(55, 248);
         $pdf->Cell(100, 5, $nama, 0, 1, 'C');
+         $pdf->SetFont('helvetica', '', 9);
         $pdf->SetXY(55, 253);
         $pdf->Cell(100, 5, $role, 0, 1, 'C');
 

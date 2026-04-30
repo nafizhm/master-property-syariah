@@ -6,6 +6,8 @@ use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Customer;
 use App\Models\SPR;
 use App\Traits\LogAktivitasTrait;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -220,90 +222,89 @@ class SPRController extends Controller
 
         Carbon::setLocale('id');
 
-        $template = new TemplateProcessor(public_path('templates/SPR.docx'));
-
-        $template->setValue('nama_kavling', $spr->nama_perum ?? '-');
-        $template->setValue('nama_customer', $spr->nama_lengkap ?? '-');
-        $template->setValue('alamat_ktp', $spr->alamat_ktp ?? '-');
-        $template->setValue('no_telp', $spr->no_telp ?? '-');
-        $template->setValue('no_ktp', $spr->nik ?? '-');
-        $template->setValue('pekerjaan', $spr->pekerjaan ?? '-');
-        $template->setValue('tipe_rumah', $spr->tipe_bangunan ?? '-');
-        $template->setValue('kode_kav', $spr->kode_kavling ?? '-');
-        $template->setValue('luas_t', $spr->luas_tanah ?? '-');
-        $template->setValue('luas_b', $spr->luas_bangunan ?? '-');
-        $template->setValue('nama_marketing', $spr->nama_marketing ?? '-');
-        $template->setValue('pic', $spr->pic ?? '-');
-
-        $template->setValue('harga_jual', number_format($spr->hrg_jual, 0, ',', '.'));
-        $template->setValue('biaya_kpr', number_format($spr->biaya_kpr, 0, ',', '.'));
-        $template->setValue('biaya_custom', number_format($spr->biaya_custom, 0, ',', '.'));
-        $template->setValue('diskon', number_format($spr->diskon, 0, ',', '.'));
-        $template->setValue('biaya_lain', number_format($spr->biaya_lain, 0, ',', '.'));
-        $template->setValue('total_harga', number_format($spr->total_harga_unit, 0, ',', '.'));
-        $template->setValue('booking_fee', number_format($spr->booking_fee, 0, ',', '.'));
-        $template->setValue('dp', number_format($spr->dp, 0, ',', '.'));
+        $spreadsheet = IOFactory::load(public_path('templates/template_spr.xlsx'));
+        $sheet = $spreadsheet->getActiveSheet();
 
         $checked   = '☑';
         $unchecked = '☐';
 
+        $sheet->setCellValue('X2', $spr->nama_perum ?? '-');
+        $sheet->setCellValue('M5', $spr->nama_lengkap ?? '-');
+        $sheet->setCellValue('M6', $spr->alamat_ktp ?? '-');
+        $sheet->setCellValue('M7', $spr->no_telp ?? '-');
+        $sheet->setCellValue('M8', $spr->nik ?? '-');
+        $sheet->setCellValue('M9', $spr->pekerjaan ?? '-');
+
         $income = (int) ($spr->estimasi_pendapatan ?? 0);
 
-        $a  = $income < 10_000_000;
-        $b = $income >= 10_000_001 && $income <= 15_000_000;
-        $c = $income >= 15_000_001 && $income <= 20_000_000;
-        $d = $income >= 20_000_001 && $income <= 25_000_000;
-        $e  = $income > 25_000_000;
-
-        $template->setValue('a', $a  ? $checked : $unchecked);
-        $template->setValue('b', $b  ? $checked : $unchecked);
-        $template->setValue('c',  $c ? $checked : $unchecked);
-        $template->setValue('d',  $d ? $checked : $unchecked);
-        $template->setValue('e',  $e  ? $checked : $unchecked);
+        $sheet->setCellValue('M10', $income < 10000000 ? $checked : $unchecked);
+        $sheet->setCellValue('U10', ($income >= 10000001 && $income <= 15000000) ? $checked : $unchecked);
+        $sheet->setCellValue('AF10', ($income >= 15000001 && $income <= 20000000) ? $checked : $unchecked);
+        $sheet->setCellValue('M11', ($income >= 20000001 && $income <= 25000000) ? $checked : $unchecked);
+        $sheet->setCellValue('Y11', $income > 25000000 ? $checked : $unchecked);
 
         $sumber = strtolower(trim($spr->sumber_dana ?? ''));
 
-        $isGaji      = str_contains($sumber, 'Gaji');
-        $isUsaha     = str_contains($sumber, 'Usaha');
-        $isTabungan  = str_contains($sumber, 'Tabungan');
-        $isWarisan   = str_contains($sumber, 'Warisan');
-        $isInvestasi = str_contains($sumber, 'Investasi');
-        $isLainlain  = str_contains($sumber, 'Lain-lain');
-
-        $template->setValue('f',     $isGaji      ? $checked : $unchecked);
-        $template->setValue('g',      $isUsaha     ? $checked : $unchecked);
-        $template->setValue('h',   $isTabungan  ? $checked : $unchecked);
-        $template->setValue('i',    $isWarisan   ? $checked : $unchecked);
-        $template->setValue('j',  $isInvestasi ? $checked : $unchecked);
-        $template->setValue('k', $isLainlain  ? $checked : $unchecked);
-
+        $sheet->setCellValue('M12', str_contains($sumber, 'gaji') ? $checked : $unchecked);
+        $sheet->setCellValue('P12', str_contains($sumber, 'usaha') ? $checked : $unchecked);
+        $sheet->setCellValue('T12', str_contains($sumber, 'tabungan') ? $checked : $unchecked);
+        $sheet->setCellValue('Y12', str_contains($sumber, 'warisan') ? $checked : $unchecked);
+        $sheet->setCellValue('AD12', str_contains($sumber, 'investasi') ? $checked : $unchecked);
+        $sheet->setCellValue('AI12', str_contains($sumber, 'lain') ? $checked : $unchecked);
 
         $tujuan = strtolower(trim($spr->tujuan_pembelian ?? ''));
 
-        $isTempatTinggal = str_contains($tujuan, 'Tempat Tinggal/Pribadi');
-        $isInvestasi     = str_contains($tujuan, 'Investasi');
-        $isSewa          = str_contains($tujuan, 'Sewa');
-        $isLainlain      = str_contains($tujuan, 'Lain-lain');
-
-        $template->setValue('l', $isTempatTinggal ? $checked : $unchecked);
-        $template->setValue('m',   $isInvestasi     ? $checked : $unchecked);
-        $template->setValue('n',   $isSewa          ? $checked : $unchecked);
-        $template->setValue('o',   $isLainlain      ? $checked : $unchecked);
+        $sheet->setCellValue('M13', str_contains($tujuan, 'tempat') ? $checked : $unchecked);
+        $sheet->setCellValue('W13', str_contains($tujuan, 'investasi') ? $checked : $unchecked);
+        $sheet->setCellValue('AC13', str_contains($tujuan, 'sewa') ? $checked : $unchecked);
+        $sheet->setCellValue('AG13', str_contains($tujuan, 'lain') ? $checked : $unchecked);
 
         $rumahKe = (int) ($spr->pembelian_rumah_ke ?? 0);
 
-        $template->setValue('p', $rumahKe === 1 ? $checked : $unchecked);
-        $template->setValue('q',   $rumahKe >= 2  ? $checked : $unchecked);
+        $sheet->setCellValue('M14', $rumahKe === 1 ? $checked : $unchecked);
+        $sheet->setCellValue('Q14', $rumahKe >= 2 ? $checked : $unchecked);
 
-        $template->setValue(
-            'tanggal_spr',
-            Carbon::now()->translatedFormat('d F Y')
-        );
+        $sheet->setCellValue('K18', $spr->nama_perum ?? '-');
+        $sheet->setCellValue('K19', $spr->tipe_bangunan ?? '-');
+        $sheet->setCellValue('K20', $spr->kode_kavling ?? '-');
+        $sheet->setCellValue('K21', ($spr->luas_tanah ?? '-') . ' / ' . ($spr->luas_bangunan ?? '-'));
+        $sheet->setCellValue('K22', $spr->nama_marketing ?? '-');
+        $sheet->setCellValue('K23', $spr->pic ?? '-');
 
-        $fileName = 'SPR_' . ($spr->nama_lengkap ?? 'customer') . '.docx';
+        $sheet->setCellValue('AG18', number_format($spr->hrg_jual, 0, ',', '.'));
+        $sheet->setCellValue('AG19', number_format($spr->biaya_kpr, 0, ',', '.'));
+        $sheet->setCellValue('AG20', number_format($spr->biaya_custom, 0, ',', '.'));
+        $sheet->setCellValue('AG21', number_format($spr->diskon, 0, ',', '.'));
+        $sheet->setCellValue('AG22', number_format($spr->biaya_lain, 0, ',', '.'));
+        $sheet->setCellValue('AG23', number_format($spr->total_harga_unit, 0, ',', '.'));
 
+        $metode = strtolower(trim($spr->metode_pembayaran ?? ''));
+
+        $sheet->setCellValue('C26', str_contains($metode, 'hard') ? $checked : $unchecked);
+        $sheet->setCellValue('C27', str_contains($metode, 'soft') ? $checked : $unchecked);
+        $sheet->setCellValue('C28', str_contains($metode, 'kpr') ? $checked : $unchecked);
+
+        if (str_contains($metode, 'soft')) {
+            $sheet->setCellValue('J27', $spr->termin_soft ?? '-');
+        }
+
+        if (str_contains($metode, 'kpr')) {
+            $sheet->setCellValue('J28', $spr->termin_kpr ?? '-');
+        }
+
+        $sheet->setCellValue('AG26', number_format($spr->hrg_jual, 0, ',', '.'));
+        $sheet->setCellValue('AG27', number_format($spr->booking_fee, 0, ',', '.'));
+        $sheet->setCellValue('AG28', number_format($spr->dp, 0, ',', '.'));
+        $sheet->setCellValue('AG29', number_format($spr->kewajiban_kredit, 0, ',', '.'));
+
+        $sheet->setCellValue('J35', $spr->catatan ?? '-');
+        $sheet->setCellValue('G51', $spr->nama_lengkap ?? '-');
+
+        $fileName = 'SPR_' . ($spr->nama_lengkap ?? 'customer') . '.xlsx';
         $path = storage_path('app/public/' . $fileName);
-        $template->saveAs($path);
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($path);
 
         return response()->download($path)->deleteFileAfterSend(true);
     }

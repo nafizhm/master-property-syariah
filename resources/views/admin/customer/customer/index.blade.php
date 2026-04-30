@@ -268,6 +268,24 @@
                                 </div>
                             </div>
 
+                           <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">DP</label>
+                                <div class="col-sm-4">
+                                    <div id="dp-container"></div>
+                                </div>
+
+                                <label class="control-label col-sm-2">Booking Fee</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" name="booking_fee" id="booking_fee"
+                                            class="form-control format-number">
+                                    </div>
+                                </div>
+                            </div>
+
                             <hr>
 
                             <h5 class="font-weight-bold mb-4 text-danger">Potongan Biaya</h5>
@@ -526,6 +544,34 @@
 
 @push('scripts')
     <script>
+        function renderDP(dpList) {
+            let container = $('#dp-container');
+            container.empty();
+
+            if (!dpList || dpList.length === 0) {
+                container.append('<small class="text-muted">Tidak ada data DP</small>');
+                return;
+            }
+
+            dpList.forEach(function(item, index) {
+                container.append(`
+                    <div class="input-group mb-2">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">DP ${index + 1}</span>
+                        </div>
+
+                        <input type="hidden" name="dp_id[]" value="${item.id}">
+
+                        <input type="text"
+                            name="dp[]"
+                            class="form-control format-number"
+                            value="${formatNumber(item.nominal)}">
+                    </div>
+                `);
+            });
+        }
+
+
         $(document).ready(function() {
             $('.select-lokasi').select2({
                 theme: "bootstrap4",
@@ -710,6 +756,8 @@
                     $('#bonus_konsumen').val(formatNumber(data.bonus_konsumen));
                     $('#total_harga_rumah').val(formatNumber(data.total_harga_rumah));
                     $('#total_harga_komisi').val(formatNumber(data.total_harga_komisi));
+                    renderDP(data.dp_list);
+                    $('#booking_fee').val(formatNumber(data.booking_fee));
                     $('#stt_free_pajak_bphtb').val(data.stt_free_pajak_bphtb).trigger('change');
                     $('#stt_free_biaya_notaris').val(data.stt_free_biaya_notaris).trigger('change');
                     $('#stt_free_biaya_kpr').val(data.stt_free_biaya_kpr).trigger('change');

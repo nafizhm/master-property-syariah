@@ -612,6 +612,7 @@ class PengajuanHoldController extends Controller
             PengajuanHold::create([
                 'no_registrasi'     => $no_registrasi,
                 'tgl_booking'       => Carbon::now()->format('Y-m-d'),
+                'tgl_booking_fee'       => Carbon::now()->format('Y-m-d'),
                 'nama_lengkap'      => $request->nama_lengkap,
                 'nik'               => $request->nik ?? '',
                 'no_telp'           => $request->no_telp ?? '',

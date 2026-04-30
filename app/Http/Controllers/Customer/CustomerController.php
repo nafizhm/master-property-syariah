@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Bank;
+use App\Models\Pemasukan;
 use App\Models\Customer;
 use App\Models\KavlingPeta;
 use App\Models\LokasiKavling;
@@ -278,6 +279,17 @@ class CustomerController extends Controller
     {
         $list = Customer::findOrFail($id);
 
+        $dpList = Pemasukan::where('id_customer', $id)
+            ->where('id_kategori_transaksi', 2)
+            ->get();
+
+        $booking = Pemasukan::where('id_customer', $id)
+            ->where('id_kategori_transaksi', 1)
+            ->value('nominal');
+
+        $list->dp_list = $dpList;
+        $list->booking_fee = $booking ?? 0;
+
         return response()->json([
             'status' => 'success',
             'data'   => $list,
@@ -298,6 +310,8 @@ class CustomerController extends Controller
             'ppn'             => $request->ppn ? str_replace('.', '', $request->ppn) : 0,
             'pajak_pph'       => $request->pajak_pph ? str_replace('.', '', $request->pajak_pph) : 0,
             'bonus_konsumen'  => $request->bonus_konsumen ? str_replace('.', '', $request->bonus_konsumen) : 0,
+
+            'booking_fee' => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
         ]);
 
         $rules = [
@@ -397,6 +411,30 @@ class CustomerController extends Controller
             ];
 
             $data->update($db);
+
+            if ($request->dp && $request->dp_id) {
+                    foreach ($request->dp as $key => $value) {
+
+                        $nominal = str_replace('.', '', $value);
+                        $id = $request->dp_id[$key];
+
+                        Pemasukan::where('id', $id)
+                            ->where('id_customer', $data->id)
+                            ->where('id_kategori_transaksi', 2)
+                            ->update([
+                                'nominal' => $nominal
+                            ]);
+                    }
+                }
+                Pemasukan::updateOrCreate(
+                [
+                    'id_customer' => $data->id,
+                    'id_kategori_transaksi' => 1
+                ],
+                [
+                    'nominal' => $request->booking_fee
+                ]
+            );
 
             $piutang = Piutang::where('id_customer', $data->id)->first();
 

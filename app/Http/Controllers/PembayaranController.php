@@ -15,13 +15,13 @@ use App\Models\ProgresListPenjualan;
 use App\Traits\LogAktivitasTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use TCPDF;
 use setasign\Fpdi\Tcpdf\Fpdi;
+use TCPDF;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Support\Facades\Auth;
 
 Carbon::setLocale('id');
 class PembayaranController extends Controller
@@ -87,7 +87,7 @@ class PembayaranController extends Controller
                             ->orWhere('no_telp', 'like', "%{$keyword}%");
                     });
                 })
-               ->addColumn('lokasi_rumah', function ($row) {
+                ->addColumn('lokasi_rumah', function ($row) {
                     $lokasi  = $row->lokasiKavling->nama_kavling ?? '-';
                     $kavling = $row->kavling->kode_kavling ?? '-';
                     return '<strong>' . $lokasi . '</strong><br>' . $kavling;
@@ -321,7 +321,7 @@ class PembayaranController extends Controller
             'customer.lokasi.perusahaan.perusahaan',
             'metode',
             'kategori',
-            'bank'
+            'bank',
         ])
             ->where('id', $id)
             ->firstOrFail();
@@ -332,20 +332,20 @@ class PembayaranController extends Controller
         $nama = $user->surname;
         $role = optional($user->role)->role;
 
-        $bank = $pembayaran->bank;
-        $namaBank     = $bank->nama ?? '-';
-        $noRek        = $bank->no_rek ?? '-';
-        $pemilikRek   = $bank->pemilik_rek ?? '-';
+        $bank       = $pembayaran->bank;
+        $namaBank   = $bank->nama ?? '-';
+        $noRek      = $bank->no_rek ?? '-';
+        $pemilikRek = $bank->pemilik_rek ?? '-';
 
-        $lokasi = $nasabah->lokasi;
+        $lokasi  = $nasabah->lokasi;
         $kavling = KavlingPeta::find($nasabah->id_kavling);
 
         $pdf = new Fpdi();
         $pdf->AddPage();
 
         $templatePath = public_path('templates/template_kwitansi.pdf');
-        $pageCount = $pdf->setSourceFile($templatePath);
-        $tplIdx = $pdf->importPage(1);
+        $pageCount    = $pdf->setSourceFile($templatePath);
+        $tplIdx       = $pdf->importPage(1);
 
         $pdf->useTemplate($tplIdx, 0, 0, 210);
 
@@ -398,10 +398,10 @@ class PembayaranController extends Controller
         $pdf->SetXY(55, 175);
         $pdf->Cell(80, 5, $noRek, 0, 1);
 
-         $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetFont('helvetica', 'B', 9);
         $pdf->SetXY(55, 248);
         $pdf->Cell(100, 5, $nama, 0, 1, 'C');
-         $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetFont('helvetica', '', 9);
         $pdf->SetXY(55, 253);
         $pdf->Cell(100, 5, $role, 0, 1, 'C');
 
@@ -564,28 +564,53 @@ class PembayaranController extends Controller
     {
         DB::beginTransaction();
         try {
+            $cust = Customer::findOrFail($id);
+            $kav  = KavlingPeta::findOrFail($cust->id_kavling);
+
+            $cust->update([
+                'hrg_jual' => $kav->hrg_jual,
+            ]);
+
+            $hasil = app(\App\Http\Controllers\PengajuanHoldController::class)
+                ->hitungTotalHarga([
+                    'hrg_jual'               => $kav->hrg_jual,
+                    'diskon'                 => $cust->diskon,
+                    'pajak_bphtb'            => $cust->pajak_bphtb,
+                    'biaya_notaris'          => $cust->biaya_notaris,
+                    'biaya_kpr'              => $cust->biaya_kpr,
+                    'biaya_custom'           => $cust->biaya_custom,
+                    'biaya_lain_lain'        => $cust->biaya_lain_lain,
+                    'ppn'                    => $cust->ppn,
+                    'pajak_pph'              => $cust->pajak_pph,
+                    'bonus_konsumen'         => $cust->bonus_konsumen,
+                    'stt_free_pajak_bphtb'   => $cust->stt_free_pajak_bphtb,
+                    'stt_free_biaya_notaris' => $cust->stt_free_biaya_notaris,
+                    'stt_free_biaya_kpr'     => $cust->stt_free_biaya_kpr,
+                ]);
+
+            $cust->update([
+                'total_harga_rumah'  => $hasil['total_harga_rumah'],
+                'total_harga_komisi' => $hasil['total_harga_komisi'],
+            ]);
+
             $tagihan = Piutang::where('id_customer', $id)->first();
+
             if (! $tagihan) {
                 throw new \Exception('Tagihan tidak ditemukan.');
             }
 
-            $cust         = Customer::find($id);
-            $kav          = KavlingPeta::find($cust->id_kavling);
-            $nominal_baru = $kav->hrg_jual;
-
             $terbayar_lama = $tagihan->terbayar;
 
-            $sisa_bayar_baru = $nominal_baru - $terbayar_lama;
-
             $tagihan->update([
-                'nominal'    => $nominal_baru,
-                'sisa_bayar' => $sisa_bayar_baru,
+                'nominal'    => $hasil['total_harga_rumah'],
+                'sisa_bayar' => $hasil['total_harga_rumah'] - $terbayar_lama,
             ]);
 
             $totalTagihan = Piutang::where('id_customer', $id)->sum('nominal');
             $sisaBayar    = Piutang::where('id_customer', $id)->sum('sisa_bayar');
 
             DB::commit();
+
             return response()->json([
                 'status'                  => 'success',
                 'total_tagihan_formatted' => number_format($totalTagihan, 0, ',', '.'),
@@ -593,6 +618,7 @@ class PembayaranController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'status' => 'error',
                 'error'  => $e->getMessage(),

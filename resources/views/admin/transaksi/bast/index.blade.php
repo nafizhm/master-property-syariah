@@ -281,7 +281,7 @@
             $('.invalid-feedback').remove();
 
             $('#primary_id').val('');
-            $('#.form-select').val('').trigger('change');
+            $('.form-select').val('').trigger('change');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');

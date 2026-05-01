@@ -106,17 +106,21 @@ class PembayaranController extends Controller
                     return '<div>' . e($status) . '<br>' . $marketing . '</div>';
                 })
                 ->addColumn('jumlah_tagihan', function ($row) {
-                    $totalTagihan = $row->piutangs->sum('nominal');
-                    $totalBayar   = $row->piutangs->sum('terbayar');
-                    $sisa         = max($row->piutangs->sum('sisa_bayar'), 0);
 
-                    if ($sisa == 0) {
+                    $totalTagihan = $row->piutangs->sum('nominal');
+
+                    $totalBayar = $row->pemasukans->sum('nominal');
+
+                    $sisa = max($totalTagihan - $totalBayar, 0);
+
+                    if ($sisa == 0 && $totalTagihan > 0) {
                         return '<img src="' . asset('assets/img/lunas.jpg') . '" width="100px">';
                     }
 
                     $html  = '<span class="badge badge-warning">Tagihan : Rp. ' . number_format($totalTagihan, 0, ',', '.') . '</span><br>';
                     $html .= '<span class="badge badge-success">Sudah Bayar : Rp. ' . number_format($totalBayar, 0, ',', '.') . '</span><br>';
                     $html .= '<span class="badge badge-danger">Sisa Bayar : Rp. ' . number_format($sisa, 0, ',', '.') . '</span>';
+
                     return $html;
                 })
                 ->addColumn('action', function ($row) {
@@ -439,21 +443,27 @@ class PembayaranController extends Controller
 
     public function show($id)
     {
-        $customer = Customer::with(['piutangs', 'lokasiKavling', 'kavlingPeta'])
-            ->findOrFail($id);
+        $customer = Customer::with([
+            'piutangs',
+            'lokasiKavling',
+            'kavlingPeta'
+        ])
+        ->withSum('piutangs as total_tagihan', 'nominal')
+        ->withSum(['pemasukans as total_bayar' => function ($q) {
+            $q->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');
+        }], 'nominal')
+        ->findOrFail($id);
 
-        $metodeBayar                = MetodeBayar::all();
-        $bankList                   = Bank::all();
+        $metodeBayar = MetodeBayar::all();
+        $bankList    = Bank::all();
+        $sisa = max(($customer->total_tagihan ?? 0) - ($customer->total_bayar ?? 0), 0);
+
         $kategoriTransaksiPemasukan = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')
             ->whereIn('id', [2, 3, 4, 5, 17, 23])
             ->get();
 
         $kategoriTransaksiTagihan = KategoriTransaksi::where('jenis_kategori', 'PENGELUARAN')
             ->where('stt_fix', 0)
-            ->get();
-
-        $piutang = Piutang::where('id_customer', $id)
-            ->where('id_kategori_transaksi', '!=', 0)
             ->get();
 
         $piutang = Piutang::with('kategori')
@@ -467,7 +477,8 @@ class PembayaranController extends Controller
             'bankList',
             'kategoriTransaksiPemasukan',
             'kategoriTransaksiTagihan',
-            'piutang'
+            'piutang',
+            'sisa'
         ));
     }
 

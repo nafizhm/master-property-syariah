@@ -76,7 +76,7 @@
                                             <span class="input-group-text">Rp.</span>
                                         </div>
                                         <input class="form-control text-right" type="text" id="jumlah_bayar_all"
-                                            value="{{ number_format($customer->piutangs->sum('terbayar'), 0, ',', '.') }}"
+                                            value="{{ number_format($customer->pemasukans->sum('nominal'), 0, ',', '.') }}"
                                             readonly>
                                     </div>
                                 </div>
@@ -90,8 +90,8 @@
                                             <span class="input-group-text">Rp.</span>
                                         </div>
                                         <input class="form-control text-right" type="text" id="sisa_bayar_all"
-                                            value="{{ number_format($customer->piutangs->sum('sisa_bayar'), 0, ',', '.') }}"
-                                            readonly>
+                                        value="{{ number_format($sisa, 0, ',', '.') }}"
+                                        readonly>
                                     </div>
                                 </div>
                             </div>

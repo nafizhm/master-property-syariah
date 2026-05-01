@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Customer;
 use App\Models\SPR;
+use App\Models\Pemasukan;
 use App\Traits\LogAktivitasTrait;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -216,13 +217,13 @@ class SPRController extends Controller
         }
     }
 
-    public function cetakWord($id)
+   public function cetakWord($id)
     {
         $spr = SPR::findOrFail($id);
 
-        Carbon::setLocale('id');
+        \Carbon\Carbon::setLocale('id');
 
-        $spreadsheet = IOFactory::load(public_path('templates/template_spr.xlsx'));
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load(public_path('templates/template_spr.xlsx'));
         $sheet = $spreadsheet->getActiveSheet();
 
         $checked   = '☑';
@@ -300,10 +301,72 @@ class SPRController extends Controller
         $sheet->setCellValue('J35', $spr->catatan ?? '-');
         $sheet->setCellValue('G51', $spr->nama_lengkap ?? '-');
 
+        $pemasukans = Pemasukan::where('id_customer', $spr->id_customer)
+            ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%')
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        $totalTagihan = \App\Models\Piutang::where('id_customer', $spr->id_customer)
+            ->sum('nominal');
+
+        $startRow = 33;
+        $totalRows = $pemasukans->count();
+
+        if ($totalRows > 1) {
+            $sheet->insertNewRowBefore($startRow + 1, $totalRows - 1);
+        }
+
+        $no = 1;
+        $totalBayar = 0;
+
+       foreach ($pemasukans as $index => $item) {
+
+            $row = $startRow + $index;
+
+            $totalBayar += $item->nominal;
+            $sisa = max($totalTagihan - $totalBayar, 0);
+
+            $sheet->mergeCells("D{$row}:I{$row}");
+            $sheet->mergeCells("J{$row}:O{$row}");
+            $sheet->mergeCells("P{$row}:V{$row}");
+            $sheet->mergeCells("W{$row}:AC{$row}");
+            $sheet->mergeCells("AD{$row}:AJ{$row}");
+            $sheet->mergeCells("AK{$row}:AO{$row}");
+
+            $sheet->setCellValue("C{$row}", $no++);
+            $sheet->setCellValue("D{$row}", $spr->metode_pembayaran ?? '-');
+            $sheet->setCellValue("J{$row}", \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d F Y'));
+            $sheet->setCellValue("P{$row}", number_format($item->nominal, 0, ',', '.'));
+            $sheet->setCellValue("AD{$row}", number_format($sisa, 0, ',', '.'));
+            $sheet->setCellValue("AK{$row}", $item->keterangan ?? '-');
+        }
+
+        if ($totalRows > 0) {
+
+            $endRow = $startRow + $totalRows - 1;
+            $range = "C{$startRow}:AO{$endRow}";
+
+            $sheet->getStyle($range)->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    ],
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+            ]);
+
+            for ($i = $startRow; $i <= $endRow; $i++) {
+                $sheet->getRowDimension($i)->setRowHeight(-1);
+            }
+        }
+
         $fileName = 'SPR_' . ($spr->nama_lengkap ?? 'customer') . '.xlsx';
         $path = storage_path('app/public/' . $fileName);
 
-        $writer = new Xlsx($spreadsheet);
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save($path);
 
         return response()->download($path)->deleteFileAfterSend(true);

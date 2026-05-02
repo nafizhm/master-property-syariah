@@ -459,7 +459,7 @@ class PembayaranController extends Controller
         $sisa = max(($customer->total_tagihan ?? 0) - ($customer->total_bayar ?? 0), 0);
 
         $kategoriTransaksiPemasukan = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')
-            ->whereIn('id', [2, 3, 4, 5, 17, 23])
+            ->whereIn('id', [1, 2, 3, 4, 5, 17, 23])
             ->get();
 
         $kategoriTransaksiTagihan = KategoriTransaksi::where('jenis_kategori', 'PENGELUARAN')

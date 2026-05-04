@@ -53,6 +53,7 @@ class PengajuanHold extends Model
         'stt_free_biaya_kpr',
         'biaya_custom',
         'biaya_lain_lain',
+        'stt_free_biaya_lain',
         'ppn',
         'pajak_pph',
         'bonus_konsumen',

@@ -413,6 +413,32 @@
                                     </div>
 
                                     <div class="form-group row mb-3">
+                                        <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
+                                            <div class="col-sm-4">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">Rp.</span>
+                                                    </div>
+                                                    <input type="text" id="biaya_lain_lain" name="biaya_lain_lain"
+                                                        class="form-control format-number"
+                                                        value="{{ formatRp($data->biaya_lain_lain) }}">
+                                                </div>
+                                            </div>
+
+                                             <div class="col-sm-2">
+                                                <select name="stt_free_biaya_lain" id="stt_free_biaya_lain"
+                                                    class="form-control select-free">
+                                                    <option value=""></option>
+                                                    <option value="1"
+                                                        {{ $data->stt_free_biaya_lain == 1 ? 'selected' : '' }}>Free</option>
+                                                    <option value="2"
+                                                        {{ $data->stt_free_biaya_lain == 2 ? 'selected' : '' }}>Tidak Free
+                                                    </option>
+                                                </select>
+                                            </div>
+                                    </div>
+
+                                      <div class="form-group row mb-3">
                                         <label class="col-sm-2 col-form-label">Biaya Custom</label>
                                         <div class="col-sm-4">
                                             <div class="input-group">
@@ -422,18 +448,6 @@
                                                 <input type="text" id="biaya_custom" name="biaya_custom"
                                                     class="form-control format-number"
                                                     value="{{ formatRp($data->biaya_custom) }}">
-                                            </div>
-                                        </div>
-
-                                        <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
-                                        <div class="col-sm-4">
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">Rp.</span>
-                                                </div>
-                                                <input type="text" id="biaya_lain_lain" name="biaya_lain_lain"
-                                                    class="form-control format-number"
-                                                    value="{{ formatRp($data->biaya_lain_lain) }}">
                                             </div>
                                         </div>
                                     </div>

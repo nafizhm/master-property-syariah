@@ -786,6 +786,7 @@ class PengajuanHoldController extends Controller
 
             'biaya_custom'           => $data->biaya_custom,
             'biaya_lain_lain'        => $data->biaya_lain_lain,
+            'stt_free_biaya_lain'    => $data->stt_free_biaya_lain,
 
             'ppn'                    => $data->ppn,
             'pajak_pph'              => $data->pajak_pph,
@@ -887,6 +888,7 @@ class PengajuanHoldController extends Controller
             'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
             'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
             'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
+            'stt_free_biaya_lain'    => 'required_with:biaya_lain_lain|in:1,2',
 
             'an_surat_cash'          => 'required_if:jenis_pembelian,Pembelian Cash',
             'termin_x_cash_b'        => 'required_if:jenis_pembelian,Cash Bertahap',
@@ -906,6 +908,7 @@ class PengajuanHoldController extends Controller
             'stt_free_pajak_bphtb.in'              => 'Status BPHTB tidak valid!',
             'stt_free_biaya_notaris.in'            => 'Status Notaris tidak valid!',
             'stt_free_biaya_kpr.in'                => 'Status KPR tidak valid!',
+            'stt_free_biaya_lain.in'               => 'Status Lain - lain tidak valid!',
         ];
 
         $request->validate($rules, $messages);
@@ -927,6 +930,7 @@ class PengajuanHoldController extends Controller
                 'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
                 'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
                 'stt_free_biaya_kpr'     => $request->stt_free_biaya_kpr,
+                'stt_free_biaya_lain'    => $request->stt_free_biaya_lain,
             ]);
 
             $common = [
@@ -948,6 +952,7 @@ class PengajuanHoldController extends Controller
 
                 'biaya_custom'           => $request->biaya_custom,
                 'biaya_lain_lain'        => $request->biaya_lain_lain,
+                'stt_free_biaya_lain'    => $request->stt_free_biaya_lain,
 
                 'ppn'                    => $request->ppn,
                 'pajak_pph'              => $request->pajak_pph,

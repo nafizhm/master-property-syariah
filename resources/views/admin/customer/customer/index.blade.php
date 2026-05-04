@@ -371,19 +371,6 @@
                             </div>
 
                             <div class="form-group row mb-3">
-                                <label class="col-sm-2 col-form-label">Biaya Custom</label>
-                                <div class="col-sm-4">
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">Rp.</span>
-                                        </div>
-                                        <input type="text" id="biaya_custom" name="biaya_custom"
-                                            class="form-control format-number">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group row mb-3">
                               <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
                                 <div class="col-sm-4">
                                     <div class="input-group">
@@ -402,6 +389,19 @@
                                         <option value="1">Free</option>
                                         <option value="2">Tidak Free</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-2 col-form-label">Biaya Custom</label>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" id="biaya_custom" name="biaya_custom"
+                                            class="form-control format-number">
+                                    </div>
                                 </div>
                             </div>
 

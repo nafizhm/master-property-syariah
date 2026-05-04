@@ -654,12 +654,14 @@
                 let stt_bphtb = $('#stt_free_pajak_bphtb').val();
                 let stt_notaris = $('#stt_free_biaya_notaris').val();
                 let stt_kpr = $('#stt_free_biaya_kpr').val();
+                let stt_lain = $('#stt_free_biaya_lain').val();
 
                 let total_rumah = hrg_jual;
 
                 if (stt_bphtb != '1') total_rumah += pajak_bphtb;
                 if (stt_notaris != '1') total_rumah += biaya_notaris;
                 if (stt_kpr != '1') total_rumah += biaya_kpr;
+                if (stt_lain != '1') total_rumah += biaya_lain;
 
                 total_rumah += biaya_custom + biaya_lain + ppn;
                 total_rumah -= diskon;
@@ -670,6 +672,7 @@
                 if (stt_bphtb == '1') total_komisi -= pajak_bphtb;
                 if (stt_notaris == '1') total_komisi -= biaya_notaris;
                 if (stt_kpr == '1') total_komisi -= biaya_kpr;
+                if (stt_lain == '1') total_komisi -= biaya_lain;
 
                 total_komisi -= bonus + diskon + ppn + biaya_lain;
 
@@ -772,6 +775,7 @@
                     $('#stt_free_pajak_bphtb').val(data.stt_free_pajak_bphtb).trigger('change');
                     $('#stt_free_biaya_notaris').val(data.stt_free_biaya_notaris).trigger('change');
                     $('#stt_free_biaya_kpr').val(data.stt_free_biaya_kpr).trigger('change');
+                    $('#stt_free_biaya_lain').val(data.stt_free_biaya_lain).trigger('change');
                     $('#id_marketing').val(data.id_marketing).trigger('change');
                     $('#id_agent').val(data.id_agent).trigger('change');
                     $('#jenis_pembelian').val(data.jenis_pembelian).trigger('change');

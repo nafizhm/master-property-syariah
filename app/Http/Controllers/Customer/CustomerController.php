@@ -326,6 +326,7 @@ class CustomerController extends Controller
             'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
             'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
             'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
+            'stt_free_biaya_lain'    => 'required_with:biaya_lain_lain|in:1,2',
         ];
 
         $messages = [
@@ -343,6 +344,7 @@ class CustomerController extends Controller
             'stt_free_pajak_bphtb.in'              => 'Status BPHTB tidak valid!',
             'stt_free_biaya_notaris.in'            => 'Status Notaris tidak valid!',
             'stt_free_biaya_kpr.in'                => 'Status KPR tidak valid!',
+            'stt_free_biaya_lain.in'                => 'Status Lain - lain tidak valid!',
         ];
 
         $request->validate($rules, $messages);
@@ -365,6 +367,7 @@ class CustomerController extends Controller
                     'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
                     'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
                     'stt_free_biaya_kpr'     => $request->stt_free_biaya_kpr,
+                    'stt_free_biaya_lain'    => $request->stt_free_biaya_lain,
                 ]);
 
             $db = [
@@ -396,6 +399,7 @@ class CustomerController extends Controller
                 'diskon'                 => $request->diskon,
                 'pajak_bphtb'            => $request->pajak_bphtb,
                 'stt_free_pajak_bphtb'   => $request->stt_free_pajak_bphtb,
+                'stt_free_biaya_lain'    => $request->stt_free_biaya_lain,
                 'biaya_notaris'          => $request->biaya_notaris,
                 'stt_free_biaya_notaris' => $request->stt_free_biaya_notaris,
                 'biaya_kpr'              => $request->biaya_kpr,

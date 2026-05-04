@@ -381,8 +381,10 @@
                                             class="form-control format-number">
                                     </div>
                                 </div>
+                            </div>
 
-                                <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
+                            <div class="form-group row mb-3">
+                              <label class="col-sm-2 col-form-label">Biaya Lain - lain</label>
                                 <div class="col-sm-4">
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -391,6 +393,15 @@
                                         <input type="text" id="biaya_lain_lain" name="biaya_lain_lain"
                                             class="form-control format-number">
                                     </div>
+                                </div>
+
+                                  <div class="col-sm-2">
+                                    <select name="stt_free_biaya_lain" id="stt_free_biaya_lain"
+                                        class="form-control select-free">
+                                        <option value=""></option>
+                                        <option value="1">Free</option>
+                                        <option value="2">Tidak Free</option>
+                                    </select>
                                 </div>
                             </div>
 

@@ -1125,6 +1125,7 @@ class PengajuanHoldController extends Controller
         $stt_bphtb   = $data['stt_free_pajak_bphtb'] ?? null;
         $stt_notaris = $data['stt_free_biaya_notaris'] ?? null;
         $stt_kpr     = $data['stt_free_biaya_kpr'] ?? null;
+        $stt_free_biaya_lain   = $data['stt_free_biaya_lain'] ?? null;
 
         $total_rumah = $hrg_jual;
 
@@ -1138,6 +1139,10 @@ class PengajuanHoldController extends Controller
 
         if ($stt_kpr != 1) {
             $total_rumah += $biaya_kpr;
+        }
+
+        if ($stt_free_biaya_lain != 1) {
+            $total_rumah += $biaya_lain;
         }
 
         $total_rumah += $biaya_custom + $biaya_lain + $ppn;
@@ -1156,6 +1161,10 @@ class PengajuanHoldController extends Controller
 
         if ($stt_kpr == 1) {
             $total_komisi -= $biaya_kpr;
+        }
+
+        if ($stt_free_biaya_lain == 1) {
+            $total_komisi -= $biaya_lain;
         }
 
         $total_komisi -= ($bonus + $diskon + $ppn + $biaya_lain);

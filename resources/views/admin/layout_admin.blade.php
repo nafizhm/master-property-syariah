@@ -103,6 +103,7 @@
         .sidebar-fixed-bottom .nav-icon {
             margin-right: 10px;
         }
+
     </style>
 </head>
 
@@ -165,14 +166,25 @@
                 </span> --}}
             </a>
 
+           <div class="form-inline px-3 pb-2 mt-2">
+                <div class="input-group" data-widget="sidebar-search">
+                    <input class="form-control form-control-sidebar" type="search"
+                        placeholder="Cari menu..." aria-label="Search">
+                    <div class="input-group-append">
+                        <button class="btn btn-sidebar">
+                            <i class="fas fa-search fa-fw"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Sidebar -->
             <div class="sidebar">
 
                 <!-- Sidebar Menu -->
-                <nav class="mt-2">
+                <nav id="sidebar-menu" class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
-                        data-accordion="false">
+                        data-accordion="false" >
 
                         @php
                             use Illuminate\Support\Str;
@@ -498,6 +510,7 @@
                 sessionStorage.removeItem('success');
             }
         });
+
     </script>
 
     @stack('scripts')

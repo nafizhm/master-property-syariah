@@ -303,7 +303,7 @@
                                         <label class="col-sm-2 col-form-label">Tanggal Booking Fee</label>
                                         <div class="col-sm-4">
                                             <input type="date" name="tgl_booking_fee" id="tgl_booking_fee"
-                                                value="{{ $data->tgl_booking_fee }}" class="form-control">
+                                                value="{{ $data->tgl_booking_fee ?? $data->tgl_booking }}" class="form-control">
                                         </div>
                                     </div>
 

@@ -33,6 +33,7 @@
                                             <th width="50px">No</th>
                                             <th width="220px">Customer</th>
 
+                                            <th width="140px">Harga Unit</th>
                                             <th width="140px">Booking Fee</th>
                                             <th width="140px">DP</th>
                                             <th width="140px">Diskon</th>
@@ -82,6 +83,12 @@
                         name: 'customer',
                         orderable: false,
                         searchable: true
+                    },
+                    {
+                        data: 'harga_unit',
+                        name: 'harga_unit',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
                         data: 'booking_fee',

@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Bank;
-use App\Models\Pemasukan;
 use App\Models\Customer;
 use App\Models\KavlingPeta;
 use App\Models\LokasiKavling;
 use App\Models\MarketingAgent;
 use App\Models\MarketingOffline;
+use App\Models\Pemasukan;
 use App\Models\PersyaratanLegal;
 use App\Models\Piutang;
 use App\Models\ProgresListPenjualan;
@@ -279,15 +279,15 @@ class CustomerController extends Controller
     {
         $list = Customer::findOrFail($id);
 
-        $dpList = Pemasukan::where('id_customer', $id)
+        $totalDp = Pemasukan::where('id_customer', $id)
             ->where('id_kategori_transaksi', 2)
-            ->get();
+            ->sum('nominal');
 
         $booking = Pemasukan::where('id_customer', $id)
             ->where('id_kategori_transaksi', 1)
             ->value('nominal');
 
-        $list->dp_list = $dpList;
+        $list->dp          = $totalDp;
         $list->booking_fee = $booking ?? 0;
 
         return response()->json([
@@ -311,7 +311,7 @@ class CustomerController extends Controller
             'pajak_pph'       => $request->pajak_pph ? str_replace('.', '', $request->pajak_pph) : 0,
             'bonus_konsumen'  => $request->bonus_konsumen ? str_replace('.', '', $request->bonus_konsumen) : 0,
 
-            'booking_fee' => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
+            'booking_fee'     => $request->booking_fee ? str_replace('.', '', $request->booking_fee) : 0,
         ]);
 
         $rules = [
@@ -322,29 +322,28 @@ class CustomerController extends Controller
             'no_telp'                => 'required',
             'jenis_kelamin'          => 'required',
             'alamat_ktp'             => 'required',
-            'jenis_properti'=> 'required',
-            'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
-            'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
-            'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
-            'stt_free_biaya_lain'    => 'required_with:biaya_lain_lain|in:1,2',
+            'jenis_properti'         => 'required',
+
+            'stt_free_pajak_bphtb'   => 'required_unless:pajak_bphtb,null',
+            'stt_free_biaya_notaris' => 'required_unless:biaya_notaris,null',
+            'stt_free_biaya_kpr'     => 'required_unless:biaya_kpr,null',
+            'stt_free_biaya_lain'    => 'required_unless:biaya_lain_lain,null',
         ];
 
         $messages = [
-            'nama_lengkap.required'                => 'Nama lengkap wajib diisi!',
-            'nik.required'                         => 'NIK wajib diisi!',
-            'tempat_lahir.required'                => 'Tempat lahir wajib diisi!',
-            'tgl_lahir.required'                   => 'Tanggal lahir wajib diisi!',
-            'no_telp.required'                     => 'No. Telp / WA wajib diisi!',
-            'jenis_kelamin.required'               => 'Jenis kelamin wajib diisi!',
-            'alamat_ktp.required'                  => 'Alamat KTP wajib diisi!',
-            'jenis_properti.required'             => 'Jenis properti wajib dipilih!',
-            'stt_free_pajak_bphtb.required_with'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
-            'stt_free_biaya_notaris.required_with' => 'Status Notaris wajib dipilih jika biaya diisi!',
-            'stt_free_biaya_kpr.required_with'     => 'Status KPR wajib dipilih jika biaya diisi!',
-            'stt_free_pajak_bphtb.in'              => 'Status BPHTB tidak valid!',
-            'stt_free_biaya_notaris.in'            => 'Status Notaris tidak valid!',
-            'stt_free_biaya_kpr.in'                => 'Status KPR tidak valid!',
-            'stt_free_biaya_lain.in'                => 'Status Lain - lain tidak valid!',
+            'nama_lengkap.required'                  => 'Nama lengkap wajib diisi!',
+            'nik.required'                           => 'NIK wajib diisi!',
+            'tempat_lahir.required'                  => 'Tempat lahir wajib diisi!',
+            'tgl_lahir.required'                     => 'Tanggal lahir wajib diisi!',
+            'no_telp.required'                       => 'No. Telp / WA wajib diisi!',
+            'jenis_kelamin.required'                 => 'Jenis kelamin wajib diisi!',
+            'alamat_ktp.required'                    => 'Alamat KTP wajib diisi!',
+            'jenis_properti.required'                => 'Jenis properti wajib dipilih!',
+
+            'stt_free_pajak_bphtb.required_unless'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
+            'stt_free_biaya_notaris.required_unless' => 'Status Notaris wajib dipilih jika biaya diisi!',
+            'stt_free_biaya_kpr.required_unless'     => 'Status KPR wajib dipilih jika biaya diisi!',
+            'stt_free_biaya_lain.required_unless'    => 'Status Lain - lain wajib dipilih jika biaya diisi!',
         ];
 
         $request->validate($rules, $messages);
@@ -417,26 +416,26 @@ class CustomerController extends Controller
             $data->update($db);
 
             if ($request->dp && $request->dp_id) {
-                    foreach ($request->dp as $key => $value) {
+                foreach ($request->dp as $key => $value) {
 
-                        $nominal = str_replace('.', '', $value);
-                        $id = $request->dp_id[$key];
+                    $nominal = str_replace('.', '', $value);
+                    $id      = $request->dp_id[$key];
 
-                        Pemasukan::where('id', $id)
-                            ->where('id_customer', $data->id)
-                            ->where('id_kategori_transaksi', 2)
-                            ->update([
-                                'nominal' => $nominal
-                            ]);
-                    }
+                    Pemasukan::where('id', $id)
+                        ->where('id_customer', $data->id)
+                        ->where('id_kategori_transaksi', 2)
+                        ->update([
+                            'nominal' => $nominal,
+                        ]);
                 }
-                Pemasukan::updateOrCreate(
+            }
+            Pemasukan::updateOrCreate(
                 [
-                    'id_customer' => $data->id,
-                    'id_kategori_transaksi' => 1
+                    'id_customer'           => $data->id,
+                    'id_kategori_transaksi' => 1,
                 ],
                 [
-                    'nominal' => $request->booking_fee
+                    'nominal' => $request->booking_fee,
                 ]
             );
 

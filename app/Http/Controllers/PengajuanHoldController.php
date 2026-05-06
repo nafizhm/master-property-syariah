@@ -612,7 +612,7 @@ class PengajuanHoldController extends Controller
             PengajuanHold::create([
                 'no_registrasi'     => $no_registrasi,
                 'tgl_booking'       => Carbon::now()->format('Y-m-d'),
-                'tgl_booking_fee'       => Carbon::now()->format('Y-m-d'),
+                'tgl_booking_fee'   => Carbon::now()->format('Y-m-d'),
                 'nama_lengkap'      => $request->nama_lengkap,
                 'nik'               => $request->nik ?? '',
                 'no_telp'           => $request->no_telp ?? '',
@@ -885,30 +885,28 @@ class PengajuanHoldController extends Controller
             'total_harga_rumah'      => 'nullable',
             'total_harga_komisi'     => 'nullable',
 
-            'stt_free_pajak_bphtb'   => 'required_with:pajak_bphtb|in:1,2',
-            'stt_free_biaya_notaris' => 'required_with:biaya_notaris|in:1,2',
-            'stt_free_biaya_kpr'     => 'required_with:biaya_kpr|in:1,2',
-            'stt_free_biaya_lain'    => 'required_with:biaya_lain_lain|in:1,2',
+            'stt_free_pajak_bphtb'   => 'required_unless:pajak_bphtb,null',
+            'stt_free_biaya_notaris' => 'required_unless:biaya_notaris,null',
+            'stt_free_biaya_kpr'     => 'required_unless:biaya_kpr,null',
+            'stt_free_biaya_lain'    => 'required_unless:biaya_lain_lain,null',
 
             'an_surat_cash'          => 'required_if:jenis_pembelian,Pembelian Cash',
             'termin_x_cash_b'        => 'required_if:jenis_pembelian,Cash Bertahap',
         ];
 
         $messages = [
-            'tgl_booking_fee.required'             => 'Tanggal Booking Fee wajib diisi!',
-            'stt_reg.required'                     => 'Status Verifikasi wajib dipilih!',
-            'jenis_pembelian.required'             => 'Jenis Pembelian wajib dipilih!',
-            'id_metode_bayar.required'             => 'Metode Pembayaran wajib dipilih!',
-            'id_bank.required'                     => 'Bank wajib dipilih!',
-            'an_surat_cash.required_if'            => 'Atas Nama Surat wajib diisi!',
-            'termin_x_cash_b.required_if'          => 'Termin wajib diisi!',
-            'stt_free_pajak_bphtb.required_with'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
-            'stt_free_biaya_notaris.required_with' => 'Status Notaris wajib dipilih jika biaya diisi!',
-            'stt_free_biaya_kpr.required_with'     => 'Status KPR wajib dipilih jika biaya diisi!',
-            'stt_free_pajak_bphtb.in'              => 'Status BPHTB tidak valid!',
-            'stt_free_biaya_notaris.in'            => 'Status Notaris tidak valid!',
-            'stt_free_biaya_kpr.in'                => 'Status KPR tidak valid!',
-            'stt_free_biaya_lain.in'               => 'Status Lain - lain tidak valid!',
+            'tgl_booking_fee.required'               => 'Tanggal Booking Fee wajib diisi!',
+            'stt_reg.required'                       => 'Status Verifikasi wajib dipilih!',
+            'jenis_pembelian.required'               => 'Jenis Pembelian wajib dipilih!',
+            'id_metode_bayar.required'               => 'Metode Pembayaran wajib dipilih!',
+            'id_bank.required'                       => 'Bank wajib dipilih!',
+            'an_surat_cash.required_if'              => 'Atas Nama Surat wajib diisi!',
+            'termin_x_cash_b.required_if'            => 'Termin wajib diisi!',
+
+            'stt_free_pajak_bphtb.required_unless'   => 'Status BPHTB wajib dipilih jika pajak diisi!',
+            'stt_free_biaya_notaris.required_unless' => 'Status Notaris wajib dipilih jika biaya diisi!',
+            'stt_free_biaya_kpr.required_unless'     => 'Status KPR wajib dipilih jika biaya diisi!',
+            'stt_free_biaya_lain.required_unless'    => 'Status Lain - lain wajib dipilih jika biaya diisi!',
         ];
 
         $request->validate($rules, $messages);
@@ -1127,10 +1125,10 @@ class PengajuanHoldController extends Controller
         $pajak_pph     = (int) ($data['pajak_pph'] ?? 0);
         $bonus         = (int) ($data['bonus_konsumen'] ?? 0);
 
-        $stt_bphtb   = $data['stt_free_pajak_bphtb'] ?? null;
-        $stt_notaris = $data['stt_free_biaya_notaris'] ?? null;
-        $stt_kpr     = $data['stt_free_biaya_kpr'] ?? null;
-        $stt_free_biaya_lain   = $data['stt_free_biaya_lain'] ?? null;
+        $stt_bphtb           = $data['stt_free_pajak_bphtb'] ?? null;
+        $stt_notaris         = $data['stt_free_biaya_notaris'] ?? null;
+        $stt_kpr             = $data['stt_free_biaya_kpr'] ?? null;
+        $stt_free_biaya_lain = $data['stt_free_biaya_lain'] ?? null;
 
         $total_rumah = $hrg_jual;
 
@@ -1150,7 +1148,7 @@ class PengajuanHoldController extends Controller
             $total_rumah += $biaya_lain;
         }
 
-        $total_rumah += $biaya_custom + $biaya_lain + $ppn;
+        $total_rumah += $biaya_custom + $ppn;
         $total_rumah -= $diskon;
 
         $total_komisi = $hrg_jual;
@@ -1172,7 +1170,7 @@ class PengajuanHoldController extends Controller
             $total_komisi -= $biaya_lain;
         }
 
-        $total_komisi -= ($bonus + $diskon + $ppn + $biaya_lain);
+        $total_komisi -= ($bonus + $diskon + $ppn);
 
         return [
             'total_harga_rumah'  => $total_rumah,

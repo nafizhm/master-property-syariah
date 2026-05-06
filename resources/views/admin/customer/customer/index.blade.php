@@ -145,7 +145,7 @@
                                 <label class="control-label col-sm-2">Jenis Kelamin <span
                                         style="color: red;">*</span></label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-jk" name="jenis_kelamin" id="jenis_kelamin">
+                                    <select class="form-select select-jk" name="jenis_kelamin" id="jenis_kelamin">
                                         <option value=""></option>
                                         <option value="Laki-laki">Laki-laki</option>
                                         <option value="Perempuan">Perempuan</option>
@@ -193,7 +193,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Status Pernikahan</label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-status" name="status_pernikahan"
+                                    <select class="form-select select-status" name="status_pernikahan"
                                         id="status_pernikahan">
                                         <option value=""></option>
                                         <option value="Belum Menikah">Belum Menikah</option>
@@ -232,7 +232,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Lokasi Perumahan</label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-lokasi" disabled name="id_lokasi" id="id_lokasi">
+                                    <select class="form-select select-lokasi" disabled name="id_lokasi" id="id_lokasi">
                                         <option value=""></option>
                                         @foreach ($lokasi as $l)
                                             <option value="{{ $l->id }}">{{ $l->nama_kavling }}</option>
@@ -242,7 +242,7 @@
                                 <label class="control-label col-sm-2">Blok/Kav</label>
                                 <div class="col-sm-4">
                                     <select name="id_kavling" id="id_kavling" disabled
-                                        class="form-control select-kavling"></select>
+                                        class="form-select select-kavling"></select>
                                 </div>
                             </div>
 
@@ -269,9 +269,15 @@
                             </div>
 
                            <div class="form-group row">
-                                <label class="col-sm-2 col-form-label">DP</label>
+                                <label class="control-label col-sm-2">DP</label>
                                 <div class="col-sm-4">
-                                    <div id="dp-container"></div>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp.</span>
+                                        </div>
+                                        <input type="text" name="dp" id="dp"
+                                            class="form-control format-number">
+                                    </div>
                                 </div>
 
                                 <label class="control-label col-sm-2">Booking Fee</label>
@@ -320,7 +326,7 @@
                                 </div>
                                 <div class="col-sm-2">
                                     <select name="stt_free_pajak_bphtb" id="stt_free_pajak_bphtb"
-                                        class="form-control select-free">
+                                        class="form-select select-free">
                                         <option value=""></option>
                                         <option value="1">Free</option>
                                         <option value="2">Tidak Free</option>
@@ -341,7 +347,7 @@
                                 </div>
                                 <div class="col-sm-2">
                                     <select name="stt_free_biaya_notaris" id="stt_free_biaya_notaris"
-                                        class="form-control select-free">
+                                        class="form-select select-free">
                                         <option value=""></option>
                                         <option value="1">Free</option>
                                         <option value="2">Tidak Free</option>
@@ -362,7 +368,7 @@
                                 </div>
                                 <div class="col-sm-2">
                                     <select name="stt_free_biaya_kpr" id="stt_free_biaya_kpr"
-                                        class="form-control select-free">
+                                        class="form-select select-free">
                                         <option value=""></option>
                                         <option value="1">Free</option>
                                         <option value="2">Tidak Free</option>
@@ -384,7 +390,7 @@
 
                                   <div class="col-sm-2">
                                     <select name="stt_free_biaya_lain" id="stt_free_biaya_lain"
-                                        class="form-control select-free">
+                                        class="form-select select-free">
                                         <option value=""></option>
                                         <option value="1">Free</option>
                                         <option value="2">Tidak Free</option>
@@ -471,7 +477,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Marketing</label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-marketing" disabled name="id_marketing"
+                                    <select class="form-select select-marketing" disabled name="id_marketing"
                                         id="id_marketing">
                                         <option value=""></option>
                                         @foreach ($marketing as $m)
@@ -481,7 +487,7 @@
                                 </div>
                                 <label class="control-label col-sm-2">Marketing Agent</label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-agent" disabled name="id_agent" id="id_agent">
+                                    <select class="form-select select-agent" disabled name="id_agent" id="id_agent">
                                         <option value=""></option>
                                         @foreach ($agent as $f)
                                             <option value="{{ $f->id }}">{{ $f->nama_agent }}</option>
@@ -493,7 +499,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Jenis Perumahan</label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-jp" disabled name="jenis_perumahan"
+                                    <select class="form-select select-jp" disabled name="jenis_perumahan"
                                         id="jenis_perumahan">
                                         <option value=""></option>
                                         <option value="Subsidi">Subsidi</option>
@@ -502,7 +508,7 @@
                                 </div>
                                 <label class="control-label col-sm-2">Jenis Pembelian</label>
                                 <div class="col-sm-4">
-                                    <select class="form-control select-pembelian" disabled name="jenis_pembelian"
+                                    <select class="form-select select-pembelian" disabled name="jenis_pembelian"
                                         id="jenis_pembelian">
                                         <option value=""></option>
                                         <option value="Pembelian Cash">Pembelian Cash</option>
@@ -516,7 +522,7 @@
                             <hr class="hr-transaksi" style="display: none;">
                             <div id="trx_cash" style="display: none;">
                                 <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Atas Nama Surat</label>
+                                    <label class="col-sm-2 col-form-label">Atas Nama Surat</label>
                                     <div class="col-sm-4">
                                         <input name="an_surat_cash" id="an_surat_cash" class="form-control"
                                             type="text" readonly>
@@ -529,7 +535,7 @@
                             <div id="trx_cash_bertahap" style="display: none;">
 
                                 <div class="form-group row">
-                                    <label class="col-sm-3 col-form-label">Termin (x)</label>
+                                    <label class="col-sm-2 col-form-label">Termin (x)</label>
                                     <div class="col-sm-4">
                                         <input name="termin_x_cash_b" id="termin_x_cash_b"
                                             class="form-control format-number" type="number" readonly>
@@ -555,34 +561,6 @@
 
 @push('scripts')
     <script>
-        function renderDP(dpList) {
-            let container = $('#dp-container');
-            container.empty();
-
-            if (!dpList || dpList.length === 0) {
-                container.append('<small class="text-muted">Tidak ada data DP</small>');
-                return;
-            }
-
-            dpList.forEach(function(item, index) {
-                container.append(`
-                    <div class="input-group mb-2">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">DP ${index + 1}</span>
-                        </div>
-
-                        <input type="hidden" name="dp_id[]" value="${item.id}">
-
-                        <input type="text"
-                            name="dp[]"
-                            class="form-control format-number"
-                            value="${formatNumber(item.nominal)}">
-                    </div>
-                `);
-            });
-        }
-
-
         $(document).ready(function() {
             $('.select-lokasi').select2({
                 theme: "bootstrap4",
@@ -663,7 +641,7 @@
                 if (stt_kpr != '1') total_rumah += biaya_kpr;
                 if (stt_lain != '1') total_rumah += biaya_lain;
 
-                total_rumah += biaya_custom + biaya_lain + ppn;
+                total_rumah += biaya_custom + ppn;
                 total_rumah -= diskon;
 
                 let total_komisi = hrg_jual;
@@ -674,7 +652,7 @@
                 if (stt_kpr == '1') total_komisi -= biaya_kpr;
                 if (stt_lain == '1') total_komisi -= biaya_lain;
 
-                total_komisi -= bonus + diskon + ppn + biaya_lain;
+                total_komisi -= bonus + diskon + ppn;
 
                 $('#total_harga_rumah').val(formatNumber(total_rumah));
                 $('#total_harga_komisi').val(formatNumber(total_komisi));
@@ -689,7 +667,7 @@
                     hitungTotal();
                 });
 
-            $(document).on('change', '#stt_free_pajak_bphtb, #stt_free_biaya_notaris, #stt_free_biaya_kpr',
+            $(document).on('change', '#stt_free_pajak_bphtb, #stt_free_biaya_notaris, #stt_free_biaya_kpr, #stt_free_biaya_lain',
                 function() {
                     hitungTotal();
                 });
@@ -700,13 +678,7 @@
             $('#formData')[0].reset();
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
-            $('#jenis_kelamin').val('').trigger('change');
-            $('#status').val('').trigger('change');
-            $('#id_lokasi').val('').trigger('change');
-            $('#id_kavling').val('').trigger('change');
-            $('#id_marketing').val('').trigger('change');
-            $('#id_agent').val('').trigger('change');
-            $('#jenis_pembelian').val('').trigger('change');
+            $('.form-select').val('').trigger('change');
 
             let submitBtn = $('#submitBtn');
             let spinner = submitBtn.find('.spinner-border');
@@ -770,8 +742,8 @@
                     $('#bonus_konsumen').val(formatNumber(data.bonus_konsumen));
                     $('#total_harga_rumah').val(formatNumber(data.total_harga_rumah));
                     $('#total_harga_komisi').val(formatNumber(data.total_harga_komisi));
-                    renderDP(data.dp_list);
                     $('#booking_fee').val(formatNumber(data.booking_fee));
+                    $('#dp').val(formatNumber(data.dp));
                     $('#stt_free_pajak_bphtb').val(data.stt_free_pajak_bphtb).trigger('change');
                     $('#stt_free_biaya_notaris').val(data.stt_free_biaya_notaris).trigger('change');
                     $('#stt_free_biaya_kpr').val(data.stt_free_biaya_kpr).trigger('change');

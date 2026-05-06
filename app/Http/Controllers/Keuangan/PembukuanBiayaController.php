@@ -157,7 +157,7 @@ class PembukuanBiayaController extends Controller
             ' : '';
                 })
 
-                 ->addColumn('biaya_lain', function ($row) {
+                ->addColumn('biaya_lain', function ($row) {
 
                     if ($row->biaya_lain_lain) {
 
@@ -180,18 +180,40 @@ class PembukuanBiayaController extends Controller
 
                 ->addColumn('total_plafond', function ($row) {
 
-                    $val = optional(
-                        $row->wawancara
-                            ->flatMap(fn($w) => $w->wawancaraSp3k)
-                            ->sortByDesc('id')
-                            ->first()
-                    )->acc_plafon;
+                    if ($row->jenis_pembelian === 'KPR') {
 
-                    return $val ? '
-                <div class="d-flex justify-content-between w-100">
-                    <span>' . number_format($val, 0, ',', '.') . '</span>
-                </div>
-            ' : '';
+                        $val = optional(
+                            $row->wawancara
+                                ->flatMap(fn($w) => $w->wawancaraSp3k)
+                                ->sortByDesc('id')
+                                ->first()
+                        )->acc_plafon;
+
+                        return $val ? '
+            <div class="d-flex justify-content-between w-100">
+                <span>' . number_format($val, 0, ',', '.') . '</span>
+            </div>
+        ' : '';
+                    }
+
+                    $booking = $row->pemasukans
+                        ->where('id_kategori_transaksi', 1)
+                        ->sum('nominal');
+
+                    $dp = $row->pemasukans
+                        ->where('id_kategori_transaksi', 2)
+                        ->sum('nominal');
+
+                    $hrg    = $row->hrg_jual ?? 0;
+                    $diskon = $row->diskon ?? 0;
+
+                    $total = $hrg - $diskon - ($booking + $dp);
+
+                    return $total ? '
+        <div class="d-flex justify-content-between w-100">
+            <span>' . number_format($total, 0, ',', '.') . '</span>
+        </div>
+    ' : '';
                 })
 
                 ->addColumn('total_harga_unit', function ($row) {

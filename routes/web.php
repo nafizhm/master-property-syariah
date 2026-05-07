@@ -258,11 +258,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('pindah-unit/cetak-word/{id}', [PindahUnitController::class, 'cetakWord'])->name('pindah-unit.cetak-word');
         Route::get('pindah-unit/detail-customer/{id_customer}', [PindahUnitController::class, 'detailCustomer'])->name('pindah-unit.detail-customer');
         Route::get('pindah-unit/get-kavling-baru/{id_customer}', [PindahUnitController::class, 'getKavlingBaru'])->name('pindah-unit.getKavlingBaru');
-
-        Route::get('pembatalan/kwitansi/{id}', [PembelianCancelController::class, 'cetakKwitansi'])->name('pembatalan.kwitansi');
-
+        
+        
         Route::resource('pindah-unit', PindahUnitController::class);
         Route::resource('pembelian-cancel', PembelianCancelController::class);
+        Route::get('pembelian-cancel/cetak-word/{id}',[PembelianCancelController::class, 'cetakWord'])->name('pembelian-cancel.cetak-word');
         Route::get('ganti-nama/cetak/{id}', [GantiNamaController::class, 'cetak'])->name('ganti-nama.cetak');
         Route::resource('ganti-nama', GantiNamaController::class);
         Route::get('ganti-nama/{id}/get-customer', [GantiNamaController::class, 'getCustomer'])->name('ganti-nama.get-customer');

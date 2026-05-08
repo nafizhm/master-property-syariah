@@ -128,11 +128,19 @@
             margin-bottom: 16px;
         }
 
-        .form-group label,
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
         .col-form-label {
             font-size: 0.88rem;
             font-weight: 600;
             color: #374151;
+            padding-top: 0;
         }
 
         .required-star {
@@ -424,141 +432,189 @@
                                 </div>
 
                                 <div class="section-card">
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Tanggal</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input type="date" class="form-control" id="tanggal" name="tanggal"
-                                                value="{{ date('Y-m-d') }}" readonly>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Tanggal</label>
+                                                <div class="field-shell">
+                                                    <input type="date" class="form-control" id="tanggal" name="tanggal"
+                                                        value="{{ date('Y-m-d') }}" readonly>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Nama Lengkap <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-9 field-shell">
-                                            <input name="nama_lengkap" id="nama_lengkap" class="form-control" type="text"
-                                                placeholder="Masukkan nama lengkap sesuai KTP">
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <label>Nama Lengkap <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <input name="nama_lengkap" id="nama_lengkap" class="form-control"
+                                                        type="text" placeholder="Masukkan nama lengkap sesuai KTP">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">NIK <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <input name="nik" id="nik" class="form-control" type="text"
-                                                placeholder="16 digit nomor KTP">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>NIK <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <input name="nik" id="nik" class="form-control" type="text"
+                                                        placeholder="16 digit nomor KTP">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">No. Telp / WA <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input name="no_telp" id="no_telp" class="form-control" type="text"
-                                                placeholder="08xxxxxxxxxx">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>No. Telp / WA <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <input name="no_telp" id="no_telp" class="form-control"
+                                                        type="text" placeholder="08xxxxxxxxxx">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Tempat Lahir <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <input name="tempat_lahir" id="tempat_lahir" class="form-control" type="text"
-                                                placeholder="Kota kelahiran">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Tempat Lahir <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <input name="tempat_lahir" id="tempat_lahir" class="form-control"
+                                                        type="text" placeholder="Kota kelahiran">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Tanggal Lahir <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input name="tgl_lahir" id="tgl_lahir" class="form-control" type="date">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Tanggal Lahir <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <input name="tgl_lahir" id="tgl_lahir" class="form-control"
+                                                        type="date">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Jenis Kelamin <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <select class="form-control select-jk" name="jenis_kelamin" id="jenis_kelamin">
-                                                <option value=""></option>
-                                                <option value="Laki-laki">Laki-laki</option>
-                                                <option value="Perempuan">Perempuan</option>
-                                            </select>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Jenis Kelamin <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-jk" name="jenis_kelamin"
+                                                        id="jenis_kelamin">
+                                                        <option value=""></option>
+                                                        <option value="Laki-laki">Laki-laki</option>
+                                                        <option value="Perempuan">Perempuan</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Status Pernikahan</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <select class="form-control select-status" name="status_pernikahan"
-                                                id="status_pernikahan">
-                                                <option value=""></option>
-                                                <option value="Belum Menikah">Belum Menikah</option>
-                                                <option value="Menikah">Menikah</option>
-                                            </select>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Status Pernikahan</label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-status" name="status_pernikahan"
+                                                        id="status_pernikahan">
+                                                        <option value=""></option>
+                                                        <option value="Belum Menikah">Belum Menikah</option>
+                                                        <option value="Menikah">Menikah</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Email</label>
-                                        <div class="col-sm-4 field-shell">
-                                            <input name="email" id="email" class="form-control" type="text"
-                                                placeholder="nama@email.com">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Email</label>
+                                                <div class="field-shell">
+                                                    <input name="email" id="email" class="form-control"
+                                                        type="text" placeholder="nama@email.com">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">NPWP</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input name="npwp" id="npwp" class="form-control" type="text"
-                                                placeholder="Nomor NPWP">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>NPWP</label>
+                                                <div class="field-shell">
+                                                    <input name="npwp" id="npwp" class="form-control"
+                                                        type="text" placeholder="Nomor NPWP">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Pekerjaan</label>
-                                        <div class="col-sm-4 field-shell">
-                                            <input name="pekerjaan" id="pekerjaan" class="form-control" type="text"
-                                                placeholder="Jenis pekerjaan">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Pekerjaan</label>
+                                                <div class="field-shell">
+                                                    <input name="pekerjaan" id="pekerjaan" class="form-control"
+                                                        type="text" placeholder="Jenis pekerjaan">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">No. BPJS Kes</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input name="no_bpjs_kes" id="no_bpjs_kes" class="form-control"
-                                                type="text" placeholder="Nomor BPJS">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>No. BPJS Kes</label>
+                                                <div class="field-shell">
+                                                    <input name="no_bpjs_kes" id="no_bpjs_kes" class="form-control"
+                                                        type="text" placeholder="Nomor BPJS">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Alamat KTP <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-9 field-shell">
-                                            <textarea name="alamat_ktp" id="alamat_ktp" class="form-control" rows="2" placeholder="Alamat sesuai KTP"></textarea>
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <label>Alamat KTP <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <textarea name="alamat_ktp" id="alamat_ktp" class="form-control" rows="2" placeholder="Alamat sesuai KTP"></textarea>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Alamat Domisili <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-9 field-shell">
-                                            <textarea name="alamat_domisili" id="alamat_domisili" class="form-control" rows="2"
-                                                placeholder="Alamat domisili saat ini"></textarea>
+                                        <div class="col-sm-12">
+                                            <div class="form-group">
+                                                <label>Alamat Domisili <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <textarea name="alamat_domisili" id="alamat_domisili" class="form-control" rows="2"
+                                                        placeholder="Alamat domisili saat ini"></textarea>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="section-card" id="pasangan">
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Nama Pasangan</label>
-                                        <div class="col-sm-4 field-shell">
-                                            <input name="nama_p" id="nama_p" class="form-control" type="text"
-                                                placeholder="Nama pasangan">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Nama Pasangan</label>
+                                                <div class="field-shell">
+                                                    <input name="nama_p" id="nama_p" class="form-control"
+                                                        type="text" placeholder="Nama pasangan">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">NIK Pasangan</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input name="nik_p" id="nik_p" class="form-control" type="text"
-                                                placeholder="NIK pasangan">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>NIK Pasangan</label>
+                                                <div class="field-shell">
+                                                    <input name="nik_p" id="nik_p" class="form-control"
+                                                        type="text" placeholder="NIK pasangan">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Nama Saudara</label>
-                                        <div class="col-sm-4 field-shell">
-                                            <input name="nama_saudara" id="nama_saudara" class="form-control"
-                                                type="text" placeholder="Kontak darurat keluarga">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Nama Saudara</label>
+                                                <div class="field-shell">
+                                                    <input name="nama_saudara" id="nama_saudara" class="form-control"
+                                                        type="text" placeholder="Kontak darurat keluarga">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">No. Telp Saudara</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <input name="no_telp_saudara" id="no_telp_saudara" class="form-control"
-                                                type="text" placeholder="08xxxxxxxxxx">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>No. Telp Saudara</label>
+                                                <div class="field-shell">
+                                                    <input name="no_telp_saudara" id="no_telp_saudara"
+                                                        class="form-control" type="text" placeholder="08xxxxxxxxxx">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -571,109 +627,137 @@
                                 </div>
 
                                 <div class="section-card">
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Lokasi Perumahan <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <select class="form-control select-lokasi" name="id_lokasi" id="id_lokasi">
-                                                <option value=""></option>
-                                                @foreach ($lokasi as $l)
-                                                    <option value="{{ $l->id }}">{{ $l->nama_kavling }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <label class="col-sm-2 col-form-label">Blok / Kav <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-3 field-shell">
-                                            <select name="id_kavling" id="id_kavling"
-                                                class="form-control select-kavling"></select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Harga Rumah</label>
-                                        <div class="col-sm-4 field-shell">
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">Rp.</span>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Lokasi Perumahan <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-lokasi" name="id_lokasi"
+                                                        id="id_lokasi">
+                                                        <option value=""></option>
+                                                        @foreach ($lokasi as $l)
+                                                            <option value="{{ $l->id }}">{{ $l->nama_kavling }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
                                                 </div>
-                                                <input type="text" name="hrg_jual" id="hrg_jual"
-                                                    class="form-control format-number" readonly>
                                             </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Jenis Properti <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-3 field-shell">
-                                            <select class="form-control select-jenis-properti" name="jenis_properti"
-                                                id="jenis_properti">
-                                                <option value=""></option>
-                                                <option value="Ruko">Ruko</option>
-                                                <option value="Kavling">Kavling</option>
-                                            </select>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Blok / Kav <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select name="id_kavling" id="id_kavling"
+                                                        class="form-control select-kavling"></select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Harga Rumah</label>
+                                                <div class="field-shell">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">Rp.</span>
+                                                        </div>
+                                                        <input type="text" name="hrg_jual" id="hrg_jual"
+                                                            class="form-control format-number" readonly>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Jenis Properti <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-jenis-properti"
+                                                        name="jenis_properti" id="jenis_properti">
+                                                        <option value=""></option>
+                                                        <option value="Ruko">Ruko</option>
+                                                        <option value="Kavling">Kavling</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="section-card">
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Marketing Inhouse <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <select class="form-control select-marketing" name="id_marketing"
-                                                id="id_marketing">
-                                                <option value=""></option>
-                                                <option value="0">Non Marketing</option>
-                                                @foreach ($marketing as $m)
-                                                    <option value="{{ $m->id }}">{{ $m->nama_marketing }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <label class="col-sm-2 col-form-label">Marketing Agent</label>
-                                        <div class="col-sm-3 field-shell">
-                                            <select class="form-control select-agent" name="id_agent" id="id_agent">
-                                                <option value=""></option>
-                                                @foreach ($agent as $f)
-                                                    <option value="{{ $f->id }}">{{ $f->nama_agent }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Jenis Perumahan <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <select class="form-control select-jp" name="jenis_perumahan"
-                                                id="jenis_perumahan">
-                                                <option value=""></option>
-                                                <option value="Subsidi">Subsidi</option>
-                                                <option value="Komersil">Komersil</option>
-                                            </select>
-                                        </div>
-                                        <label class="col-sm-2 col-form-label">Jenis Pembelian <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-3 field-shell">
-                                            <select class="form-control select-pembelian" name="jenis_pembelian"
-                                                id="jenis_pembelian">
-                                                <option value=""></option>
-                                                <option value="Pembelian Cash">Pembelian Cash</option>
-                                                <option value="Cash Bertahap">Cash Bertahap</option>
-                                                <option value="KPR">KPR</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Booking Fee <span
-                                                class="required-star">*</span></label>
-                                        <div class="col-sm-4 field-shell">
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">Rp.</span>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Marketing Inhouse <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-marketing" name="id_marketing"
+                                                        id="id_marketing">
+                                                        <option value=""></option>
+                                                        <option value="0">Non Marketing</option>
+                                                        @foreach ($marketing as $m)
+                                                            <option value="{{ $m->id }}">
+                                                                {{ $m->nama_marketing }}</option>
+                                                        @endforeach
+                                                    </select>
                                                 </div>
-                                                <input name="booking_fee" id="booking_fee"
-                                                    class="form-control format-number" type="text"
-                                                    placeholder="Masukkan nominal booking fee">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Marketing Agent</label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-agent" name="id_agent"
+                                                        id="id_agent">
+                                                        <option value=""></option>
+                                                        @foreach ($agent as $f)
+                                                            <option value="{{ $f->id }}">{{ $f->nama_agent }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Jenis Perumahan <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-jp" name="jenis_perumahan"
+                                                        id="jenis_perumahan">
+                                                        <option value=""></option>
+                                                        <option value="Subsidi">Subsidi</option>
+                                                        <option value="Komersil">Komersil</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Jenis Pembelian <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <select class="form-control select-pembelian"
+                                                        name="jenis_pembelian" id="jenis_pembelian">
+                                                        <option value=""></option>
+                                                        <option value="Pembelian Cash">Pembelian Cash</option>
+                                                        <option value="Cash Bertahap">Cash Bertahap</option>
+                                                        <option value="KPR">KPR</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                <label>Booking Fee <span class="required-star">*</span></label>
+                                                <div class="field-shell">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">Rp.</span>
+                                                        </div>
+                                                        <input name="booking_fee" id="booking_fee"
+                                                            class="form-control format-number" type="text"
+                                                            placeholder="Masukkan nominal booking fee">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

@@ -1,341 +1,287 @@
 @extends('layouts.app')
 
-@php
-    $konfigurasi = \App\Models\PengaturanProfil::first();
-@endphp
-<title>{{ $konfigurasi->nama_perusahaan ?? 'Template Aplikasi' }}</title>
+@section('title', 'Booking Berhasil - Taman Jivva Kemlaten')
 
-@section('content')
-    <div class="min-vh-100 position-relative overflow-hidden">
-        <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: -1;">
-            <img src="{{ asset('assets/img/bg-succes.webp') }}"
-                 alt="Background"
-                 class="w-100 h-100 object-fit-cover">
-            <div class="position-absolute top-0 start-0 w-100 h-100"
-                 style="background: linear-gradient(to top, rgba(13, 40, 70, 0.95) 0%, rgba(13, 40, 70, 0.7) 40%, transparent 100%);"></div>
-        </div>
-
-        <div class="container py-5">
-            @php
-                $logo = \App\Models\PengaturanMedia::where('jenis_data', 'logo website')->first();
-            @endphp
-
-            <div class="row justify-content-center align-items-center min-vh-100">
-                 <div class="position-absolute top-0 start-0 w-100 h-100"
-                                style="background: rgba(0, 0, 0, 0.5);"></div>
-
-                <div class="col-md-8 col-lg-6">
-                    <div class="text-center mb-4 animate__animated animate__fadeInDown">
-                        <img src="{{ asset('config_media/' . ($logo->nama_file ?? 'default.png')) }}"
-                             alt="Logo"
-                             style="max-width: 120px; height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
-
-
-
-                            </div>
-
-                    <div class="card border-0 shadow-lg animate__animated animate__fadeInUp"
-                         style="border-radius: 20px; backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.95);">
-                        <div class="card-body p-5">
-                            <div class="text-center mb-4">
-                                <div class="success-checkmark mx-auto mb-3">
-                                    <div class="check-icon">
-                                        <span class="icon-line line-tip"></span>
-                                        <span class="icon-line line-long"></span>
-                                        <div class="icon-circle"></div>
-                                        <div class="icon-fix"></div>
-                                    </div>
-                                </div>
-                                <h2 class="fw-bold text-success mb-2">Booking Berhasil!</h2>
-                                <p class="text-muted">Terima kasih atas kepercayaan Anda</p>
-                            </div>
-
-                            <hr class="my-4">
-
-                            @php
-                                $nama = session('nama');
-                                $lokasi = session('lokasi');
-                                $blok = session('blok');
-                            @endphp
-
-                            <div class="booking-details">
-                                <div class="detail-item mb-3 p-3 bg-light rounded-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-wrapper mr-3">
-                                            <svg class="text-primary" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                            </svg>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <small class="text-muted d-block">Nama Pemesan</small>
-                                            <strong class="text-dark">{{ $nama }}</strong>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="detail-item mb-3 p-3 bg-light rounded-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-wrapper mr-3">
-                                            <svg class="text-primary" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                                            </svg>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <small class="text-muted d-block">Lokasi Perumahan</small>
-                                            <strong class="text-dark">{{ $lokasi }}</strong>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="detail-item mb-4 p-3 bg-light rounded-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-wrapper mr-3">
-                                            <svg class="text-primary" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M19 9.3V4h-3v2.6L12 3 2 12h3v8h5v-6h4v6h5v-8h3l-3-2.7zm-9 .7c0-1.1.9-2 2-2s2 .9 2 2h-4z"/>
-                                            </svg>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <small class="text-muted d-block">Blok Unit Rumah</small>
-                                            <strong class="text-dark">{{ $blok }}</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="alert alert-info border-0 rounded-3 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                <p class="text-white mb-0 text-center">
-                                    <small>
-                                        <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                                        </svg>
-                                        Kami akan segera memproses permohonan Anda dan menghubungi Anda dalam waktu dekat
-                                    </small>
-                                </p>
-                            </div>
-
-                            <div class="text-center mb-4">
-                                <p class="text-muted mb-0">Salam hangat dari</p>
-                                <h5 class="fw-bold text-primary mb-0">{{ $konfigurasi->nama_perusahaan ?? 'Template Aplikasi' }}</h5>
-                            </div>
-
-                            <div class="text-center">
-                                <a href="{{ route('booking') }}" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm">
-                                    <svg class="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-                                    </svg>
-                                    Kembali
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+@push('styles')
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Success Checkmark Animation */
-        .success-checkmark {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto;
+        body {
+            font-family: 'Inter', sans-serif !important;
+            background:
+                linear-gradient(rgba(8, 37, 19, 0.72), rgba(8, 37, 19, 0.72)),
+                url('{{ asset('config_media/booking-bg.png') }}') no-repeat center center fixed !important;
+            background-size: cover !important;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .check-icon {
-            width: 80px;
-            height: 80px;
+        .booking-container {
+            width: 100%;
+            max-width: 550px;
+            padding: 20px;
+        }
+
+        .booking-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.98);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .booking-header {
+            background: linear-gradient(135deg, #0d5c2e 0%, #1a7a42 50%, #228B4a 100%);
+            padding: 40px 30px;
+            text-align: center;
             position: relative;
-            border-radius: 50%;
-            box-sizing: content-box;
-            border: 4px solid #4CAF50;
         }
 
-        .check-icon::before {
-            top: 3px;
-            left: -2px;
-            width: 30px;
-            transform-origin: 100% 50%;
-            border-radius: 100px 0 0 100px;
-        }
-
-        .check-icon::after {
-            top: 0;
-            left: 30px;
-            width: 60px;
-            transform-origin: 0 50%;
-            border-radius: 0 100px 100px 0;
-            animation: rotate-circle 4.25s ease-in;
-        }
-
-        .icon-line {
-            height: 5px;
-            background-color: #4CAF50;
-            display: block;
-            border-radius: 2px;
-            position: absolute;
-            z-index: 10;
-        }
-
-        .icon-line.line-tip {
-            top: 46px;
-            left: 14px;
-            width: 25px;
-            transform: rotate(45deg);
-            animation: icon-line-tip 0.75s;
-        }
-
-        .icon-line.line-long {
-            top: 38px;
-            right: 8px;
-            width: 47px;
-            transform: rotate(-45deg);
-            animation: icon-line-long 0.75s;
-        }
-
-        .icon-circle {
-            top: -4px;
-            left: -4px;
-            z-index: 10;
+        .success-icon-wrapper {
             width: 80px;
             height: 80px;
+            background: #fff;
             border-radius: 50%;
-            position: absolute;
-            box-sizing: content-box;
-            border: 4px solid rgba(76, 175, 80, .5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both 0.3s;
         }
 
-        .icon-fix {
-            top: 8px;
-            width: 5px;
-            left: 26px;
-            z-index: 1;
-            height: 85px;
-            position: absolute;
-            transform: rotate(-45deg);
-            background-color: #fff;
+        .success-icon-wrapper i {
+            font-size: 35px;
+            color: #1a7a42;
         }
 
-        @keyframes icon-line-tip {
-            0% {
-                width: 0;
-                left: 1px;
-                top: 19px;
-            }
-            54% {
-                width: 0;
-                left: 1px;
-                top: 19px;
-            }
-            70% {
-                width: 50px;
-                left: -8px;
-                top: 37px;
-            }
-            84% {
-                width: 17px;
-                left: 21px;
-                top: 48px;
-            }
-            100% {
-                width: 25px;
-                left: 14px;
-                top: 45px;
-            }
+        .booking-header h4 {
+            color: #fff;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
         }
 
-        @keyframes icon-line-long {
-            0% {
-                width: 0;
-                right: 46px;
-                top: 54px;
-            }
-            65% {
-                width: 0;
-                right: 46px;
-                top: 54px;
-            }
-            84% {
-                width: 55px;
-                right: 0px;
-                top: 35px;
-            }
-            100% {
-                width: 47px;
-                right: 8px;
-                top: 38px;
-            }
+        .booking-header p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 8px 0 0;
+            font-size: 0.9rem;
         }
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .booking-body {
+            padding: 40px 35px;
+        }
+
+        .detail-card {
+            background: #f8faf9;
+            border: 1.5px solid #e0efe5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0efe5;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #1a5c30;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: right;
+        }
+
+        .info-alert {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .info-alert i {
+            color: #16a34a;
+            margin-top: 3px;
+        }
+
+        .info-alert p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #166534;
+            line-height: 1.5;
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #1a7a42, #2ea55a);
+            color: #fff !important;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 30px;
+            font-weight: 700;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(26, 122, 66, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(26, 122, 66, 0.4);
+            filter: brightness(1.1);
         }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .animate__animated {
-            animation-duration: 0.8s;
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
-        .animate__fadeInDown {
-            animation-name: fadeInDown;
-        }
+        @media (max-width: 576px) {
+            .booking-body {
+                padding: 30px 20px;
+            }
 
-        .animate__fadeInUp {
-            animation-name: fadeInUp;
-        }
-
-        .detail-item {
-            transition: all 0.3s ease;
-        }
-
-        .detail-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .btn-primary {
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            .booking-header {
+                padding: 30px 20px;
+            }
         }
     </style>
+@endpush
+
+@section('content')
+    <div class="booking-container">
+        <div class="booking-card">
+            <div class="booking-header">
+                <div class="success-icon-wrapper">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h4>Booking Berhasil!</h4>
+                <p>Terima kasih atas kepercayaan Anda memilih hunian kami.</p>
+            </div>
+
+            <div class="booking-body">
+                @php
+                    $nama = session('nama', '-');
+                    $lokasi = session('lokasi', '-');
+                    $blok = session('blok', '-');
+                @endphp
+
+                <div class="detail-card">
+                    <div class="detail-item">
+                        <span class="detail-label">Nama Pemesan</span>
+                        <span class="detail-value text-uppercase">{{ $nama }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Lokasi Perumahan</span>
+                        <span class="detail-value">{{ $lokasi }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Unit/Blok Kavling</span>
+                        <span class="detail-value">{{ $blok }}</span>
+                    </div>
+                </div>
+
+                <div class="info-alert">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Permohonan booking Anda telah kami terima. Tim admin KPR kami akan segera menghubungi Anda untuk
+                        proses selanjutnya.</p>
+                </div>
+
+                <div class="text-center">
+                    <a href="{{ route('booking') }}" class="btn-home">
+                        <i class="fas fa-arrow-left"></i>
+                        Kembali ke Form Booking
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
-        var audio = new Audio('{{ asset('audio/notification.ogg') }}');
-
         $(document).ready(function() {
-            const successMsg = sessionStorage.getItem('success');
-            if (successMsg) {
-                audio.play();
-                Swal.fire({
-                    icon: 'success',
-                    title: successMsg,
-                    showConfirmButton: false,
-                    timer: 3000
-                })
-                sessionStorage.removeItem('success');
+            // Celebrate success!
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = {
+                startVelocity: 30,
+                spread: 360,
+                ticks: 60,
+                zIndex: 0
+            };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
             }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: {
+                        x: randomInRange(0.1, 0.3),
+                        y: Math.random() - 0.2
+                    }
+                }));
+                confetti(Object.assign({}, defaults, {
+                    particleCount,
+                    origin: {
+                        x: randomInRange(0.7, 0.9),
+                        y: Math.random() - 0.2
+                    }
+                }));
+            }, 250);
         });
     </script>
 @endpush

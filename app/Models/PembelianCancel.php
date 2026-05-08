@@ -22,10 +22,17 @@ class PembelianCancel extends Model
         'no_rekening',
         'atas_nama',
         'lampiran_bukti',
+        'pinalti',
+        'no_cancel',
     ];
 
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'id_customer');
     }
+    public function bankTujuan()
+    {
+        return $this->belongsTo(Bank::class, 'id_bank_tujuan');
+    }
+
 }

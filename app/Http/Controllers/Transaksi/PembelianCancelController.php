@@ -7,7 +7,10 @@ use App\Models\Bank;
 use App\Models\BankKPR;
 use App\Models\Customer;
 use App\Models\PembelianCancel;
+use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\Pengeluaran;
+use App\Models\Pemasukan;
 use App\Traits\LogAktivitasTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,6 +25,7 @@ class PembelianCancelController extends Controller
     use LogAktivitasTrait;
     public function index(Request $request)
     {
+        Carbon::setLocale('id');
         $permissions = HakAksesController::getUserPermissions();
         Carbon::setLocale('id');
 
@@ -37,30 +41,41 @@ class PembelianCancelController extends Controller
                     $btn = '';
 
                     if ($permissions['hapus']) {
+
+                        $btn .= '
+                            <a href="' . route('pembelian-cancel.cetak-word', $row->id) . '"
+                                class="btn btn-primary btn-sm me-1"
+                                target="_blank">
+                                Cetak
+                            </a>
+                        ';
+
                         $kavling = $row->customer?->kavling;
 
                         if ($kavling && $kavling->id_customer != null && $kavling->status != 0) {
-                            return '
-            <button type="button"
-                class="btn btn-danger btn-sm"
-                disabled
-                title="Kavling sudah milik orang lain">
-                Batalkan
-            </button>
-        ';
+                            $btn .= '
+                                <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    disabled
+                                    title="Kavling sudah milik orang lain">
+                                    Batalkan
+                                </button>
+                            ';
+
+                            return $btn;
                         }
 
-                        return '
-        <form action="' . route('pembelian-cancel.destroy', $row->id) . '"
-            method="POST"
-            class="d-inline">
-            ' . csrf_field() . method_field('DELETE') . '
-            <button type="submit"
-                class="delete-button btn btn-danger btn-sm">
-                Batalkan
-            </button>
-        </form>
-    ';
+                        $btn .= '
+                            <form action="' . route('pembelian-cancel.destroy', $row->id) . '"
+                                method="POST"
+                                class="d-inline">
+                                ' . csrf_field() . method_field('DELETE') . '
+                                <button type="submit"
+                                    class="delete-button btn btn-danger btn-sm">
+                                    Batalkan
+                                </button>
+                            </form>
+                        ';
                     }
 
                     return $btn;
@@ -92,6 +107,8 @@ class PembelianCancelController extends Controller
             'jumlah_bayar'     => 'required',
             'id_bank'          => 'required',
             'id_bank_tujuan'   => 'required',
+            'no_cancel'        => 'required',
+            'pinalti'          => 'required',
             'no_rekening'      => 'required',
             'atas_nama'        => 'required',
             'lampiran_bukti'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -102,6 +119,8 @@ class PembelianCancelController extends Controller
             'biaya_admin.required'      => 'Biaya Admin wajib diisi.',
             'jumlah_bayar.required'     => 'Jumlah Bayar wajib diisi.',
             'id_bank.required'          => 'Rekening wajib dipilih.',
+            'no_cancel.required'        => 'No Cancel wajib dipilih.',
+            'pinalti.required'          => 'Pinalti wajib diisi.',
             'id_bank_tujuan.required'   => 'Bank Tujuan wajib dipilih.',
             'no_rekening.required'      => 'No. Rekening wajib diisi.',
             'atas_nama.required'        => 'Atas Nama wajib diisi.',
@@ -124,10 +143,12 @@ class PembelianCancelController extends Controller
             }
 
             $pc = PembelianCancel::create([
+                'no_cancel'        => $request->no_cancel,
                 'tgl_batal'        => $request->tgl_batal,
                 'id_customer'      => $request->id_customer,
                 'keterangan_batal' => $request->keterangan_batal,
                 'biaya_admin'      => str_replace(['.', ','], ['', ''], $request->biaya_admin),
+                'pinalti'          => str_replace(['.', ','], ['', ''], $request->pinalti),
                 'jumlah_bayar'     => str_replace(['.', ','], ['', ''], $request->jumlah_bayar),
                 'id_bank'          => $request->id_bank,
                 'id_bank_tujuan'   => $request->id_bank_tujuan,
@@ -345,4 +366,143 @@ class PembelianCancelController extends Controller
 
         return trim($hasil);
     }
+
+    public function cetakWord($id)
+    {
+        $data = PembelianCancel::with([
+            'customer.kavling',
+            'customer.lokasi',
+        ])->findOrFail($id);
+
+        $customer = $data->customer;
+
+        $lokasi = $customer->lokasi;
+
+        $pemasukan = Pemasukan::where('id_customer', $customer->id)
+            ->where('id_kategori_transaksi', 1)
+            ->first();
+
+        $templatePath = public_path('templates/template_pembatalan.docx');
+
+        $templateProcessor = new TemplateProcessor($templatePath);
+
+        $templateProcessor->setValue(
+            'nama_kavling',
+            $lokasi->nama_kavling ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'no_cancel',
+            $data->no_cancel ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'nama_customer',
+            $customer->nama_lengkap ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'ttd',
+            ($customer->tempat_lahir ?? '-') . ', ' .
+            Carbon::parse($customer->tgl_lahir)->translatedFormat('d F Y')
+        );
+
+        $templateProcessor->setValue(
+            'alamat_ktp',
+            $customer->alamat_ktp ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'nik',
+            $customer->nik ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'no_telp',
+            $customer->no_telp ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'alamat_kavling',
+            $lokasi->alamat ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'keterangan',
+            $data->keterangan_batal ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'tanggal_bf',
+            $pemasukan && $pemasukan->tanggal
+                ? Carbon::parse($pemasukan->tanggal)->translatedFormat('d F Y')
+                : '-'
+        );
+
+        $templateProcessor->setValue(
+            'nominal_bf',
+            $pemasukan
+                ? 'Rp ' . number_format($pemasukan->nominal, 0, ',', '.')
+                : 'Rp 0'
+        );
+
+        $templateProcessor->setValue(
+            'tanggal_pinalti',
+            Carbon::now()->translatedFormat('d F Y')
+        );
+
+        $templateProcessor->setValue(
+            'nominal_pinalti',
+            'Rp ' . number_format($data->pinalti ?? 0, 0, ',', '.')
+        );
+
+        $templateProcessor->setValue(
+            'refund_pembayaran',
+            'Rp ' . number_format($data->jumlah_bayar ?? 0, 0, ',', '.')
+        );
+
+        $templateProcessor->setValue(
+            'nama_bank',
+            $data->bankTujuan->nama_bank ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'no_rekening',
+            $data->no_rekening ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'atas_nama',
+            $data->atas_nama ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'tanggal',
+            Carbon::now()->translatedFormat('d F Y')
+        );
+
+        $templateProcessor->setValue(
+            'kota',
+            $lokasi->kabupaten_kota ?? '-'
+        );
+
+        $templateProcessor->setValue(
+            'petugas',
+            Auth::user()->surname ?? '-'
+        );
+    
+        $fileName = 'pembatalan' .
+        str_replace(['/', '\\'], '-', $data->no_cancel)
+        . '.docx';
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'word_');
+
+        $templateProcessor->saveAs($tempFile);
+
+        return response()->download(
+            $tempFile,
+            $fileName
+        )->deleteFileAfterSend(true);
+    }
+
 }

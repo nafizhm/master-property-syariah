@@ -70,6 +70,13 @@
                     <input type="hidden" id="primary_id" name="primary_id">
                     <div class="modal-body">
                         <div class="form-group row">
+                            <label class="col-md-3 col-form-label">No Pembatalan</label>
+                            <div class="col-md-3">
+                                <input name="no_cancel" id="no_cancel" class="form-control" type="text">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
                             <label class="col-md-3 col-form-label">Tanggal Pembatalan</label>
                             <div class="col-md-3">
                                 <input name="tgl_batal" id="tgl_batal" value="{{ $tanggalSekarang }}" class="form-control"
@@ -133,6 +140,19 @@
                         <hr>
 
                         <div class="form-group row">
+                            <label class="col-md-3 col-form-label">Biaya Pinalti</label>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp.</span>
+                                    </div>
+                                    <input name="pinalti" class="form-control format-number" type="text"
+                                        id="pinalti">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
                             <label class="col-md-3 col-form-label">Biaya Administrasi</label>
                             <div class="col-md-5">
                                 <div class="input-group">
@@ -144,6 +164,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="form-group row">
                             <label class="col-md-3 col-form-label">Jumlah Bayar</label>
                             <div class="col-md-5">

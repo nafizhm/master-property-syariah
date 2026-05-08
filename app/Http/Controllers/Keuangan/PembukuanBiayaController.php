@@ -180,21 +180,21 @@ class PembukuanBiayaController extends Controller
 
                 ->addColumn('total_plafond', function ($row) {
 
-                    if ($row->jenis_pembelian === 'KPR') {
+        //             if ($row->jenis_pembelian === 'KPR') {
 
-                        $val = optional(
-                            $row->wawancara
-                                ->flatMap(fn($w) => $w->wawancaraSp3k)
-                                ->sortByDesc('id')
-                                ->first()
-                        )->acc_plafon;
+        //                 $val = optional(
+        //                     $row->wawancara
+        //                         ->flatMap(fn($w) => $w->wawancaraSp3k)
+        //                         ->sortByDesc('id')
+        //                         ->first()
+        //                 )->acc_plafon;
 
-                        return $val ? '
-            <div class="d-flex justify-content-between w-100">
-                <span>' . number_format($val, 0, ',', '.') . '</span>
-            </div>
-        ' : '';
-                    }
+        //                 return $val ? '
+        //     <div class="d-flex justify-content-between w-100">
+        //         <span>' . number_format($val, 0, ',', '.') . '</span>
+        //     </div>
+        // ' : '';
+        //             }
 
                     $booking = $row->pemasukans
                         ->where('id_kategori_transaksi', 1)
@@ -206,8 +206,10 @@ class PembukuanBiayaController extends Controller
 
                     $hrg    = $row->hrg_jual ?? 0;
                     $diskon = $row->diskon ?? 0;
+                    $custom = $row->biaya_custom ?? 0;
+                    $kpr    = $row->biaya_kpr ?? 0;
 
-                    $total = $hrg - $diskon - ($booking + $dp);
+                    $total = $hrg - $diskon - $booking - $dp + $custom + $kpr;
 
                     return $total ? '
         <div class="d-flex justify-content-between w-100">

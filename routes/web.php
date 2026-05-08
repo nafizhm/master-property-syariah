@@ -54,6 +54,7 @@ use App\Http\Controllers\Pengaturan\PengaturanMediaController;
 use App\Http\Controllers\Pengaturan\PengaturanPenggunaController;
 use App\Http\Controllers\Pengaturan\PengaturanProfilController;
 use App\Http\Controllers\Pengaturan\RoleUserController;
+use App\Http\Controllers\Siteplan\PublicSiteplanController;
 use App\Http\Controllers\Siteplan\SiteplanPenjualanController;
 use App\Http\Controllers\Siteplan\SiteplanProyekController;
 use App\Http\Controllers\Siteplan\SiteplanUnitReadyController;
@@ -258,11 +259,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('pindah-unit/cetak-word/{id}', [PindahUnitController::class, 'cetakWord'])->name('pindah-unit.cetak-word');
         Route::get('pindah-unit/detail-customer/{id_customer}', [PindahUnitController::class, 'detailCustomer'])->name('pindah-unit.detail-customer');
         Route::get('pindah-unit/get-kavling-baru/{id_customer}', [PindahUnitController::class, 'getKavlingBaru'])->name('pindah-unit.getKavlingBaru');
-        
-        
+
+
         Route::resource('pindah-unit', PindahUnitController::class);
         Route::resource('pembelian-cancel', PembelianCancelController::class);
-        Route::get('pembelian-cancel/cetak-word/{id}',[PembelianCancelController::class, 'cetakWord'])->name('pembelian-cancel.cetak-word');
+        Route::get('pembelian-cancel/cetak-word/{id}', [PembelianCancelController::class, 'cetakWord'])->name('pembelian-cancel.cetak-word');
         Route::get('ganti-nama/cetak/{id}', [GantiNamaController::class, 'cetak'])->name('ganti-nama.cetak');
         Route::resource('ganti-nama', GantiNamaController::class);
         Route::get('ganti-nama/{id}/get-customer', [GantiNamaController::class, 'getCustomer'])->name('ganti-nama.get-customer');
@@ -427,6 +428,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
 });
+
+Route::get('siteplan', [PublicSiteplanController::class, 'index'])->name('public.siteplan.index');
+Route::get('siteplan/detail/{id}', [PublicSiteplanController::class, 'show'])->name('public.siteplan.show');
 
 Route::get('/refresh-csrf', function () {
     return response()->json(['token' => csrf_token()]);

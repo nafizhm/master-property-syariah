@@ -56,7 +56,28 @@ class KavlingPeta extends Model
     }
     public function progres()
     {
-        return $this->belongsTo(ProgresListPenjualan::class, 'id_status_progres', 'id');
+        return $this->belongsTo(ProgresListPenjualan::class, 'status', 'id');
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        if ($this->id_customer && $this->customer && $this->customer->progres) {
+            return $this->customer->progres->status_progres;
+        }
+        return $this->progres->status_progres ?? 'Tersedia';
+    }
+
+    public function getSiteplanColorAttribute()
+    {
+        if ($this->id_customer && $this->customer && $this->customer->progres) {
+            return $this->customer->progres->warna;
+        }
+
+        if ($this->status == 1) {
+             return '#42f202'; // Matching legend for Booking/Pending
+        }
+
+        return $this->progres->warna ?? '#ffffff';
     }
      public function unitReady()
     {

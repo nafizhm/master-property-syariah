@@ -9,7 +9,7 @@
             font-family: 'Inter', sans-serif !important;
             background:
                 linear-gradient(rgba(8, 37, 19, 0.72), rgba(8, 37, 19, 0.72)),
-                url('{{ asset('config_media/images.webp') }}') no-repeat center center fixed !important;
+                url('{{ asset('config_media/booking-bg.png') }}') no-repeat center center fixed !important;
             background-size: cover !important;
             min-height: 100vh;
         }
@@ -120,7 +120,7 @@
             padding: 22px 22px 10px;
         }
 
-        .section-card + .section-card {
+        .section-card+.section-card {
             margin-top: 16px;
         }
 
@@ -352,6 +352,7 @@
         }
 
         @media screen and (max-width: 768px) {
+
             input,
             select,
             textarea {
@@ -398,6 +399,13 @@
                     <div class="booking-header">
                         <h4>Form Data Customer (Booking)</h4>
                         <p>Silakan lengkapi data dengan benar untuk proses booking unit</p>
+                        <div class="mt-4 text-center">
+                            <a href="{{ route('public.siteplan.index') }}" target="_blank"
+                                class="badge text-white px-3 py-2 shadow-sm"
+                                style="border-radius: 50rem; font-weight: 600; font-size: 0.75rem; transition: all 0.3s; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);">
+                                <i class="fas fa-map mr-1"></i> Lihat Siteplan
+                            </a>
+                        </div>
                     </div>
 
                     <div class="booking-body">
@@ -425,7 +433,8 @@
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Nama Lengkap <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Nama Lengkap <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-9 field-shell">
                                             <input name="nama_lengkap" id="nama_lengkap" class="form-control" type="text"
                                                 placeholder="Masukkan nama lengkap sesuai KTP">
@@ -433,12 +442,14 @@
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">NIK <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">NIK <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
                                             <input name="nik" id="nik" class="form-control" type="text"
                                                 placeholder="16 digit nomor KTP">
                                         </div>
-                                        <label class="col-sm-2 col-form-label">No. Telp / WA <span class="required-star">*</span></label>
+                                        <label class="col-sm-2 col-form-label">No. Telp / WA <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-3 field-shell">
                                             <input name="no_telp" id="no_telp" class="form-control" type="text"
                                                 placeholder="08xxxxxxxxxx">
@@ -446,19 +457,22 @@
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Tempat Lahir <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Tempat Lahir <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
                                             <input name="tempat_lahir" id="tempat_lahir" class="form-control" type="text"
                                                 placeholder="Kota kelahiran">
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Tanggal Lahir <span class="required-star">*</span></label>
+                                        <label class="col-sm-2 col-form-label">Tanggal Lahir <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-3 field-shell">
                                             <input name="tgl_lahir" id="tgl_lahir" class="form-control" type="date">
                                         </div>
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Jenis Kelamin <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Jenis Kelamin <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
                                             <select class="form-control select-jk" name="jenis_kelamin" id="jenis_kelamin">
                                                 <option value=""></option>
@@ -498,21 +512,22 @@
                                         </div>
                                         <label class="col-sm-2 col-form-label">No. BPJS Kes</label>
                                         <div class="col-sm-3 field-shell">
-                                            <input name="no_bpjs_kes" id="no_bpjs_kes" class="form-control" type="text"
-                                                placeholder="Nomor BPJS">
+                                            <input name="no_bpjs_kes" id="no_bpjs_kes" class="form-control"
+                                                type="text" placeholder="Nomor BPJS">
                                         </div>
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Alamat KTP <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Alamat KTP <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-9 field-shell">
-                                            <textarea name="alamat_ktp" id="alamat_ktp" class="form-control" rows="2"
-                                                placeholder="Alamat sesuai KTP"></textarea>
+                                            <textarea name="alamat_ktp" id="alamat_ktp" class="form-control" rows="2" placeholder="Alamat sesuai KTP"></textarea>
                                         </div>
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Alamat Domisili <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Alamat Domisili <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-9 field-shell">
                                             <textarea name="alamat_domisili" id="alamat_domisili" class="form-control" rows="2"
                                                 placeholder="Alamat domisili saat ini"></textarea>
@@ -537,8 +552,8 @@
                                     <div class="form-group row">
                                         <label class="col-sm-3 col-form-label">Nama Saudara</label>
                                         <div class="col-sm-4 field-shell">
-                                            <input name="nama_saudara" id="nama_saudara" class="form-control" type="text"
-                                                placeholder="Kontak darurat keluarga">
+                                            <input name="nama_saudara" id="nama_saudara" class="form-control"
+                                                type="text" placeholder="Kontak darurat keluarga">
                                         </div>
                                         <label class="col-sm-2 col-form-label">No. Telp Saudara</label>
                                         <div class="col-sm-3 field-shell">
@@ -557,7 +572,8 @@
 
                                 <div class="section-card">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Lokasi Perumahan <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Lokasi Perumahan <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
                                             <select class="form-control select-lokasi" name="id_lokasi" id="id_lokasi">
                                                 <option value=""></option>
@@ -566,9 +582,11 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Blok / Kav <span class="required-star">*</span></label>
+                                        <label class="col-sm-2 col-form-label">Blok / Kav <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-3 field-shell">
-                                            <select name="id_kavling" id="id_kavling" class="form-control select-kavling"></select>
+                                            <select name="id_kavling" id="id_kavling"
+                                                class="form-control select-kavling"></select>
                                         </div>
                                     </div>
 
@@ -583,7 +601,8 @@
                                                     class="form-control format-number" readonly>
                                             </div>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Jenis Properti <span class="required-star">*</span></label>
+                                        <label class="col-sm-2 col-form-label">Jenis Properti <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-3 field-shell">
                                             <select class="form-control select-jenis-properti" name="jenis_properti"
                                                 id="jenis_properti">
@@ -597,9 +616,11 @@
 
                                 <div class="section-card">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Marketing Inhouse <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Marketing Inhouse <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
-                                            <select class="form-control select-marketing" name="id_marketing" id="id_marketing">
+                                            <select class="form-control select-marketing" name="id_marketing"
+                                                id="id_marketing">
                                                 <option value=""></option>
                                                 <option value="0">Non Marketing</option>
                                                 @foreach ($marketing as $m)
@@ -619,15 +640,18 @@
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Jenis Perumahan <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Jenis Perumahan <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
-                                            <select class="form-control select-jp" name="jenis_perumahan" id="jenis_perumahan">
+                                            <select class="form-control select-jp" name="jenis_perumahan"
+                                                id="jenis_perumahan">
                                                 <option value=""></option>
                                                 <option value="Subsidi">Subsidi</option>
                                                 <option value="Komersil">Komersil</option>
                                             </select>
                                         </div>
-                                        <label class="col-sm-2 col-form-label">Jenis Pembelian <span class="required-star">*</span></label>
+                                        <label class="col-sm-2 col-form-label">Jenis Pembelian <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-3 field-shell">
                                             <select class="form-control select-pembelian" name="jenis_pembelian"
                                                 id="jenis_pembelian">
@@ -640,7 +664,8 @@
                                     </div>
 
                                     <div class="form-group row">
-                                        <label class="col-sm-3 col-form-label">Booking Fee <span class="required-star">*</span></label>
+                                        <label class="col-sm-3 col-form-label">Booking Fee <span
+                                                class="required-star">*</span></label>
                                         <div class="col-sm-4 field-shell">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
@@ -670,7 +695,8 @@
                                     <div class="upload-card field-shell">
                                         <h6>Foto Pemohon</h6>
                                         <p>Dokumen opsional untuk melengkapi identitas pemohon.</p>
-                                        <input name="foto_pemohon" id="foto_pemohon" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="foto_pemohon" id="foto_pemohon" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_pemohon')">
                                         <div id="preview_foto_pemohon" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -683,7 +709,8 @@
                                     <div class="upload-card field-shell">
                                         <h6>Foto KTP <span class="required-star">*</span></h6>
                                         <p>Dokumen utama identitas pemohon.</p>
-                                        <input name="foto_ktp" id="foto_ktp" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="foto_ktp" id="foto_ktp" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_ktp')">
                                         <div id="preview_foto_ktp" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -696,7 +723,8 @@
                                     <div class="upload-card field-shell">
                                         <h6>Foto NPWP</h6>
                                         <p>Diisi bila pemohon memiliki NPWP.</p>
-                                        <input name="foto_npwp" id="foto_npwp" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="foto_npwp" id="foto_npwp" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_npwp')">
                                         <div id="preview_foto_npwp" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -709,7 +737,8 @@
                                     <div class="upload-card field-shell">
                                         <h6>Foto KK</h6>
                                         <p>Dokumen kartu keluarga bila tersedia.</p>
-                                        <input name="foto_kk" id="foto_kk" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="foto_kk" id="foto_kk" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_kk')">
                                         <div id="preview_foto_kk" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -722,7 +751,8 @@
                                     <div class="upload-card field-shell">
                                         <h6>Foto BPJS</h6>
                                         <p>Dokumen BPJS kesehatan bila ada.</p>
-                                        <input name="foto_bpjs" id="foto_bpjs" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="foto_bpjs" id="foto_bpjs" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_bpjs')">
                                         <div id="preview_foto_bpjs" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -735,7 +765,8 @@
                                     <div class="upload-card field-shell">
                                         <h6>Foto KTP Pasangan</h6>
                                         <p>Diunggah bila status pernikahan menikah.</p>
-                                        <input name="foto_ktp_p" id="foto_ktp_p" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="foto_ktp_p" id="foto_ktp_p" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_ktp_p')">
                                         <div id="preview_foto_ktp_p" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -748,7 +779,8 @@
                                     <div class="upload-card field-shell" style="grid-column: 1 / -1;">
                                         <h6>Bukti Transfer</h6>
                                         <p>Unggah bukti pembayaran booking fee jika sudah tersedia.</p>
-                                        <input name="file_bukti" id="file_bukti" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                                        <input name="file_bukti" id="file_bukti" type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_file_bukti')">
                                         <div id="preview_file_bukti" class="preview-actions mt-3 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -943,7 +975,8 @@
                     $.get(urlKavling, function(data) {
                         let options = '<option value=""></option>';
                         data.forEach(function(item) {
-                            options += `<option value="${item.id}">${item.kode_kavling}</option>`;
+                            options +=
+                                `<option value="${item.id}">${item.kode_kavling}</option>`;
                         });
                         $('#id_kavling').html(options).trigger('change');
                     });
